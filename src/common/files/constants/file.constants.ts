@@ -1,8 +1,6 @@
 import { FileSizeUnit, NonEmptyArray, SupportedFileType } from '../types/file.types';
 
-export const MAX_FILE_COUNT = {
-  PROFILE_IMAGE: 1,
-} as const satisfies Record<string, number>;
+ 
 
 export const sizeLimits = {
   png: '5MB',

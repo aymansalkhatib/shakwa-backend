@@ -40,7 +40,6 @@ export class FileSignatureValidator extends FileValidator {
     if (this.strictCheck) {
       if (!filterTypeFile(files, checkMagicNumber)) {
         this.message = this.magicNumberError;
-
         return false;
       }
     }

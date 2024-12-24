@@ -15,7 +15,7 @@ import { UploadService } from './upload.service';
 import { CustomFileParsingPipe } from 'src/common/files/pipes/parse-file.pipe';
 import { ImageProcessingPipe } from 'src/common/files/pipes/image-processing.pipe';
 
-@Controller('upload')
+@Controller('upload') 
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
@@ -56,7 +56,7 @@ export class UploadController {
       { name: 'document', maxCount: 1 },
       { name: 'videos', maxCount: 5 },
       { name: 'audio', maxCount: 3 },
-    ]),
+    ],),
   )
   multiFiles(
     @UploadedFiles(CustomFileParsingPipe, ImageProcessingPipe)
