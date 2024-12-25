@@ -1,6 +1,11 @@
 export type SupportedFileType =
-  'png' | 'jpg' | 'jpeg' | // this type image is  supported
-  'pdf' | 'mp4' | 'ogg';
+  | 'png'
+  | 'jpg'
+  | 'jpeg' // this type image is  supported
+  | 'pdf'
+  | 'mp4'
+  | 'ogg'
+  | 'txt';
 
 export type FileSizeUnit = `${number}${'KB' | 'MB' | 'GB' | 'TB'}`;
 

@@ -6,16 +6,16 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import {
-  FileInterceptor,
-  FilesInterceptor,
   AnyFilesInterceptor,
   FileFieldsInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
 } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
 import { CustomFileParsingPipe } from 'src/common/files/pipes/parse-file.pipe';
 import { ImageProcessingPipe } from 'src/common/files/pipes/image-processing.pipe';
 
-@Controller('upload') 
+@Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
@@ -25,8 +25,6 @@ export class UploadController {
     @UploadedFile(CustomFileParsingPipe, ImageProcessingPipe)
     file: Express.Multer.File,
   ) {
-    console.log(file.buffer.length);
-
     return this.uploadService.uploadSingleImage(file);
   }
 
@@ -42,7 +40,10 @@ export class UploadController {
   @Post('any-files')
   @UseInterceptors(AnyFilesInterceptor())
   uploadAnyFiles(
-    @UploadedFiles(new CustomFileParsingPipe({supportedFileTypes:['png','ogg']}), ImageProcessingPipe)
+    @UploadedFiles(
+      new CustomFileParsingPipe({ supportedFileTypes: ['png', 'ogg'] }),
+      ImageProcessingPipe,
+    )
     files: Express.Multer.File[],
   ) {
     return this.uploadService.uploadAnyFiles(files);
@@ -56,7 +57,7 @@ export class UploadController {
       { name: 'document', maxCount: 1 },
       { name: 'videos', maxCount: 5 },
       { name: 'audio', maxCount: 3 },
-    ],),
+    ]),
   )
   multiFiles(
     @UploadedFiles(CustomFileParsingPipe, ImageProcessingPipe)

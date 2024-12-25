@@ -19,10 +19,10 @@ export async function compressImageFile(
   } = {},
 ): Promise<Express.Multer.File> {
   try {
-    const mimeType = file.mimetype.split('/')[1];
+    const mimeType = file.originalname.split('.').pop();
 
     if (!formatsSharp.includes(mimeType)) {
-      return file; // Return original file if it's not an image
+      return file;
     }
 
     let processedBuffer = await sharp(file.buffer).toBuffer();

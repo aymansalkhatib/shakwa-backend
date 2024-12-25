@@ -1,8 +1,8 @@
 import * as Joi from 'joi';
 
 export const configValidationSchema = Joi.object({
-  PORT: Joi.number().default(3000),
+  PORT: Joi.number().required(),
   DATABASE_HOST: Joi.string().required(),
-  DATABASE_PORT: Joi.number().default(5432),
+  DATABASE_PORT: Joi.number().required(),
   JWT_SECRET: Joi.string().required(),
 });

@@ -1,12 +1,15 @@
 import {
+  FileValidator,
+  HttpStatus,
   ParseFilePipe,
   UnprocessableEntityException,
-  HttpStatus,
-  FileValidator,
 } from '@nestjs/common';
 import { FileSignatureValidator } from '../validators/file-signature.validator';
-import { SupportedFileType, FileParsingPipeOptions } from '../types/file.types';
-import { NonEmptyArray } from '../types/file.types';
+import {
+  FileParsingPipeOptions,
+  NonEmptyArray,
+  SupportedFileType,
+} from '../types/file.types';
 import { FileNotEmptyValidator } from '../validators/file-not-empty.validator';
 import { CustomSizeLimitValidator } from '../validators/custom-size-limit.validator';
 import { sizeLimits as sl } from '../constants/file.constants';

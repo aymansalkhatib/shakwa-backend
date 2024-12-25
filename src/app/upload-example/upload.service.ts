@@ -20,11 +20,7 @@ export class UploadService {
   }
 
   // Handle uploading any file types
-  uploadAnyFiles(files: Express.Multer.File[]): Record<string, string[]>
-
-
-
-  {
+  uploadAnyFiles(files: Express.Multer.File[]): Record<string, string[]> {
     if (!files || files.length === 0) {
       throw new Error('No files uploaded.');
     }

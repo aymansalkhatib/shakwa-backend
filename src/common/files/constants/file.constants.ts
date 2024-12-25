@@ -1,7 +1,5 @@
 import { FileSizeUnit, NonEmptyArray, SupportedFileType } from '../types/file.types';
 
- 
-
 export const sizeLimits = {
   png: '5MB',
   jpg: '5MB',
@@ -9,6 +7,7 @@ export const sizeLimits = {
   pdf: '5MB',
   mp4: '300MB',
   ogg: '5MB',
+  txt: '100KB',
 } as const satisfies Record<SupportedFileType, FileSizeUnit>;
 
 export const arrayImagesType: NonEmptyArray<SupportedFileType> = [
@@ -21,9 +20,9 @@ export const fieldType: Record<string, NonEmptyArray<SupportedFileType>> = {
   image: ['png', 'jpg', 'jpeg'],
   images: ['png', 'jpg', 'jpeg'],
   videos: ['mp4'],
-  oudios: ['ogg'],
+  audios: ['ogg'],
+  file: ['txt'],
 };
-
 
 export const formatsSharp: string[] = [
   'avif',

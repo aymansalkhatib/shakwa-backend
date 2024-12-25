@@ -7,6 +7,7 @@ import { checkMagicNumber } from '../functions/file-checks/check-magic-number';
 import { checkIsFileTypeAllowedForField } from '../functions/file-checks/check-is-file-type-allowed-for-field';
 
 export class FileSignatureValidator extends FileValidator {
+  protected validationOptions: Record<string, any>;
   private message: string = 'Error';
 
   constructor(
@@ -23,7 +24,6 @@ export class FileSignatureValidator extends FileValidator {
   buildErrorMessage(): string {
     return this.message;
   }
-  protected validationOptions: Record<string, any>;
 
   isValid(files: any): boolean {
     if (
