@@ -7,7 +7,7 @@ export class UploadService {
     if (!file) {
       throw new BadRequestException('No file uploaded.');
     }
-    return `File uploaded: ${file.originalname}`;
+    return `File uploaded:  ${file.originalname}`;
   }
 
   // Handle array of images upload
@@ -15,11 +15,16 @@ export class UploadService {
     if (!files || files.length === 0) {
       throw new Error('No files uploaded.');
     }
+
     return files.map((file) => file.originalname);
   }
 
   // Handle uploading any file types
-  uploadAnyFiles(files: Express.Multer.File[]): Record<string, string[]> {
+  uploadAnyFiles(files: Express.Multer.File[]): Record<string, string[]>
+
+
+
+  {
     if (!files || files.length === 0) {
       throw new Error('No files uploaded.');
     }
