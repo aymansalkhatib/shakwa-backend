@@ -8,6 +8,7 @@ export class ConfigExampleController {
   // Fetch a single configuration (e.g., 'PORT')
   @Get('one')
   fetchOneConfig() {
+    throw Error('asas');
     return this.configExampleService.fetchOneConfigs();
   }
 }

@@ -17,12 +17,10 @@ export class CustomSizeLimitValidator extends FileValidator {
   }
 
   isValid(files: any): boolean {
-    return processFilesBasedOnType<{ sizeLimits: Record<SupportedFileType, FileSizeUnit> }>(
-      files,
-      checkFileSizeByType,
-      {
-        sizeLimits: this.options.sizeLimits,
-      },
-    );
+    return processFilesBasedOnType<{
+      sizeLimits: Record<SupportedFileType, FileSizeUnit>;
+    }>(files, checkFileSizeByType, {
+      sizeLimits: this.options.sizeLimits,
+    });
   }
 }

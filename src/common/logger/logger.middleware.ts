@@ -11,7 +11,7 @@ export class LoggerMiddleware implements NestMiddleware {
     const startTime = Date.now();
 
     res.on('finish', () => {
-      const { method, originalUrl: url, ip, query, body, header, params } = req;
+      const { method, originalUrl: url, ip, query, body, headers, params } = req;
       const userAgent = req.get('user-agent') || '';
       const userId = req.user?.id || 'Anonymous';
       const { statusCode } = res;
@@ -28,8 +28,8 @@ export class LoggerMiddleware implements NestMiddleware {
         ? JSON.stringify(body)
         : 'No body parameters';
 
-      const headerDetails = Object.keys(header).length
-        ? JSON.stringify(header)
+      const headerDetails = Object.keys(headers).length
+        ? JSON.stringify(headers)
         : 'No header parameters';
 
       const paramsDetails = Object.keys(params).length
@@ -49,7 +49,7 @@ export class LoggerMiddleware implements NestMiddleware {
         contentLength: `${contentLength}B`,
         query: queryDetails,
         body: bodyDetails,
-        header: headerDetails,
+        headers: headerDetails,
         params: paramsDetails,
         level_: 'INFO',
       };

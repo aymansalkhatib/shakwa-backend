@@ -31,8 +31,9 @@ export function formatConsoleOutput(entry: LogMetadata, showColor: boolean): str
     method,
     body,
     message,
-    header,
+    headers,
     params,
+    error,
   } = entry;
 
   const levelColor = levelColors[level_] || Colors.fgBrightWhite;
@@ -50,10 +51,11 @@ ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('IP ADDRESS:', Col
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('CONTENT LENGTH:', Colors.fgBrightYellow, showColor)} ${colorize(contentLength, Colors.fgBrightCyan, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('USER AGENT:', Colors.fgBrightYellow, showColor)} ${colorize(userAgent, Colors.fgBrightCyan, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('URL:', Colors.fgBrightYellow, showColor)} ${colorize(url, Colors.fgBrightWhite, showColor)}
-${formatMetadata({ header }, Colors.fgBrightGreen, showColor)}
+${formatMetadata({ headers }, Colors.fgBrightGreen, showColor)}
 ${formatMetadata({ params }, Colors.fgBrightCyan, showColor)}
 ${formatMetadata({ query }, Colors.fgBrightYellow, showColor)}
 ${formatMetadata({ body }, Colors.fgBrightRed, showColor)}
+${formatMetadata({ error }, Colors.fgBrightRed, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('STATUS CODE:', Colors.fgBrightYellow, showColor)} ${colorize(formatStatusCode(statusCode, showColor), Colors.fgBrightGreen, showColor)}
 ${colorize('╚═' + border + '\n', Colors.fgBrightBlue, showColor)}`;
 }

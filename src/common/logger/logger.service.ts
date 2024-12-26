@@ -3,12 +3,14 @@ import * as winston from 'winston';
 import { createFileTransports } from './transports/file.transport';
 import { LogMetadata } from './logger.types';
 import { formatConsoleOutput } from './utils/console.formatter';
+import { ConfigService } from '@nestjs/config';
+import { AppConfig } from '../../config/config.interface';
 
 @Injectable()
 export class CustomLogger implements LoggerService {
   private logger: winston.Logger;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService<AppConfig>) {
     const customFormatWithColor = winston.format.printf((info) => {
       return formatConsoleOutput(info as LogMetadata, true);
     });
@@ -18,23 +20,49 @@ export class CustomLogger implements LoggerService {
     });
 
     this.logger = winston.createLogger({
-      level: 'info',
-      format: winston.format.combine(
-        winston.format.timestamp({
-          format: 'YYYY-MM-DD HH:mm:ss.SSS',
-        }),
-        customFormatWithColor,
-      ),
       transports: [
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.timestamp({
-              format: 'YYYY-MM-DD HH:mm:ss.SSS',
-            }),
-            customFormatWithColor,
-          ),
-        }),
+        ...(this.configService.get<boolean>('LOG_ERROR') == true
+          ? [
+              new winston.transports.Console({
+                log(info: any, next: () => void): any {
+                  if (info.level_.toString().toLowerCase() === 'error') {
+                    console.log(formatConsoleOutput(info, true));
+                    next();
+                  }
+                  return;
+                },
+                format: winston.format.combine(
+                  winston.format.colorize(),
+                  winston.format.timestamp({
+                    format: 'YYYY-MM-DD HH:mm:ss.SSS',
+                  }),
+                  customFormatWithColor,
+                ),
+              }),
+            ]
+          : []),
+        ...(this.configService.get<boolean>('LOG_REQUEST') === true
+          ? [
+              new winston.transports.Console({
+                log(info: any, next: () => void): any {
+                  if (info.level_.toString().toLowerCase() !== 'error') {
+                    console.log(formatConsoleOutput(info, true));
+                    next();
+                  }
+                  return;
+                },
+                format: winston.format.combine(
+                  winston.format.colorize(),
+                  winston.format.timestamp({
+                    format: 'YYYY-MM-DD HH:mm:ss.SSS',
+                  }),
+                  customFormatWithColor,
+                ),
+              }),
+            ]
+          : []),
+
+        // Add file transports
         ...createFileTransports(customFormatWithoutColor),
       ],
     });

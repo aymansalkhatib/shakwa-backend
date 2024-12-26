@@ -6,8 +6,7 @@ export function formatStatusCode(statusCode: number, showColor: boolean): string
     if (code < 500) return Colors.fgBrightYellow;
     return Colors.fgBrightRed;
   };
-
-  return colorize(statusCode.toString(), getStatusColor(statusCode), showColor);
+  return colorize(statusCode?.toString(), getStatusColor(statusCode), showColor);
 }
 
 export function drawBox(

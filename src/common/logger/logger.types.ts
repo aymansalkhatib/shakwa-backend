@@ -14,5 +14,7 @@ export interface LogMetadata {
   message?: any;
   query?: any;
   params?: any;
-  header?: any;
+  headers?: any;
+
+  [key: string]: any;
 }
