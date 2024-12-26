@@ -1,5 +1,5 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
-import { filterTypeFile } from '../utils/filter-type-file.utils';
+import { processFilesBasedOnType } from '../utils/filter-type-file.utils';
 import { checkIsValidNameFile } from '../functions/file-checks/check-is-valid-name-file';
 
 export class FileNameValidator extends FileValidator {
@@ -12,6 +12,6 @@ export class FileNameValidator extends FileValidator {
   }
 
   isValid(files: any): boolean {
-    return filterTypeFile(files, checkIsValidNameFile);
+    return processFilesBasedOnType(files, checkIsValidNameFile);
   }
 }

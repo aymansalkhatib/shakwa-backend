@@ -11,13 +11,13 @@ import {
   FileInterceptor,
   FilesInterceptor,
 } from '@nestjs/platform-express';
-import { UploadService } from './upload.service';
+import { UploadServiceExample } from './upload.service';
 import { CustomFileParsingPipe } from 'src/common/files/pipes/parse-file.pipe';
 import { ImageProcessingPipe } from 'src/common/files/pipes/image-processing.pipe';
 
 @Controller('upload')
-export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+export class UploadControllerExample {
+  constructor(private readonly uploadService: UploadServiceExample) {}
 
   @Post('single-image')
   @UseInterceptors(FileInterceptor('image'))

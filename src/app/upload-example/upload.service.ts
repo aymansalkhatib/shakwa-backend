@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 
 @Injectable()
-export class UploadService {
+export class UploadServiceExample {
   // Handle single image upload
   uploadSingleImage(file: Express.Multer.File): string {
     if (!file) {

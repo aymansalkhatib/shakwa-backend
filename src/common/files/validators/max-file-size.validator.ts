@@ -1,7 +1,7 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
 import * as bytes from 'bytes';
 import { FileSizeUnit } from '../types/file.types';
-import { filterTypeFile } from '../utils/filter-type-file.utils';
+import { processFilesBasedOnType } from '../utils/filter-type-file.utils';
 
 export class MaxFileSizeValidator extends FileValidator {
   private readonly maxSize: number;
@@ -30,7 +30,7 @@ export class MaxFileSizeValidator extends FileValidator {
       return file.size <= options.maxSize;
     }
 
-    return filterTypeFile<{ maxSize: number }>(files, checkSize, {
+    return processFilesBasedOnType<{ maxSize: number }>(files, checkSize, {
       maxSize: this.maxSize,
     });
   }

@@ -44,7 +44,7 @@ function checkMultipleFiles(
   return true;
 }
 
-export function filterTypeFile<T>(
+export function processFilesBasedOnType<T>(
   files: any,
   callback: (file: Express.Multer.File, options: T) => boolean,
   options: T = null,

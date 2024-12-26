@@ -3,8 +3,8 @@ import { formatMetadata, formatStatusCode } from './format.utils';
 import { LogMetadata } from '../logger.types';
 
 const levelColors = {
-  info: Colors.bgBrightGreen + Colors.fgBlack,
-  INFO: Colors.bgBrightGreen + Colors.fgBlack, // Add INFO for case-insensitivity
+  info: Colors.fgBlue,
+  INFO: Colors.fgBrightBlue,
   error: Colors.bgBrightRed + Colors.fgWhite,
   ERROR: Colors.bgBrightRed + Colors.fgWhite,
   warn: Colors.bgBrightYellow + Colors.fgBlack,
@@ -38,8 +38,9 @@ export function formatConsoleOutput(entry: LogMetadata, showColor: boolean): str
   const levelColor = levelColors[level_] || Colors.fgBrightWhite;
   const border = '═'.repeat(100);
 
-  return `${colorize('╔═' + border, Colors.fgBrightBlue, showColor)}
+  return `${colorize('\n╔═' + border, Colors.fgBrightBlue, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('LEVEL:', Colors.fgBrightYellow, showColor)} ${colorize(level_, levelColor, showColor)} 
+${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('METHOD:', Colors.fgBrightYellow, showColor)} ${colorize(method, Colors.fgBrightWhite, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('MESSAGE:', Colors.fgBrightYellow, showColor)} ${colorize(message, Colors.fgBrightWhite, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('CONTEXT:', Colors.fgBrightYellow, showColor)} ${colorize(context || 'Global', Colors.fgBrightWhite, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('TIME:', Colors.fgBrightYellow, showColor)} ${colorize(time, Colors.fgBrightGreen, showColor)}
@@ -47,13 +48,12 @@ ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('RESPONSE TIME:', 
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('USER ID:', Colors.fgBrightYellow, showColor)} ${colorize(userId, Colors.fgBrightCyan, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('IP ADDRESS:', Colors.fgBrightYellow, showColor)} ${colorize(ip, Colors.fgBrightCyan, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('CONTENT LENGTH:', Colors.fgBrightYellow, showColor)} ${colorize(contentLength, Colors.fgBrightCyan, showColor)}
-${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('STATUS CODE:', Colors.fgBrightYellow, showColor)} ${colorize(formatStatusCode(statusCode, showColor), Colors.fgBrightGreen, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('USER AGENT:', Colors.fgBrightYellow, showColor)} ${colorize(userAgent, Colors.fgBrightCyan, showColor)}
 ${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('URL:', Colors.fgBrightYellow, showColor)} ${colorize(url, Colors.fgBrightWhite, showColor)}
-${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('METHOD:', Colors.fgBrightYellow, showColor)} ${colorize(method, Colors.fgBrightWhite, showColor)}
 ${formatMetadata({ header }, Colors.fgBrightGreen, showColor)}
 ${formatMetadata({ params }, Colors.fgBrightCyan, showColor)}
 ${formatMetadata({ query }, Colors.fgBrightYellow, showColor)}
 ${formatMetadata({ body }, Colors.fgBrightRed, showColor)}
-${colorize('╚═' + border, Colors.fgBrightBlue, showColor)}`;
+${colorize('║', Colors.fgBrightBlue, showColor)} ${colorize('STATUS CODE:', Colors.fgBrightYellow, showColor)} ${colorize(formatStatusCode(statusCode, showColor), Colors.fgBrightGreen, showColor)}
+${colorize('╚═' + border + '\n', Colors.fgBrightBlue, showColor)}`;
 }

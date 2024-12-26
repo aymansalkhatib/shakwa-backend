@@ -1,6 +1,6 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
 import { FileSizeUnit, SupportedFileType } from '../types/file.types';
-import { filterTypeFile } from '../utils/filter-type-file.utils';
+import { processFilesBasedOnType } from '../utils/filter-type-file.utils';
 import { checkFileSizeByType } from '../functions/file-checks/check-file-size-by-type';
 
 export class CustomSizeLimitValidator extends FileValidator {
@@ -17,7 +17,7 @@ export class CustomSizeLimitValidator extends FileValidator {
   }
 
   isValid(files: any): boolean {
-    return filterTypeFile<{ sizeLimits: Record<SupportedFileType, FileSizeUnit> }>(
+    return processFilesBasedOnType<{ sizeLimits: Record<SupportedFileType, FileSizeUnit> }>(
       files,
       checkFileSizeByType,
       {

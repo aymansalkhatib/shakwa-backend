@@ -26,7 +26,7 @@ export function drawBox(
 
   return `${colorize('╠═' + '═'.repeat(100), color, showColor)}
 ${colorize('║', color, showColor)} ${colorize(title.toUpperCase(), Colors.fgBrightYellow, showColor)}
-${colorize('╠═' + '═'.repeat(100), color, showColor)}
+${colorize('╠═' + '═'.repeat(6), color, showColor)}
 ${formattedContent}
 ${colorize('╠═' + '═'.repeat(100), color, showColor)}`;
 }

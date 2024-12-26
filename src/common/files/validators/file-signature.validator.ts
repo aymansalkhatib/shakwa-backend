@@ -1,5 +1,5 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
-import { filterTypeFile } from '../utils/filter-type-file.utils';
+import { processFilesBasedOnType } from '../utils/filter-type-file.utils';
 import { NonEmptyArray, SupportedFileType } from '../types/file.types';
 import { fieldType } from '../constants/file.constants';
 import { checkMimeType } from '../functions/file-checks/check-mime-type';
@@ -27,7 +27,7 @@ export class FileSignatureValidator extends FileValidator {
 
   isValid(files: any): boolean {
     if (
-      !filterTypeFile<NonEmptyArray<SupportedFileType>>(
+      !processFilesBasedOnType<NonEmptyArray<SupportedFileType>>(
         files,
         checkMimeType,
         this.allowedMimeTypes,
@@ -38,14 +38,14 @@ export class FileSignatureValidator extends FileValidator {
     }
 
     if (this.strictCheck) {
-      if (!filterTypeFile(files, checkMagicNumber)) {
+      if (!processFilesBasedOnType(files, checkMagicNumber)) {
         this.message = this.magicNumberError;
         return false;
       }
     }
 
     if (
-      !filterTypeFile<Record<string, NonEmptyArray<SupportedFileType>>>(
+      !processFilesBasedOnType<Record<string, NonEmptyArray<SupportedFileType>>>(
         files,
         checkIsFileTypeAllowedForField,
         fieldType,
