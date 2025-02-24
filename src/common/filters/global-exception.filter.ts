@@ -152,6 +152,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     this.logger.error(`Request failed: ${request.method} ${request.url}`, {
       ...metadata,
       statusCode: status,
+      level_: 'ERROR',
       error: {
         name: exception.name,
         message: exception.message,

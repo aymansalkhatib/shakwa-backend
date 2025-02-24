@@ -54,7 +54,9 @@ export class LoggerMiddleware implements NestMiddleware {
         level_: 'INFO',
       };
 
-      this.logger.log('Request Log', logMeta);
+      if (statusCode < 400) {
+        this.logger.log('Request Log', logMeta);
+      }
     });
 
     next();

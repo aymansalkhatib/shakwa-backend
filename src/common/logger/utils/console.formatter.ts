@@ -5,8 +5,8 @@ import { LogMetadata } from '../logger.types';
 const levelColors = {
   info: Colors.fgBlue,
   INFO: Colors.fgBrightBlue,
-  error: Colors.bgBrightRed + Colors.fgWhite,
-  ERROR: Colors.bgBrightRed + Colors.fgWhite,
+  error: Colors.fgError,
+  ERROR: Colors.fgError,
   warn: Colors.bgBrightYellow + Colors.fgBlack,
   WARN: Colors.bgBrightYellow + Colors.fgBlack,
   debug: Colors.bgBrightBlue + Colors.fgWhite,

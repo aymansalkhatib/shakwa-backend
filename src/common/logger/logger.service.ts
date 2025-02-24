@@ -19,13 +19,15 @@ export class CustomLogger implements LoggerService {
       return formatConsoleOutput(info as LogMetadata, false);
     });
 
+    console.log(this.configService.get('LOG_REQUEST'));
+    console.log(this.configService.get('LOG_ERROR'));
     this.logger = winston.createLogger({
       transports: [
         ...(this.configService.get<boolean>('LOG_ERROR') == true
           ? [
               new winston.transports.Console({
                 log(info: any, next: () => void): any {
-                  if (info.level_.toString().toLowerCase() === 'error') {
+                  if (info.level_?.toString().toLowerCase() === 'error') {
                     console.log(formatConsoleOutput(info, true));
                     next();
                   }
