@@ -4,13 +4,13 @@ import { createFileTransports } from './transports/file.transport';
 import { LogMetadata } from './logger.types';
 import { formatConsoleOutput } from './utils/console.formatter';
 import { ConfigService } from '@nestjs/config';
-import { AppConfig } from '../../config/config.interface';
+import { AppConfigModel } from '../../config/app_config.module';
 
 @Injectable()
 export class CustomLogger implements LoggerService {
   private logger: winston.Logger;
 
-  constructor(private readonly configService: ConfigService<AppConfig>) {
+  constructor(private readonly configService: ConfigService<AppConfigModel>) {
     const customFormatWithColor = winston.format.printf((info) => {
       return formatConsoleOutput(info as LogMetadata, true);
     });
@@ -19,8 +19,6 @@ export class CustomLogger implements LoggerService {
       return formatConsoleOutput(info as LogMetadata, false);
     });
 
-    console.log(this.configService.get('LOG_REQUEST'));
-    console.log(this.configService.get('LOG_ERROR'));
     this.logger = winston.createLogger({
       transports: [
         ...(this.configService.get<boolean>('LOG_ERROR') == true
