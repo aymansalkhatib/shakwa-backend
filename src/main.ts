@@ -3,8 +3,8 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import * as compression from 'compression';
-import { CustomLogger } from './common/logger/logger.service';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { WinstonLoggerService } from './common/logging/winston-logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -31,7 +31,7 @@ async function bootstrap() {
   );
 
   // Apply global exception filter
-  const logger = app.get(CustomLogger);
+  const logger = app.get(WinstonLoggerService);
   app.useGlobalFilters(new GlobalExceptionFilter(logger));
   // Start the server
   const port = process.env.PORT || 3000;

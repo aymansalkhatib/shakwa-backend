@@ -1,32 +1,35 @@
 import { Injectable, LoggerService } from '@nestjs/common';
-import * as winston from 'winston';
-import { createFileTransports } from './transports/file.transport';
-import { LogMetadata } from './logger.types';
-import { formatConsoleOutput } from './utils/console.formatter';
 import { ConfigService } from '@nestjs/config';
+import * as winston from 'winston';
+import { ConsoleFormatter } from './formatters/console.formatter';
+import { LogMetadata, ILogger } from './interfaces/logger.interface';
+import { createFileTransports } from './transports/file.transport';
 import { AppConfigModel } from '../../config/app_config.module';
 
+/**
+ * Winston-based logger implementation
+ */
 @Injectable()
-export class CustomLogger implements LoggerService {
+export class WinstonLoggerService implements LoggerService, ILogger {
   private logger: winston.Logger;
 
   constructor(private readonly configService: ConfigService<AppConfigModel>) {
     const customFormatWithColor = winston.format.printf((info) => {
-      return formatConsoleOutput(info as LogMetadata, true);
+      return ConsoleFormatter.format(info as LogMetadata, true);
     });
 
     const customFormatWithoutColor = winston.format.printf((info) => {
-      return formatConsoleOutput(info as LogMetadata, false);
+      return ConsoleFormatter.format(info as LogMetadata, false);
     });
 
     this.logger = winston.createLogger({
       transports: [
-        ...(this.configService.get<boolean>('LOG_ERROR') == true
+        ...(this.configService.get<boolean>('LOG_ERROR') === true
           ? [
               new winston.transports.Console({
                 log(info: any, next: () => void): any {
-                  if (info.level_?.toString().toLowerCase() === 'error') {
-                    console.log(formatConsoleOutput(info, true));
+                  if (info.levelLog?.toString().toLowerCase() === 'error') {
+                    console.log(ConsoleFormatter.format(info, true));
                     next();
                   }
                   return;
@@ -45,8 +48,8 @@ export class CustomLogger implements LoggerService {
           ? [
               new winston.transports.Console({
                 log(info: any, next: () => void): any {
-                  if (info.level_.toString().toLowerCase() !== 'error') {
-                    console.log(formatConsoleOutput(info, true));
+                  if (info.levelLog.toString().toLowerCase() !== 'error') {
+                    console.log(ConsoleFormatter.format(info, true));
                     next();
                   }
                   return;
@@ -61,8 +64,6 @@ export class CustomLogger implements LoggerService {
               }),
             ]
           : []),
-
-        // Add file transports
         ...createFileTransports(customFormatWithoutColor),
       ],
     });

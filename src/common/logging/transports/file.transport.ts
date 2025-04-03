@@ -1,6 +1,9 @@
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
 
+/**
+ * Configuration constants for file-based logging
+ */
 const FILE_CONFIG = {
   MAX_DAYS: '30d',
   DATE_PATTERN: 'YYYY-MM-DD',
@@ -17,6 +20,9 @@ interface RotateFileConfig {
   condition?: (info: any) => boolean;
 }
 
+/**
+ * Creates Winston format for file output
+ */
 function createFileFormat(format?: winston.Logform.Format): winston.Logform.Format {
   return winston.format.combine(
     winston.format.timestamp(),
@@ -25,6 +31,9 @@ function createFileFormat(format?: winston.Logform.Format): winston.Logform.Form
   );
 }
 
+/**
+ * Creates a daily rotate file transport with optional conditions
+ */
 export const createDailyRotateTransport = ({
   filename,
   level,
@@ -64,7 +73,9 @@ export const createDailyRotateTransport = ({
   return transport;
 };
 
-// Create all file transports
+/**
+ * Creates all file transports for the logger
+ */
 export const createFileTransports = (
   customFormat: winston.Logform.Format,
 ): winston.transport[] => {
@@ -73,16 +84,14 @@ export const createFileTransports = (
       filename: FILE_CONFIG.ERROR_FILE,
       level: 'error',
       format: customFormat,
-      condition: (info) => info.level_.toString().toLowerCase() === 'error',
+      condition: (info) => info.levelLog.toString().toLowerCase() === 'error',
     }),
 
     createDailyRotateTransport({
       filename: FILE_CONFIG.COMBINED_FILE,
       level: 'info',
       format: customFormat,
-      condition: (info) => {
-        return info.level_.toString().toLowerCase() !== 'error';
-      },
+      condition: (info) => info.levelLog.toString().toLowerCase() !== 'error',
     }),
   ];
 };

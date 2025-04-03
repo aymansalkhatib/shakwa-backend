@@ -14,10 +14,15 @@ import {
 import { UploadServiceExample } from './upload.service';
 import { CustomFileParsingPipe } from 'src/common/files/pipes/parse-file.pipe';
 import { ImageProcessingPipe } from 'src/common/files/pipes/image-processing.pipe';
+import { WinstonLoggerService } from 'src/common/logging/winston-logger.service';
+import { LogMetadata } from 'src/common/logging/interfaces/logger.interface';
 
 @Controller('upload')
 export class UploadControllerExample {
-  constructor(private readonly uploadService: UploadServiceExample) {}
+  constructor(
+    private readonly uploadService: UploadServiceExample,
+    private readonly logger: WinstonLoggerService,
+  ) {}
 
   @Post('single-image')
   @UseInterceptors(FileInterceptor('image'))

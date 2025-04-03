@@ -1,11 +1,14 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
-import { CustomLogger } from './logger.service';
-import { LogMetadata } from './logger.types';
+import { WinstonLoggerService } from './winston-logger.service';
+import { LogMetadata } from './interfaces/logger.interface';
 
+/**
+ * Middleware for logging HTTP requests
+ */
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
-  constructor(private readonly logger: CustomLogger) {}
+  constructor(private readonly logger: WinstonLoggerService) {}
 
   use(req: Request, res: Response, next: NextFunction) {
     const startTime = Date.now();
@@ -20,22 +23,6 @@ export class LoggerMiddleware implements NestMiddleware {
 
       const time = new Date().toISOString();
 
-      const queryDetails = Object.keys(query).length
-        ? JSON.stringify(query)
-        : 'No query parameters';
-
-      const bodyDetails = Object.keys(body).length
-        ? JSON.stringify(body)
-        : 'No body parameters';
-
-      const headerDetails = Object.keys(headers).length
-        ? JSON.stringify(headers)
-        : 'No header parameters';
-
-      const paramsDetails = Object.keys(params).length
-        ? JSON.stringify(params)
-        : 'No params parameters';
-
       const logMeta: LogMetadata = {
         time,
         method,
@@ -47,11 +34,17 @@ export class LoggerMiddleware implements NestMiddleware {
         userAgent,
         context: 'LoggerMiddleware',
         contentLength: `${contentLength}B`,
-        query: queryDetails,
-        body: bodyDetails,
-        headers: headerDetails,
-        params: paramsDetails,
-        level_: 'INFO',
+        query: Object.keys(query).length
+          ? JSON.stringify(query)
+          : 'No query parameters',
+        body: Object.keys(body).length ? JSON.stringify(body) : 'No body parameters',
+        headers: Object.keys(headers).length
+          ? JSON.stringify(headers)
+          : 'No header parameters',
+        params: Object.keys(params).length
+          ? JSON.stringify(params)
+          : 'No params parameters',
+        levelLog: 'INFO',
       };
 
       if (statusCode < 400) {

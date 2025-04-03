@@ -1,3 +1,6 @@
+/**
+ * ANSI color codes for console output formatting
+ */
 export const Colors = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
@@ -48,14 +51,9 @@ export const Colors = {
   bgBrightWhite: '\x1b[107m',
 
   // Special Colors
-  fgInfo: '\x1b[32m', // Green for info logs
-  fgWarn: '\x1b[33m', // Yellow for warnings
-  fgError: '\x1b[31m', // Red for errors
-  fgDebug: '\x1b[34m', // Blue for debug messages
-  fgVerbose: '\x1b[36m', // Cyan for verbose messages
+  fgInfo: '\x1b[32m',
+  fgWarn: '\x1b[33m',
+  fgError: '\x1b[31m',
+  fgDebug: '\x1b[34m',
+  fgVerbose: '\x1b[36m',
 };
-
-export function colorize(text: any, color: string, showColor: boolean): string {
-  if (!showColor) return text;
-  return `${color}${text}${Colors.reset}`;
-}

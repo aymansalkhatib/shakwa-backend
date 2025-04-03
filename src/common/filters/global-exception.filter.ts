@@ -10,7 +10,7 @@ import { MulterError } from 'multer';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 import { extractRequestMetadata } from './utils/request-metadata.util';
 import { getErrorStatus } from './utils/error-handler.util';
-import { CustomLogger } from '../logger/logger.service';
+import { WinstonLoggerService } from '../logging/winston-logger.service';
 
 interface ErrorResponse {
   status: 'error' | 'failure';
@@ -24,7 +24,7 @@ interface ErrorResponse {
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly startTime: number;
 
-  constructor(private readonly logger: CustomLogger) {
+  constructor(private readonly logger: WinstonLoggerService) {
     this.startTime = Date.now();
   }
 
@@ -152,7 +152,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     this.logger.error(`Request failed: ${request.method} ${request.url}`, {
       ...metadata,
       statusCode: status,
-      level_: 'ERROR',
+      levelLog: 'ERROR',
       error: {
         name: exception.name,
         message: exception.message,

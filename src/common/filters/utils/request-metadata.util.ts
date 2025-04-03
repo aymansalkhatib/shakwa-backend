@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { LogMetadata } from '../../logger/logger.types';
+import { LogMetadata } from 'src/common/logging/interfaces/logger.interface';
 
 export function extractRequestMetadata(
   request: Request,
@@ -8,7 +8,7 @@ export function extractRequestMetadata(
   const responseTime = `${Date.now() - startTime}ms`;
 
   return {
-    level_: 'Error',
+    levelLog: 'Error',
 
     statusCode: request.res?.statusCode,
     responseTime,
