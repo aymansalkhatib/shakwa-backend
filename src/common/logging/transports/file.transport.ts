@@ -84,14 +84,16 @@ export const createFileTransports = (
       filename: FILE_CONFIG.ERROR_FILE,
       level: 'error',
       format: customFormat,
-      condition: (info) => info.levelLog.toString().toLowerCase() === 'error',
+      condition: (info) => {
+        return info.levelLog?.toString().toLowerCase() === 'error';
+      },
     }),
 
     createDailyRotateTransport({
       filename: FILE_CONFIG.COMBINED_FILE,
       level: 'info',
       format: customFormat,
-      condition: (info) => info.levelLog.toString().toLowerCase() !== 'error',
+      condition: (info) => info.levelLog?.toString().toLowerCase() !== 'error',
     }),
   ];
 };

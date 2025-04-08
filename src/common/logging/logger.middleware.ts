@@ -11,7 +11,7 @@ export class LoggerMiddleware implements NestMiddleware {
   constructor(private readonly logger: WinstonLoggerService) {}
 
   use(req: Request, res: Response, next: NextFunction) {
-    const startTime = Date.now();
+    const startTime: Date = new Date();
 
     res.on('finish', () => {
       const { method, originalUrl: url, ip, query, body, headers, params } = req;
@@ -19,16 +19,13 @@ export class LoggerMiddleware implements NestMiddleware {
       const userId = req.user?.id || 'Anonymous';
       const { statusCode } = res;
       const contentLength = res.get('content-length') || '0';
-      const responseTime = `${Date.now() - startTime}ms`;
-
-      const time = new Date().toISOString();
+      const endTime: Date = new Date();
+      const during = `${endTime.getTime() - startTime.getTime()}ms`;
 
       const logMeta: LogMetadata = {
-        time,
         method,
         url,
         statusCode,
-        responseTime,
         userId,
         ip,
         userAgent,
@@ -45,6 +42,9 @@ export class LoggerMiddleware implements NestMiddleware {
           ? JSON.stringify(params)
           : 'No params parameters',
         levelLog: 'INFO',
+        requestTime: startTime.toISOString(),
+        responseTime: endTime.toISOString(),
+        during: during,
       };
 
       if (statusCode < 400) {

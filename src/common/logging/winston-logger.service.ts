@@ -15,11 +15,11 @@ export class WinstonLoggerService implements LoggerService, ILogger {
 
   constructor(private readonly configService: ConfigService<AppConfigModel>) {
     const customFormatWithColor = winston.format.printf((info) => {
-      return ConsoleFormatter.format(info as LogMetadata, true);
+      return ConsoleFormatter.format(info, true);
     });
 
     const customFormatWithoutColor = winston.format.printf((info) => {
-      return ConsoleFormatter.format(info as LogMetadata, false);
+      return ConsoleFormatter.format(info, false);
     });
 
     this.logger = winston.createLogger({
