@@ -14,15 +14,12 @@ import {
 import { UploadServiceExample } from './upload.service';
 import { CustomFileParsingPipe } from 'src/common/files/pipes/parse-file.pipe';
 import { ImageProcessingPipe } from 'src/common/files/pipes/image-processing.pipe';
-import { WinstonLoggerService } from 'src/common/logging/winston-logger.service';
-import { LogMetadata } from 'src/common/logging/interfaces/logger.interface';
+import { join } from 'path';
+import { promises as fs } from 'fs';
 
 @Controller('upload')
 export class UploadControllerExample {
-  constructor(
-    private readonly uploadService: UploadServiceExample,
-    private readonly logger: WinstonLoggerService,
-  ) {}
+  constructor(private readonly uploadService: UploadServiceExample) {}
 
   @Post('single-image')
   @UseInterceptors(FileInterceptor('image'))
@@ -30,7 +27,20 @@ export class UploadControllerExample {
     @UploadedFile(CustomFileParsingPipe, ImageProcessingPipe)
     file: Express.Multer.File,
   ) {
-    return this.uploadService.uploadSingleImage(file);
+    const uploadDir = join(__dirname, '..', 'uploads');
+    await fs.mkdir(uploadDir, { recursive: true });
+
+     const fileName =file.originalname;
+    const filePath = join(uploadDir, fileName);
+
+    await fs.writeFile(filePath, file.buffer);
+
+    return {
+      message: 'Image uploaded and saved successfully',
+      fileName,
+      path: filePath,
+      name: file.originalname,
+    };
   }
 
   @Post('array-images')
@@ -46,7 +56,7 @@ export class UploadControllerExample {
   @UseInterceptors(AnyFilesInterceptor())
   uploadAnyFiles(
     @UploadedFiles(
-      new CustomFileParsingPipe({ supportedFileTypes: ['png', 'ogg'] }),
+      new CustomFileParsingPipe({ allowedFileTypes: ['png', 'ogg'] }),
       ImageProcessingPipe,
     )
     files: Express.Multer.File[],
@@ -68,8 +78,6 @@ export class UploadControllerExample {
     @UploadedFiles(CustomFileParsingPipe, ImageProcessingPipe)
     files: Record<string, Express.Multer.File[]>,
   ) {
-    console.log(files.images);
-
     return this.uploadService.multipleFiles(files);
   }
 }

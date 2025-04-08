@@ -1,4 +1,3 @@
-import { time } from 'console';
 import { Colors } from '../constants/colors.constant';
 import { LevelColors } from '../constants/level-colors.constant';
 import { LogMetadata } from '../interfaces/logger.interface';
@@ -24,7 +23,7 @@ export class ConsoleFormatter {
       message,
       headers,
       params,
-      error,
+      error = 'No Error',
       traceId,
       requestTime,
       responseTime,

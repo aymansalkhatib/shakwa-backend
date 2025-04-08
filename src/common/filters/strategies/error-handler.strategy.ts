@@ -1,4 +1,3 @@
-import { HttpStatus } from '@nestjs/common';
 import { ErrorResponse } from '../interfaces/error-response.interface';
 
 /**

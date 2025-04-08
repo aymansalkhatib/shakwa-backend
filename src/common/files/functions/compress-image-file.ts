@@ -1,90 +1,163 @@
 import * as bytes from 'bytes';
-import { FileSizeUnit } from '../types/file.types';
 import * as sharp from 'sharp';
-import { formatsSharp } from '../constants/file.constants';
+import {
+  DEFAULT_COMPRESSION_OPTIONS,
+  FORMAT_PRIORITIES,
+  SHARP_SUPPORTED_FORMATS,
+} from '../constants/file.constants';
+import {
+  FileSizeUnit,
+  ImageCompressionOptions,
+  ImageDimensions,
+  ImageFormat,
+} from '../types/file.types';
+import { createUniqueFileName } from './create_unique_file_name';
+import { extractFileFormat } from './extract_file_format';
 
-export async function compressImageFile(
+/**
+ * Optimizes an image by finding the best balance between quality and file size
+ */
+export async function optimizeImage(
   file: Express.Multer.File,
-  {
-    quality = 80,
-    minQuality = 50,
-    maxFileSizeKB = '200KB',
-    outputFormat,
-  }: {
-    maxSize?: FileSizeUnit;
-    quality?: number;
-    minQuality?: number;
-    maxFileSizeKB?: FileSizeUnit;
-    outputFormat?: keyof sharp.FormatEnum;
-  } = {},
+  options: ImageCompressionOptions = {},
 ): Promise<Express.Multer.File> {
-  try {
-    const mimeType = file.originalname.split('.').pop();
+  const mergedOptions = { ...DEFAULT_COMPRESSION_OPTIONS, ...options };
+  const { quality, minQuality, maxFileSize, outputFormat } = mergedOptions;
 
-    if (!formatsSharp.includes(mimeType)) {
+  try {
+    const imageFormat = extractFileFormat(file.originalname);
+
+    if (!isSupported(imageFormat)) {
       return file;
     }
 
-    let processedBuffer = await sharp(file.buffer).toBuffer();
-    let adjustedQuality = quality;
+    const format = outputFormat ?? (await findBestFormat(file.buffer));
 
-    while (
-      shouldCompress(
-        processedBuffer.length,
-        maxFileSizeKB,
-        adjustedQuality,
-        minQuality,
-      )
-    ) {
-      processedBuffer = await processImage(
-        file.buffer,
-        adjustedQuality,
-        outputFormat ?? (mimeType as keyof sharp.FormatEnum),
-      );
+    const result = await compressImageIteratively({
+      buffer: file.buffer,
+      format,
+      initialQuality: quality,
+      minQuality,
+      maxSize: maxFileSize,
+    });
 
-      adjustedQuality -= 5;
-    }
-
-    file.buffer = processedBuffer;
-    file.size = processedBuffer.length;
-
-    return file;
+    return {
+      ...file,
+      buffer: result.buffer,
+      size: result.buffer.length,
+      mimetype: `image/${format}`,
+      originalname: createUniqueFileName(file.originalname, format),
+    };
   } catch (error) {
-    throw new Error('Error processing image: ' + error.message);
+    throw new Error(`Image optimization failed: ${error.message}`);
   }
 }
 
-// Helper function to check if compression is needed
-function shouldCompress(
-  currentSize: number,
-  maxSizeKB: FileSizeUnit,
-  quality: number,
-  minQuality: number,
-): boolean {
-  return currentSize > bytes(maxSizeKB) && quality > minQuality;
+/**
+ * Determines if the image format is supported by Sharp
+ */
+function isSupported(format: string): boolean {
+  return SHARP_SUPPORTED_FORMATS.includes(format as ImageFormat);
 }
 
-// Helper function to process the image
+/**
+ * Finds the best format for compression by testing different formats
+ */
+async function findBestFormat(buffer: Buffer): Promise<ImageFormat> {
+  const originalSize = buffer.length;
+  const results = await Promise.all(
+    FORMAT_PRIORITIES.map(async (format) => {
+      const converted = await sharp(buffer)
+        .toFormat(format, { quality: 80 })
+        .toBuffer();
+      return { format, size: converted.length };
+    }),
+  );
+
+  const bestResult = results.reduce((best, current) =>
+    current.size < best.size ? current : best,
+  );
+
+  return bestResult.size < originalSize ? bestResult.format : 'jpeg';
+}
+
+/**
+ * Determines if further compression is needed
+ */
+function needsCompression(
+  currentSize: number,
+  targetSize: FileSizeUnit,
+  currentQuality: number,
+  minQuality: number,
+): boolean {
+  return currentSize > bytes(targetSize) && currentQuality > minQuality;
+}
+
+/**
+ * Calculates optimal dimensions while maintaining aspect ratio
+ */
+async function calculateOptimalDimensions(
+  buffer: Buffer,
+  targetSize: FileSizeUnit,
+): Promise<ImageDimensions> {
+  const metadata = await sharp(buffer).metadata();
+  const targetBytes = bytes(targetSize);
+  const ratio = Math.sqrt(targetBytes / buffer.length);
+
+  return {
+    width: Math.round(metadata.width * ratio),
+    height: Math.round(metadata.height * ratio),
+  };
+}
+
+/**
+ * Processes image with specific quality and format settings
+ */
 async function processImage(
   buffer: Buffer,
   quality: number,
-  outputFormat: keyof sharp.FormatEnum,
+  format: ImageFormat,
+  dimensions?: ImageDimensions,
 ): Promise<Buffer> {
-  const { width, height } = await sharp(buffer).metadata();
+  const pipeline = sharp(buffer);
 
-  // Determine new dimensions based on conditions
-  const newWidth = width * (quality / 100);
-  const newHeight = height * (quality / 100);
-
-  // Determine the original format from the mimetype and use it if outputFormat is not provided
-
-  return sharp(buffer)
-    .resize({
-      width: newWidth,
-      height: newHeight,
-      fit: sharp.fit.inside,
+  if (dimensions) {
+    pipeline.resize({
+      ...dimensions,
+      fit: 'inside',
       withoutEnlargement: true,
-    })
-    .toFormat(outputFormat, { quality: quality }) // Use specified output format
-    .toBuffer();
+    });
+  }
+
+  return pipeline.toFormat(format, { quality }).toBuffer();
+}
+
+/**
+ * Iteratively compresses image until target size or minimum quality is reached
+ */
+async function compressImageIteratively({
+  buffer,
+  format,
+  initialQuality,
+  minQuality,
+  maxSize,
+}: {
+  buffer: Buffer;
+  format: ImageFormat;
+  initialQuality: number;
+  minQuality: number;
+  maxSize: FileSizeUnit;
+}): Promise<{ buffer: Buffer; quality: number }> {
+  let currentBuffer = buffer;
+  let currentQuality = initialQuality;
+  const dimensions = await calculateOptimalDimensions(buffer, maxSize);
+
+  while (
+    needsCompression(currentBuffer.length, maxSize, currentQuality, minQuality)
+  ) {
+    currentBuffer = await processImage(buffer, currentQuality, format, dimensions);
+    currentQuality -= 5;
+  }
+
+  return { buffer: currentBuffer, quality: currentQuality };
 }

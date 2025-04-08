@@ -4,43 +4,53 @@ import {
   ParseFilePipe,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { FileSignatureValidator } from '../validators/file-signature.validator';
-import {
-  FileParsingPipeOptions,
-  NonEmptyArray,
-  SupportedFileType,
-} from '../types/file.types';
-import { FileNotEmptyValidator } from '../validators/file-not-empty.validator';
-import { CustomSizeLimitValidator } from '../validators/custom-size-limit.validator';
-import { sizeLimits as sl } from '../constants/file.constants';
+import { FileValidationOptions } from '../types/file.types';
+import { NonEmptyFileValidator } from '../validators/file-not-empty.validator';
+import { FileSizeValidator as FileTypeSizeValidator } from '../validators/custom-size-limit.validator';
+import { DEFAULT_FILE_VALIDATION_OPTIONS } from '../constants/file.constants';
 import { MaxFileSizeValidator } from '../validators/max-file-size.validator';
-import { FileNameValidator } from '../validators/file-name.validator';
+import { FileUploadNameValidator } from '../validators/file-name.validator';
+import { FileValidationSignatureValidator } from '../validators/file-signature.validator';
 
+/**
+ * CustomFileParsingPipe provides comprehensive file validation for uploaded files
+ * including size limits, type checking, and content validation.
+ */
 export class CustomFileParsingPipe extends ParseFilePipe {
-  constructor(options: FileParsingPipeOptions = {}) {
+  constructor(options: FileValidationOptions = DEFAULT_FILE_VALIDATION_OPTIONS) {
     const {
-      maxSize = '5MB',
-      supportedFileTypes = [
-        'png',
-        'jpg',
-        'jpeg',
-      ] as NonEmptyArray<SupportedFileType>,
-      fileIsRequired = true,
-      sizeLimits = sl,
+      globalMaxFileSize,
+      allowedFileTypes,
+      isFileRequired,
+      perTypeSizeLimits,
     } = options;
 
     const validators: FileValidator[] = [
-      new MaxFileSizeValidator({ maxSize }),
-      new FileSignatureValidator(supportedFileTypes, true),
-      new FileNotEmptyValidator(),
-      new FileNameValidator(),
-      new CustomSizeLimitValidator({ sizeLimits }),
+      // Validates the global maximum file size
+      new MaxFileSizeValidator({ globalMaxFileSize }),
+
+      // Validates file type and signature
+      new FileValidationSignatureValidator(allowedFileTypes, true),
+
+      // Ensures file is not empty
+      new NonEmptyFileValidator(),
+
+      // Validates file name format
+      new FileUploadNameValidator(),
+
+      // Validates type-specific size limits
+      new FileTypeSizeValidator({ perTypeSizeLimits }),
     ];
 
+    /**
+     * Creates the exception factory function for validation errors
+     *
+     * @returns Function that creates UnprocessableEntityException
+     */
     super({
       validators,
       errorHttpStatusCode: HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-      fileIsRequired,
+      fileIsRequired: isFileRequired,
       exceptionFactory: (error: string) => {
         throw new UnprocessableEntityException(error);
       },

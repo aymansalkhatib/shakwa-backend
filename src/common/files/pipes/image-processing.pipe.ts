@@ -1,34 +1,72 @@
 import { Injectable, PipeTransform } from '@nestjs/common';
-import { Express } from 'express';
 import { isArrayOfFiles, isSingleFile } from '../utils/filter-type-file.utils';
-import { compressImageFile } from '../functions/compress-image-file';
+import { optimizeImage } from '../functions/compress-image-file';
+import { FileUpload, NestedFileUpload } from '../types/file.types';
 
 @Injectable()
-export class ImageProcessingPipe implements PipeTransform {
-  async transform(files: any) {
-    if (isSingleFile(files)) {
-      files = await compressImageFile(files);
-    } else if (isArrayOfFiles(files)) {
-      files = await Promise.all(
-        files.map(async (file: Express.Multer.File) => {
-          return await compressImageFile(file);
-        }),
-      );
-    } else {
-      for (const key in files) {
-        if (Object.prototype.hasOwnProperty.call(files, key)) {
-          const filesArray = files[key];
-          if (Array.isArray(filesArray)) {
-            for (let i = 0; i < filesArray.length; i++) {
-              const file = filesArray[i];
-
-              filesArray[i] = await compressImageFile(file);
-            }
-          }
-        }
-      }
+export class ImageProcessingPipe
+  implements PipeTransform<FileUpload, Promise<FileUpload>>
+{
+  /**
+   * Transforms uploaded files by optimizing their size and quality
+   * Handles single files, arrays of files, and nested file structures
+   *
+   * @param files - The uploaded file(s) to process
+   * @returns The processed file(s) with optimized images
+   */
+  async transform(files: FileUpload) {
+    if (!files) {
+      return files;
     }
 
-    return files;
+    return await this.processFiles(files);
+  }
+
+  /**
+   * Routes the file processing based on the upload structure
+   */
+  private async processFiles(files: FileUpload): Promise<FileUpload> {
+    if (isSingleFile(files)) {
+      return this.processSingleFile(files as Express.Multer.File);
+    }
+    if (isArrayOfFiles(files)) {
+      return this.processFileArray(files as Express.Multer.File[]);
+    }
+    return this.processNestedFiles(files as Record<string, Express.Multer.File[]>);
+  }
+
+  /**
+   * Processes a single file upload
+   */
+
+  private async processSingleFile(
+    file: Express.Multer.File,
+  ): Promise<Express.Multer.File> {
+    return optimizeImage(file);
+  }
+
+  /**
+   * Processes an array of file uploads concurrently
+   */
+  private async processFileArray(
+    files: Express.Multer.File[],
+  ): Promise<Express.Multer.File[]> {
+    return Promise.all(files.map((file) => this.processSingleFile(file)));
+  }
+
+  private async processNestedFiles(
+    files: NestedFileUpload,
+  ): Promise<NestedFileUpload> {
+    const processedFiles: NestedFileUpload = { ...files };
+
+    await Promise.all(
+      Object.entries(processedFiles).map(async ([key, fileArray]) => {
+        if (Array.isArray(fileArray)) {
+          processedFiles[key] = await this.processFileArray(fileArray);
+        }
+      }),
+    );
+
+    return processedFiles;
   }
 }
