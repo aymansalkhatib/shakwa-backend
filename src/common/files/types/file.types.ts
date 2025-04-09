@@ -44,7 +44,7 @@ export interface FileValidationOptions {
   /**
    * Specific size limits per file type. Overrides globalMaxFileSize for matching types.
    */
-  perTypeSizeLimits?: Record<SupportedFileType, FileSizeUnit>;
+  perTypeSizeLimits?:Record<SupportedFileType, FileSizeUnit>;
 }
 
 /**

@@ -1,5 +1,4 @@
 import { HttpStatus } from '@nestjs/common';
-import { MulterError } from 'multer';
 import BaseErrorHandler from './error-handler.strategy';
 import { ErrorResponse } from '../interfaces/error-response.interface';
 
@@ -8,31 +7,22 @@ import { ErrorResponse } from '../interfaces/error-response.interface';
  */
 export class MulterErrorHandler extends BaseErrorHandler {
   private readonly errorMessages: Record<string, string> = {
-    LIMIT_FILE_SIZE: 'File size exceeds the allowed limit',
-    LIMIT_FILE_COUNT: 'Too many files uploaded',
-    LIMIT_UNEXPECTED_FILE: 'Unexpected field',
-    LIMIT_FIELD_KEY: 'Field name too long',
-    LIMIT_FIELD_VALUE: 'Field value too long',
-    LIMIT_FIELD_COUNT: 'Too many fields',
-    LIMIT_PART_COUNT: 'Too many parts',
+    'Too many files': 'Too many files uploaded',
+    'Unexpected field': 'Unexpected fieldwe',
   };
 
   canHandle(error: Error): boolean {
-    return error instanceof MulterError;
+    return this.errorMessages[error.message] != null;
   }
 
-  handle(error: MulterError, traceId: string): ErrorResponse {
+  handle(error: Error, traceId: string): ErrorResponse {
     return {
       ...this.createBaseResponse(
         'failure',
         HttpStatus.BAD_REQUEST,
-        this.errorMessages[error.code] || 'File upload error',
+        this.errorMessages[error.message] || 'File upload error',
         traceId,
       ),
-      context: {
-        code: `UPLOAD_${error.code}`,
-        details: { field: error.field },
-      },
     };
   }
 }

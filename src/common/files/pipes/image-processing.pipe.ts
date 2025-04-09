@@ -1,12 +1,18 @@
-import { Injectable, PipeTransform } from '@nestjs/common';
-import { isArrayOfFiles, isSingleFile } from '../utils/filter-type-file.utils';
+import { Inject, Injectable, PipeTransform } from '@nestjs/common';
+import { isArrayOfFiles, isSingleFile } from '../functions/file-structure-checker';
 import { optimizeImage } from '../functions/compress-image-file';
-import { FileUpload, NestedFileUpload } from '../types/file.types';
+import {
+  FileUpload,
+  ImageCompressionOptions,
+  NestedFileUpload,
+} from '../types/file.types';
 
 @Injectable()
-export class ImageProcessingPipe
-  implements PipeTransform<FileUpload, Promise<FileUpload>>
-{
+export class ImageProcessingPipe implements PipeTransform {
+  constructor(
+    @Inject('IMAGE_COMPRESSION_OPTIONS')
+    private readonly options: ImageCompressionOptions,
+  ) {}
   /**
    * Transforms uploaded files by optimizing their size and quality
    * Handles single files, arrays of files, and nested file structures
@@ -42,7 +48,7 @@ export class ImageProcessingPipe
   private async processSingleFile(
     file: Express.Multer.File,
   ): Promise<Express.Multer.File> {
-    return optimizeImage(file);
+    return optimizeImage(file, this.options);
   }
 
   /**

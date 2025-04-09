@@ -3,10 +3,7 @@ import { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import { ErrorHandlerFactory } from './error-handler.factory';
 import { WinstonLoggerService } from '../logging/winston-logger.service';
-import {
-  extractRequestMetadata,
-  getErrorStatus,
-} from './utils/request-metadata.util';
+import { extractRequestMetadata, getErrorStatus } from './utils/request-metadata.util';
 import { LogMetadata } from '../logging/interfaces/logger.interface';
 
 /**
@@ -20,7 +17,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     private readonly logger: WinstonLoggerService,
   ) {}
 
-  catch(exception: Error, host: ArgumentsHost): void {
+  catch(exception: any, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -31,6 +28,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     try {
       // Get the appropriate handler for this type of error
       const handler = this.errorHandlerFactory.getHandler(exception);
+
       const errorResponse = handler.handle(exception, traceId);
 
       // Add stack trace in development

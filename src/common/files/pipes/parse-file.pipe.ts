@@ -1,10 +1,12 @@
 import {
   FileValidator,
   HttpStatus,
+  Inject,
+  Injectable,
   ParseFilePipe,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { FileValidationOptions } from '../types/file.types';
+import { FileValidationOptions, ImageCompressionOptions } from '../types/file.types';
 import { NonEmptyFileValidator } from '../validators/file-not-empty.validator';
 import { FileSizeValidator as FileTypeSizeValidator } from '../validators/custom-size-limit.validator';
 import { DEFAULT_FILE_VALIDATION_OPTIONS } from '../constants/file.constants';
@@ -16,8 +18,13 @@ import { FileValidationSignatureValidator } from '../validators/file-signature.v
  * CustomFileParsingPipe provides comprehensive file validation for uploaded files
  * including size limits, type checking, and content validation.
  */
+
+@Injectable()
 export class CustomFileParsingPipe extends ParseFilePipe {
-  constructor(options: FileValidationOptions = DEFAULT_FILE_VALIDATION_OPTIONS) {
+  constructor(
+    @Inject('FILE_VALIDATION_OPTIONS')
+    readonly options: FileValidationOptions,
+  ) {
     const {
       globalMaxFileSize,
       allowedFileTypes,
@@ -28,16 +35,12 @@ export class CustomFileParsingPipe extends ParseFilePipe {
     const validators: FileValidator[] = [
       // Validates the global maximum file size
       new MaxFileSizeValidator({ globalMaxFileSize }),
-
       // Validates file type and signature
       new FileValidationSignatureValidator(allowedFileTypes, true),
-
       // Ensures file is not empty
       new NonEmptyFileValidator(),
-
       // Validates file name format
       new FileUploadNameValidator(),
-
       // Validates type-specific size limits
       new FileTypeSizeValidator({ perTypeSizeLimits }),
     ];
@@ -51,7 +54,8 @@ export class CustomFileParsingPipe extends ParseFilePipe {
       validators,
       errorHttpStatusCode: HttpStatus.UNSUPPORTED_MEDIA_TYPE,
       fileIsRequired: isFileRequired,
-      exceptionFactory: (error: string) => {
+
+      exceptionFactory: (error: any) => {
         throw new UnprocessableEntityException(error);
       },
     });

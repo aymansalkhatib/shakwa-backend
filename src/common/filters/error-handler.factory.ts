@@ -15,9 +15,9 @@ export class ErrorHandlerFactory {
 
   constructor() {
     this.handlers = [
-      new HttpExceptionHandler(),
-      new JwtErrorHandler(),
       new MulterErrorHandler(),
+      new JwtErrorHandler(),
+      new HttpExceptionHandler(),
     ];
     this.fallbackHandler = new UnknownErrorHandler();
   }

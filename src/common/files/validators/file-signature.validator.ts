@@ -1,5 +1,5 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
-import { validateFileUpload } from '../utils/filter-type-file.utils';
+import { validateFileUpload } from '../functions/file-structure-checker';
 import { FileUpload, NonEmptyArray, SupportedFileType } from '../types/file.types';
 import { FIELD_FILE_TYPE_CONSTRAINTS } from '../constants/file.constants';
 import { extname } from 'path';
