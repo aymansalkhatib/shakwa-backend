@@ -1,15 +1,16 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { UploadModuleExample } from './app/upload-example/upload.module';
+import { UploadModuleExample } from './modules/upload-example/upload.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { LoggerModule } from './common/logging/logger.module';
-import { LoggerMiddleware } from './common/logging/logger.middleware';
+import { LoggerModule } from './shared/logging/logger.module';
+import { LoggerMiddleware } from './shared/logging/logger.middleware';
 import { AppConfigModel } from './config/app_config.module';
-import { WinstonLoggerService } from './common/logging/winston-logger.service';
-import { ErrorHandlerFactory } from './common/filters/error-handler.factory';
+import { WinstonLoggerService } from './shared/logging/winston-logger.service';
 import { APP_FILTER } from '@nestjs/core';
-import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
-import { StorageModule } from './common/storage/storage_model';
+import { StorageModule } from './shared/storage/storage_model';
+import { ErrorHandlerFactory } from './shared/exceptions-filter/error-handler.factory';
+import { GlobalExceptionFilter } from './shared/exceptions-filter/global-exception.filter';
+import { NotificationModule } from './services/notifications/notification.module';
 
 @Module({
   imports: [
@@ -25,8 +26,10 @@ import { StorageModule } from './common/storage/storage_model';
         },
       },
     }),
+    NotificationModule,
   ],
   controllers: [AppController],
+
   providers: [
     AppService,
     WinstonLoggerService,

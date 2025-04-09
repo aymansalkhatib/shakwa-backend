@@ -10,6 +10,10 @@ export interface IEnvironmentConfig {
   DATABASE_HOST: string;
   DATABASE_PORT: number;
 
+  // Firebase
+  FIREBASE_SERVICE_ACCOUNT: string;
+  STORAGE_BUCKET: string;
+
   // Security Configuration
   JWT_SECRET: string;
 

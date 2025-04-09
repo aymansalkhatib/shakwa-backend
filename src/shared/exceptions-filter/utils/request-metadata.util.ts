@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Request } from 'express';
-import { LogMetadata } from 'src/common/logging/interfaces/logger.interface';
+import { LogMetadata } from 'src/shared/logging/interfaces/logger.interface';
 
 /**
  * Extracts metadata from an HTTP request for logging purposes

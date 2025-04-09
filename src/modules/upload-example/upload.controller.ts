@@ -5,21 +5,23 @@ import {
   UploadedFile,
   UploadedFiles,
 } from '@nestjs/common';
-import { STORAGE_CONSTANTS } from 'src/common/storage/constants/storage.constants';
+import { STORAGE_CONSTANTS } from 'src/shared/storage/constants/storage.constants';
 import {
   AnyFilesUpload,
   MultipleFieldFilesUpload,
   MultipleFilesUpload,
   SingleFileUpload,
-} from 'src/common/storage/decorators/upload.decorator';
-import { LocalStorageService } from 'src/common/storage/local-storage.service';
-import { ImageProcessingPipe } from 'src/common/storage/pipes/image-processing.pipe';
-import { CustomFileParsingPipe } from 'src/common/storage/pipes/parse-file.pipe';
+} from 'src/shared/storage/decorators/upload.decorator';
+import { LocalStorageService } from 'src/shared/storage/local-storage.service';
+import { ImageProcessingPipe } from 'src/shared/storage/pipes/image-processing.pipe';
+import { CustomFileParsingPipe } from 'src/shared/storage/pipes/parse-file.pipe';
 import { UploadServiceExample } from './upload.service';
+import { FirebaseNotificationService } from 'src/services/notifications/firebase-notification.service';
 
 @Controller('upload')
 export class UploadControllerExample {
   constructor(
+    private readonly fcm: FirebaseNotificationService,
     private readonly uploadService: UploadServiceExample,
     @Inject(STORAGE_CONSTANTS.STORAGE_PROVIDER_SERVICE)
     private readonly localStorageService: LocalStorageService,
@@ -37,11 +39,7 @@ export class UploadControllerExample {
     @UploadedFile(CustomFileParsingPipe)
     file: Express.Multer.File,
   ) {
-    var x = await this.localStorageService.store(file, 'ayman');
-    var xx = x.replaceAll('\\', '/').split('/').slice(1).join('/');
-    // var x = await this.localStorageService.replace(xx, file);
-
-    return xx;
+    return await this.localStorageService.store(file, 'ayman');
   }
 
   /**

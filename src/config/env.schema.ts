@@ -35,6 +35,12 @@ export const environmentSchema = z.object({
 
   // Database Configuration
   DATABASE_HOST: z.string().min(1, 'Database host is required'),
+
+  FIREBASE_SERVICE_ACCOUNT: z
+    .string()
+    .min(1, 'FIREBASE_SERVICE_ACCOUNT host is required'),
+  STORAGE_BUCKET: z.string().min(1, 'STORAGE_BUCKET host is required'),
+
   DATABASE_PORT: z
     .string()
     .transform((val) => parseInt(val, 10))
