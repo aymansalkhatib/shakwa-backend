@@ -6,13 +6,13 @@ import {
   ParseFilePipe,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { FileValidationOptions, ImageCompressionOptions } from '../types/file.types';
-import { NonEmptyFileValidator } from '../validators/file-not-empty.validator';
-import { FileSizeValidator as FileTypeSizeValidator } from '../validators/custom-size-limit.validator';
-import { DEFAULT_FILE_VALIDATION_OPTIONS } from '../constants/file.constants';
+import { NonEmptyFileValidator } from '../validators/non-empty-file-validator.ts';
 import { MaxFileSizeValidator } from '../validators/max-file-size.validator';
-import { FileUploadNameValidator } from '../validators/file-name.validator';
 import { FileValidationSignatureValidator } from '../validators/file-signature.validator';
+import { FileValidationOptions } from '../types';
+import { STORAGE_CONSTANTS } from '../constants/storage.constants';
+import { FileNameValidator } from '../validators/file-name-validator.ts.js';
+import { FileSizeValidatorPerType } from '../validators/file-size-validator-per-type.js';
 
 /**
  * CustomFileParsingPipe provides comprehensive file validation for uploaded files
@@ -22,7 +22,7 @@ import { FileValidationSignatureValidator } from '../validators/file-signature.v
 @Injectable()
 export class CustomFileParsingPipe extends ParseFilePipe {
   constructor(
-    @Inject('FILE_VALIDATION_OPTIONS')
+    @Inject(STORAGE_CONSTANTS.FILE_VALIDATION_CONFIG)
     readonly options: FileValidationOptions,
   ) {
     const {
@@ -40,9 +40,9 @@ export class CustomFileParsingPipe extends ParseFilePipe {
       // Ensures file is not empty
       new NonEmptyFileValidator(),
       // Validates file name format
-      new FileUploadNameValidator(),
+      new FileNameValidator(),
       // Validates type-specific size limits
-      new FileTypeSizeValidator({ perTypeSizeLimits }),
+      new FileSizeValidatorPerType({ perTypeSizeLimits }),
     ];
 
     /**

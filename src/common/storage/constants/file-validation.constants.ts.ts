@@ -5,7 +5,7 @@ import {
   ImageFormat,
   NonEmptyArray,
   SupportedFileType,
-} from '../types/file.types';
+} from '../types';
 
 /**
  * Defines the maximum size limit for each supported file type.
@@ -73,7 +73,7 @@ export const DEFAULT_COMPRESSION_OPTIONS: ImageCompressionOptions = {
   quality: 80,
   minQuality: 30,
   maxFileSize: '200KB',
-  outputFormat: null,
+  outputFormat: 'png',
 };
 
 export const FORMAT_PRIORITIES: ImageFormat[] = ['webp', 'jpeg', 'png'];

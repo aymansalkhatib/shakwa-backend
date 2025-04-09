@@ -1,16 +1,20 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
 import { FileSizeUnit, FileUpload, SupportedFileType } from '../types/file.types';
 import * as bytes from 'bytes';
-import { isArrayOfFiles, isSingleFile, validateFileUpload } from '../functions/file-structure-checker';
-import { extractFileFormat } from '../functions/extract_file_format';
+import {
+  isArrayOfFiles,
+  isSingleFile,
+  validateFileUpload,
+} from '../functions/file-structure-checker';
 import { BadRequestException } from '@nestjs/common';
-import { formatBytes } from '../functions/format_bytes';
+import { formatBytes } from '../functions/format-bytes';
+import { extractFileExtension } from '../functions/file-helper.functions.ts';
 
 /**
  * Validates file sizes based on their type.
  * Enforces different size limits for different file types.
  */
-export class FileSizeValidator extends FileValidator {
+export class FileSizeValidatorPerType extends FileValidator {
   constructor(
     private readonly options: {
       perTypeSizeLimits: Record<SupportedFileType, FileSizeUnit>;
@@ -105,7 +109,7 @@ export class FileSizeValidator extends FileValidator {
    * @private
    */
   private extractFileType(file: Express.Multer.File): SupportedFileType {
-    const extension = extractFileFormat(file.originalname);
+    const extension = extractFileExtension(file.originalname);
     if (!extension) {
       throw new Error(
         `Could not determine file type for file: ${file.originalname}`,

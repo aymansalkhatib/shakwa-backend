@@ -4,15 +4,17 @@ import {
   DEFAULT_COMPRESSION_OPTIONS,
   FORMAT_PRIORITIES,
   SHARP_SUPPORTED_FORMATS,
-} from '../constants/file.constants';
+} from '../constants/file-validation.constants.ts.js';
+
+import { createUniqueFileName } from './create-unique-file_name.js';
+import { extractFileExtension } from './file-helper.functions.ts.js';
+import path from 'path';
 import {
   FileSizeUnit,
   ImageCompressionOptions,
   ImageDimensions,
   ImageFormat,
-} from '../types/file.types';
-import { createUniqueFileName } from './create_unique_file_name';
-import { extractFileFormat } from './extract_file_format';
+} from '../types/index.js';
 
 /**
  * Optimizes an image by finding the best balance between quality and file size
@@ -25,7 +27,7 @@ export async function optimizeImage(
   const { quality, minQuality, maxFileSize, outputFormat } = mergedOptions;
 
   try {
-    const imageFormat = extractFileFormat(file.originalname);
+    const imageFormat = extractFileExtension(file.originalname);
 
     if (!isSupported(imageFormat)) {
       return file;
@@ -40,13 +42,16 @@ export async function optimizeImage(
       minQuality,
       maxSize: maxFileSize,
     });
+    const originalnameParts = file.originalname.split('.');
+    originalnameParts.pop(); // Removes the last item (the file extension)
+    const newFilename = originalnameParts.join('.') + format; // Rebuild the filename without the extension and append the new format
 
     return {
       ...file,
       buffer: result.buffer,
       size: result.buffer.length,
       mimetype: `image/${format}`,
-      originalname: createUniqueFileName(file.originalname, format),
+      originalname: newFilename,
     };
   } catch (error) {
     throw new Error(`Image optimization failed: ${error.message}`);

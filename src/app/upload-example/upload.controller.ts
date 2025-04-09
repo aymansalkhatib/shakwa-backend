@@ -1,20 +1,29 @@
-import { Controller, Post, UploadedFile, UploadedFiles } from '@nestjs/common';
-
-import { UploadServiceExample } from './upload.service';
-import { CustomFileParsingPipe } from 'src/common/files/pipes/parse-file.pipe';
-import { ImageProcessingPipe } from 'src/common/files/pipes/image-processing.pipe';
-import { join } from 'path';
-import { promises as fs } from 'fs';
+import {
+  Controller,
+  Inject,
+  Post,
+  UploadedFile,
+  UploadedFiles,
+} from '@nestjs/common';
+import { STORAGE_CONSTANTS } from 'src/common/storage/constants/storage.constants';
 import {
   AnyFilesUpload,
   MultipleFieldFilesUpload,
   MultipleFilesUpload,
   SingleFileUpload,
-} from 'src/common/files/decorators/upload.decorator';
+} from 'src/common/storage/decorators/upload.decorator';
+import { LocalStorageService } from 'src/common/storage/local-storage.service';
+import { ImageProcessingPipe } from 'src/common/storage/pipes/image-processing.pipe';
+import { CustomFileParsingPipe } from 'src/common/storage/pipes/parse-file.pipe';
+import { UploadServiceExample } from './upload.service';
 
 @Controller('upload')
 export class UploadControllerExample {
-  constructor(private readonly uploadService: UploadServiceExample) {}
+  constructor(
+    private readonly uploadService: UploadServiceExample,
+    @Inject(STORAGE_CONSTANTS.STORAGE_PROVIDER_SERVICE)
+    private readonly localStorageService: LocalStorageService,
+  ) {}
 
   /**
    * Handles the upload of a single file.
@@ -25,27 +34,14 @@ export class UploadControllerExample {
   @Post('upload-single-file')
   @SingleFileUpload('image')
   async uploadSingleFile(
-    @UploadedFile(CustomFileParsingPipe, ImageProcessingPipe)
+    @UploadedFile(CustomFileParsingPipe)
     file: Express.Multer.File,
   ) {
-    // Define the directory to save the uploaded file.
-    const uploadDirectory = join(__dirname, '..', 'uploads');
-    await fs.mkdir(uploadDirectory, { recursive: true });
+    var x = await this.localStorageService.store(file, 'ayman');
+    var xx = x.replaceAll('\\', '/').split('/').slice(1).join('/');
+    // var x = await this.localStorageService.replace(xx, file);
 
-    const fileName = file.originalname;
-    const filePath = join(uploadDirectory, fileName);
-
-    // Save the file to the server's filesystem.
-    await fs.writeFile(filePath, file.buffer);
-
-    // Return a response with file information.
-    return {
-      message: 'File uploaded and saved successfully.',
-      fileName,
-      path: filePath,
-      name: file.originalname,
-      size: file.size,
-    };
+    return xx;
   }
 
   /**

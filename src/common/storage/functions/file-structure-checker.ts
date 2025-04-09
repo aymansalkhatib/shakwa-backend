@@ -1,5 +1,3 @@
-import { Express } from 'express';
-
 /**
  * Checks whether the given object represents a **single uploaded file**.
  * This is determined by verifying typical multer file properties like `size` and `originalname`.

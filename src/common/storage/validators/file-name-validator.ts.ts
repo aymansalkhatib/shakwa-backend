@@ -6,7 +6,7 @@ import { FileUpload } from '../types/file.types';
  * Validates the file name during the upload process.
  * Ensures that the file name adheres to a specific format (e.g., contains only allowed characters).
  */
-export class FileUploadNameValidator extends FileValidator {
+export class FileNameValidator extends FileValidator {
   constructor() {
     // Calling the parent class constructor with an empty object as options.
     super({});
