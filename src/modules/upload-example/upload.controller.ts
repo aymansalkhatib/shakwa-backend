@@ -17,6 +17,8 @@ import { ImageProcessingPipe } from 'src/shared/storage/pipes/image-processing.p
 import { CustomFileParsingPipe } from 'src/shared/storage/pipes/parse-file.pipe';
 import { UploadServiceExample } from './upload.service';
 import { FirebaseNotificationService } from 'src/services/notifications/firebase-notification.service';
+import { SupabaseStorageService } from 'src/shared/storage/supabase-storage.service';
+import { BaseStorageService } from 'src/shared/storage/base-storage.service';
 
 @Controller('upload')
 export class UploadControllerExample {
@@ -24,7 +26,7 @@ export class UploadControllerExample {
     private readonly fcm: FirebaseNotificationService,
     private readonly uploadService: UploadServiceExample,
     @Inject(STORAGE_CONSTANTS.STORAGE_PROVIDER_SERVICE)
-    private readonly localStorageService: LocalStorageService,
+    private readonly storageService: LocalStorageService,
   ) {}
 
   /**
@@ -39,7 +41,14 @@ export class UploadControllerExample {
     @UploadedFile(CustomFileParsingPipe)
     file: Express.Multer.File,
   ) {
-    return await this.localStorageService.store(file, 'ayman');
+    try {
+      
+      var r= await this.storageService.storeMany([file, file, file, file], 'ttt');
+    } catch (e) {
+      return e;
+    }
+    return r;
+ 
   }
 
   /**

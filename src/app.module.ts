@@ -21,8 +21,16 @@ import { NotificationModule } from './services/notifications/notification.module
     StorageModule.register({
       provider: 'local',
       options: {
+        //-1
+        supabaseConfig: {
+          BASE_PATH: '',
+          SUPABASE_SERVICE_ROLE_KEY: '',
+          SUPABASE_BUCKET: '',
+          SUPABASE_URL: '',
+        },
+        //-2
         localConfig: {
-          basePath: 'uploads',
+          BASE_PATH: 'uploads',
         },
       },
     }),

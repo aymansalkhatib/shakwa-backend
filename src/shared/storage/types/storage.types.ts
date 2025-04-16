@@ -1,14 +1,13 @@
 /**
  * Supported storage providers
  */
-export type StorageProvider = 'local' | 'firebase' | 'supabase';
+export type StorageProvider = 'local' | 'supabase';
 
 /**
  * Base configuration options for storage providers.
  */
 export interface StorageConfig {
   localConfig?: LocalStorageConfig;
-  firebaseConfig?: FirebaseStorageConfig;
   supabaseConfig?: SupabaseStorageConfig;
 }
 
@@ -19,32 +18,7 @@ export interface LocalStorageConfig {
   /**
    * The base path where files will be stored.
    */
-  basePath: string;
-}
-
-/**
- * Configuration for the Firebase storage provider.
- */
-export interface FirebaseStorageConfig {
-  /**
-   * API key for Firebase project.
-   */
-  apiKey: string;
-
-  /**
-   * Firebase project ID.
-   */
-  projectId: string;
-
-  /**
-   * Firebase storage bucket URL.
-   */
-  storageBucket: string;
-
-  /**
-   * Firebase App ID, optional.
-   */
-  appId?: string;
+  BASE_PATH: string;
 }
 
 /**
@@ -54,15 +28,20 @@ export interface SupabaseStorageConfig {
   /**
    * The Supabase URL endpoint.
    */
-  url: string;
+  SUPABASE_URL: string;
 
   /**
    * The Supabase API key.
    */
-  apiKey: string;
+  SUPABASE_SERVICE_ROLE_KEY: string;
 
   /**
    * The Supabase bucket name where files are stored.
    */
-  bucket: string;
+  SUPABASE_BUCKET: string;
+
+  /**
+   * The base path where files will be stored.
+   */
+  BASE_PATH: string;
 }

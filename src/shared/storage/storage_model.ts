@@ -1,11 +1,20 @@
 import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { DEFAULT_COMPRESSION_OPTIONS, DEFAULT_FILE_VALIDATION_OPTIONS } from './constants/file-validation.constants.ts.js';
+import {
+  DEFAULT_COMPRESSION_OPTIONS,
+  DEFAULT_FILE_VALIDATION_OPTIONS,
+} from './constants/file-validation.constants.ts.js';
 import { STORAGE_CONSTANTS } from './constants/storage.constants.js';
 import { LocalStorageService } from './local-storage.service.js';
 import { ImageProcessingPipe } from './pipes/image-processing.pipe.js';
 import { CustomFileParsingPipe } from './pipes/parse-file.pipe.js';
-import { StorageProvider, StorageConfig, ImageCompressionOptions, FileValidationOptions } from './types/index.js';
- 
+import {
+  StorageProvider,
+  StorageConfig,
+  ImageCompressionOptions,
+  FileValidationOptions,
+} from './types/index.js';
+import { SupabaseStorageService } from './supabase-storage.service.js';
+
 @Module({})
 export class StorageModule {
   /**
@@ -44,20 +53,14 @@ export class StorageModule {
               );
             }
             return new LocalStorageService(config.options.localConfig);
-          case 'firebase':
-            if (!config.options.firebaseConfig) {
-              throw new Error(
-                'Firebase configuration is required for Firebase storage provider',
-              );
-            }
-          // return new FirebaseStorageService(config.options);
+
           case 'supabase':
             if (!config.options.supabaseConfig) {
               throw new Error(
                 'Supabase configuration is required for Supabase storage provider',
               );
             }
-          // return new SupabaseStorageService(config.options);
+            return new SupabaseStorageService(config.options.supabaseConfig);
           default:
             throw new Error(`Unsupported storage provider: ${config.provider}`);
         }

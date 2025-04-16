@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createUniqueFileName } from './functions/create-unique-file_name';
+
 /**
  * Abstract base class for file storage implementations
  * Defines common interface for different storage providers
@@ -14,13 +15,13 @@ export abstract class BaseStorageService {
   abstract store(file: Express.Multer.File, path?: string): Promise<string>;
 
   /**
-   * Retrieves a file from storage
+   * Retrieves file from storage
    * @param fileId - Unique identifier or path of the file
    */
   abstract retrieve(fileId: string): Promise<Buffer>;
 
   /**
-   * Deletes a file from storage
+   * Deletes file from storage
    * @param fileId - Unique identifier or path of the file
    */
   abstract delete(fileId: string): Promise<boolean>;
@@ -38,6 +39,21 @@ export abstract class BaseStorageService {
     newFile: Express.Multer.File,
     customPath?: string,
   ): Promise<string>;
+
+  /**
+   * Stores multiple files in the storage system using batch operations
+   * @param files - Array of files to store
+   * @param path - Optional path where the files should be stored
+   * @returns Array of stored file paths
+   */
+  abstract storeMany(files: Express.Multer.File[], path?: string): Promise<string[]>;
+
+  /**
+   * Deletes multiple files from storage using batch operations
+   * @param fileIds - Array of file identifiers or paths to delete
+   * @returns Array of boolean values indicating success/failure for each deletion
+   */
+  abstract deleteMany(fileIds: string[]): Promise<boolean[]>;
 
   /**
    * Ensures directory exists, creates if not
@@ -63,5 +79,27 @@ export abstract class BaseStorageService {
     const uniqueFileName = createUniqueFileName(filename); // Generate a unique file name
 
     return path.join(baseUrl, sanitizedCustomPath, uniqueFileName); // Build and return the full storage path
+  }
+
+  /**
+   * Processes files in batches for optimal performance
+   * @param items - Array of items to process
+   * @param batchSize - Size of each batch
+   * @param processFn - Function to process each batch
+   */
+  protected async processBatch<T, R>(
+    items: T[],
+    batchSize: number,
+    processFn: (batch: T[]) => Promise<R[]>,
+  ): Promise<R[]> {
+    const results: R[] = [];
+
+    for (let i = 0; i < items.length; i += batchSize) {
+      const batch = items.slice(i, i + batchSize);
+      const batchResults = await processFn(batch);
+      results.push(...batchResults);
+    }
+
+    return results;
   }
 }

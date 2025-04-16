@@ -25,8 +25,11 @@ export function createUniqueFileName(
   // Generate a timestamp
   const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
 
+  // Generate a random number between 1000 and 9999
+  const randomNum = Math.floor(1000 + Math.random() * 9000);
+
   // If overrideExtension is provided, use that; otherwise, use the original extension
   const fileExtension = overrideExtension || originalExt;
 
-  return `${nameWithoutExt}-${timestamp}.${fileExtension}`;
+  return `${nameWithoutExt}-${timestamp}-${randomNum}.${fileExtension}`;
 }
