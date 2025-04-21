@@ -11,13 +11,15 @@ import { StorageModule } from './shared/storage/storage_model';
 import { ErrorHandlerFactory } from './shared/exceptions-filter/error-handler.factory';
 import { GlobalExceptionFilter } from './shared/exceptions-filter/global-exception.filter';
 import { NotificationModule } from './services/notifications/notification.module';
+import { I18nModule } from './shared/i18n/i18n.module';
 
 @Module({
   imports: [
     AppConfigModel,
     LoggerModule,
     UploadModuleExample,
-
+    NotificationModule,
+    I18nModule,
     StorageModule.register({
       provider: 'local',
       options: {
@@ -34,7 +36,6 @@ import { NotificationModule } from './services/notifications/notification.module
         },
       },
     }),
-    NotificationModule,
   ],
   controllers: [AppController],
 
