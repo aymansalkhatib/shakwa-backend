@@ -1,21 +1,14 @@
-import { Controller, Get, NotFoundException } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AppService } from './app.service';
+import { IsString, Length } from 'class-validator';
+import { TranslateHelper } from './shared/i18n/translate.helper';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
+  @Post()
   getHello() {
-    try {
-      // throw new NotFoundException({
-      //   request: 'failure',
-      //   message: 'Resource not found',
-      //   data: { id: 123, entity: 'User' },
-      // });
-      return this.appService.getHello();
-    } catch (error) {
-      throw error;
-    }
+    return this.appService.getHello();
   }
 }

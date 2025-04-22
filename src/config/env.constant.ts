@@ -1,12 +1,18 @@
 /**
- * Environment configuration constants
+ * Enum for environment names
  */
+export enum Environment {
+  DEVELOPMENT = 'development',
+  PRODUCTION = 'production',
+  TEST = 'test',
+}
+
 export const ENV_FILES = {
   DEFAULT: '.env',
   DEVELOPMENT: '.env.development',
   PRODUCTION: '.env.production',
   TEST: '.env.test',
-  
+
   getEnvFile: (env: string) => {
     const envFile = `.env.${env}`;
     // Check if the environment name exists in the keys of ENV_FILES
@@ -19,7 +25,6 @@ export const ENV_FILES = {
     return envFile;
   },
 };
-
 
 export const ENV_VALIDATION = {
   MIN_JWT_LENGTH: 16,

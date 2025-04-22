@@ -1,11 +1,10 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { ValidationArguments } from 'class-validator';
+import { I18nContext, I18nService, i18nValidationMessage } from 'nestjs-i18n';
 import {
-  I18nContext,
-  I18nService,
-  i18nValidationMessage,
-  TranslateOptions,
-} from 'nestjs-i18n';
+  TranslationKey,
+  TranslationInterpolations,
+} from 'src/types/translation-keys';
 
 /**
  * A helper service to simplify translation usage across the application.
@@ -23,20 +22,16 @@ export class TranslateHelper {
    * @param params - Optional translation parameters
    * @returns A promise that resolves to the translated string
    */
-  async tr(key: string, params: TranslateParams = {}): Promise<string> {
-    const { args = {}, defaultValue, options = {}, lang } = params;
-
-    // Get the current language, or fall back to the provided one if available
-    const currentLang = lang ?? this.getCurrentLang();
-
-    // Return the translated string
-    return await this.i18n.translate(key, {
+  tr: TranslateFunction = <K extends TranslationKey>(
+    key: K,
+    interpolations?: TranslationInterpolations[K],
+  ): string => {
+    const currentLang = this.getCurrentLang();
+    return this.i18n.translate(key, {
       lang: currentLang,
-      args,
-      defaultValue,
-      ...options,
+      args: interpolations,
     });
-  }
+  };
 
   /**
    * Retrieve the translation message for validation errors.
@@ -47,12 +42,8 @@ export class TranslateHelper {
    * @param lang - Optional language override
    * @returns A function that takes validation arguments and returns the translated message
    */
-  static trValMsg(
-    key: string,
-    args: Record<string, any> = {},
-    lang?: string,
-  ): (a: ValidationArguments) => string {
-    return i18nValidationMessage(key, { lang, args });
+  static trValMsg(key: TranslationKey): (a: ValidationArguments) => string {
+    return i18nValidationMessage(key);
   }
 
   /**
@@ -66,12 +57,8 @@ export class TranslateHelper {
   }
 }
 
-/**
- * Parameters used to customize translations.
- */
-interface TranslateParams {
-  args?: Record<string, any>; // Interpolation variables for the translation (e.g., {property: 'name'})
-  defaultValue?: string; // Fallback string if the translation key is missing
-  options?: Partial<TranslateOptions>; // Extra options for translation behavior
-  lang?: string; // Optional language override (e.g., 'en' or 'ar')
-}
+type TranslateFunction = <K extends TranslationKey>(
+  ...args: TranslationInterpolations[K] extends undefined
+    ? [key: K]
+    : [key: K, interpolations: TranslationInterpolations[K]]
+) => string;

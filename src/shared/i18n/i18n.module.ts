@@ -7,6 +7,7 @@ import {
 } from 'nestjs-i18n';
 import * as path from 'path';
 import { TranslateHelper } from './translate.helper';
+import { Environment } from 'src/config/env.constant';
 
 @Global()
 @Module({
@@ -15,7 +16,7 @@ import { TranslateHelper } from './translate.helper';
       fallbackLanguage: 'en',
       loaderOptions: {
         path: path.join(__dirname, '/translate/'),
-        watch: process.env.NODE_ENV !== 'production',
+        watch: process.env.NODE_ENV !== Environment.PRODUCTION,
       },
       resolvers: [
         { use: QueryResolver, options: ['lang'] },

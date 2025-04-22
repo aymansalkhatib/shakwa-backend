@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { TranslateHelper } from './shared/i18n/translate.helper';
 
 @Injectable()
 export class AppService {
-  constructor() {}
+  constructor(private readonly t: TranslateHelper) {}
 
-  getHello(): string {
-    return 'Hello World!';
+  async getHello() {
+    this.t.tr('test.errors.network');
   }
 }

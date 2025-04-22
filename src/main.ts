@@ -3,7 +3,10 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import * as compression from 'compression';
-import { GlobalExceptionFilter } from './shared/exceptions-filter/global-exception.filter';
+import {
+  i18nValidationErrorFactory,
+  I18nValidationExceptionFilter,
+} from 'nestjs-i18n';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,12 +23,19 @@ async function bootstrap() {
   // Apply global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
+      exceptionFactory: i18nValidationErrorFactory,
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: true,
       transformOptions: {
         enableImplicitConversion: true,
       },
+    }),
+  );
+
+  app.useGlobalFilters(
+    new I18nValidationExceptionFilter({
+      detailedErrors: false,
     }),
   );
 
