@@ -5,16 +5,8 @@ import {
   FORMAT_PRIORITIES,
   SHARP_SUPPORTED_FORMATS,
 } from '../constants/file-validation.constants.ts.js';
-
-import { createUniqueFileName } from './create-unique-file_name.js';
 import { extractFileExtension } from './file-helper.functions.ts.js';
-import path from 'path';
-import {
-  FileSizeUnit,
-  ImageCompressionOptions,
-  ImageDimensions,
-  ImageFormat,
-} from '../types/index.js';
+import { FileSizeUnit, ImageCompressionOptions, ImageDimensions, ImageFormat } from '../types/index.js';
 
 /**
  * Optimizes an image by finding the best balance between quality and file size

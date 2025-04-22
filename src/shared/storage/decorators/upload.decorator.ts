@@ -1,9 +1,9 @@
 import { applyDecorators, UseInterceptors } from '@nestjs/common';
 import {
+  AnyFilesInterceptor,
   FileFieldsInterceptor,
   FileInterceptor,
   FilesInterceptor,
-  AnyFilesInterceptor,
 } from '@nestjs/platform-express';
 import {
   MulterField,

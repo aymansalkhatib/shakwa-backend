@@ -1,11 +1,7 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
 import { FileSizeUnit, FileUpload, SupportedFileType } from '../types/file.types';
 import * as bytes from 'bytes';
-import {
-  isArrayOfFiles,
-  isSingleFile,
-  validateFileUpload,
-} from '../functions/file-structure-checker';
+import { isArrayOfFiles, isSingleFile, validateFileUpload } from '../functions/file-structure-checker';
 import { BadRequestException } from '@nestjs/common';
 import { formatBytes } from '../functions/format-bytes';
 import { extractFileExtension } from '../functions/file-helper.functions.ts';
@@ -52,18 +48,6 @@ export class FileSizeValidatorPerType extends FileValidator {
     return `Invalid file or unsupported type. Supported file size limits are: ${limitsDescription}`;
   }
 
-  private getAllLimitsSortedBySize(
-    limits: Record<SupportedFileType, FileSizeUnit>,
-  ): [SupportedFileType, FileSizeUnit][] {
-    const result: [SupportedFileType, FileSizeUnit][] = [];
-
-    for (const [type, size] of Object.entries(limits)) {
-      result.push([type as SupportedFileType, size as FileSizeUnit]);
-    }
-
-    return result.sort((a, b) => bytes(b[1]) - bytes(a[1]));
-  }
-
   /**
    * Entry point for file size validation.
    * Handles different file upload patterns (single, array, multiple).
@@ -76,6 +60,18 @@ export class FileSizeValidatorPerType extends FileValidator {
       this.validateFileSize.bind(this),
       this.options,
     );
+  }
+
+  private getAllLimitsSortedBySize(
+    limits: Record<SupportedFileType, FileSizeUnit>,
+  ): [SupportedFileType, FileSizeUnit][] {
+    const result: [SupportedFileType, FileSizeUnit][] = [];
+
+    for (const [type, size] of Object.entries(limits)) {
+      result.push([type as SupportedFileType, size as FileSizeUnit]);
+    }
+
+    return result.sort((a, b) => bytes(b[1]) - bytes(a[1]));
   }
 
   /**

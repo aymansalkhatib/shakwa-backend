@@ -1,6 +1,6 @@
 // src/common/types/validation.types.ts
 
-import { NonEmptyArray, SupportedFileType, FileSizeUnit } from "./file.types";
+import { FileSizeUnit, NonEmptyArray, SupportedFileType } from './file.types';
 
 /**
  * Validation rules applied to uploaded files.

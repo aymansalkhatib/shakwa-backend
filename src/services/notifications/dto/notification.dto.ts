@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsObject, IsArray } from 'class-validator';
+import { IsArray, IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class BaseNotificationDto {
   @IsString()

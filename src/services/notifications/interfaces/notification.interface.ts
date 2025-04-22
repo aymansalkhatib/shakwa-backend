@@ -13,8 +13,12 @@ export interface BatchResponse {
 
 export interface INotificationService {
   sendToToken(notification: SingleTokenNotificationDto): Promise<string>;
+
   sendToTokens(notification: TokensNotificationDto): Promise<BatchResponse>;
+
   sendToTopic(notification: TopicNotificationDto): Promise<string>;
+
   subscribeToTopic(tokens: string[], topic: string): Promise<void>;
+
   unsubscribeFromTopic(tokens: string[], topic: string): Promise<void>;
 }

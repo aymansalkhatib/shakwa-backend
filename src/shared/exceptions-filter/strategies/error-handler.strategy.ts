@@ -21,6 +21,8 @@ export interface ErrorHandlerStrategy {
 export default abstract class BaseErrorHandler implements ErrorHandlerStrategy {
   abstract canHandle(error: Error): boolean;
 
+  abstract handle(error: Error, traceId: string): ErrorResponse;
+
   /**
    * Creates a base error response structure
    */
@@ -38,8 +40,6 @@ export default abstract class BaseErrorHandler implements ErrorHandlerStrategy {
       timestamp: new Date().toISOString(),
     };
   }
-
-  abstract handle(error: Error, traceId: string): ErrorResponse;
 }
 
 export { BaseErrorHandler };

@@ -8,10 +8,10 @@ import { LocalStorageService } from './local-storage.service.js';
 import { ImageProcessingPipe } from './pipes/image-processing.pipe.js';
 import { CustomFileParsingPipe } from './pipes/parse-file.pipe.js';
 import {
-  StorageProvider,
-  StorageConfig,
-  ImageCompressionOptions,
   FileValidationOptions,
+  ImageCompressionOptions,
+  StorageConfig,
+  StorageProvider,
 } from './types/index.js';
 import { SupabaseStorageService } from './supabase-storage.service.js';
 

@@ -1,9 +1,5 @@
 import { z } from 'zod';
-import {
-  BooleanFalsyValues,
-  BooleanTruthyValues,
-  ENV_VALIDATION,
-} from './env.constant';
+import { BooleanFalsyValues, BooleanTruthyValues, ENV_VALIDATION } from './env.constant';
 
 /**
  * Boolean string transformer

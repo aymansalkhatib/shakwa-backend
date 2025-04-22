@@ -1,10 +1,7 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { ValidationArguments } from 'class-validator';
 import { I18nContext, I18nService, i18nValidationMessage } from 'nestjs-i18n';
-import {
-  TranslationKey,
-  TranslationInterpolations,
-} from 'src/types/translation-keys';
+import { TranslationInterpolations, TranslationKey } from './translation-keys';
 
 /**
  * A helper service to simplify translation usage across the application.
@@ -15,12 +12,22 @@ export class TranslateHelper {
   constructor(private readonly i18n: I18nService) {}
 
   /**
-   * Translate a given key using the current or custom language context.
-   * If no custom language is provided, the current request language will be used.
+   * Returns a localized validation message function for the given translation key.
+   * Useful for integrating i18n with class-validator error messages.
+   *
+   * @param key - The i18n translation key for validation (e.g., 'validation.MAX_LENGTH')
+   * @returns A function that receives validation arguments and returns the translated message
+   */
+  static trValMsg(key: TranslationKey): (a: ValidationArguments) => string {
+    return i18nValidationMessage(key);
+  }
+
+  /**
+   * Translates the given key using the current language context or an optional override.
    *
    * @param key - The translation key (e.g., 'errors.required')
-   * @param params - Optional translation parameters
-   * @returns A promise that resolves to the translated string
+   * @param interpolations - Optional dynamic values for placeholder interpolation
+   * @returns The translated string in the appropriate language
    */
   tr: TranslateFunction = <K extends TranslationKey>(
     key: K,
@@ -32,19 +39,6 @@ export class TranslateHelper {
       args: interpolations,
     });
   };
-
-  /**
-   * Retrieve the translation message for validation errors.
-   * This function simplifies integrating i18n with validation messages.
-   *
-   * @param key - The translation key for validation (e.g., 'validation.MAX_LENGTH')
-   * @param args - Optional arguments for interpolation in the translation
-   * @param lang - Optional language override
-   * @returns A function that takes validation arguments and returns the translated message
-   */
-  static trValMsg(key: TranslationKey): (a: ValidationArguments) => string {
-    return i18nValidationMessage(key);
-  }
 
   /**
    * Get the current language from the request context.

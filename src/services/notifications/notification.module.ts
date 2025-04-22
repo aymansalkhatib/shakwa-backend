@@ -1,6 +1,5 @@
 import { Global, Module } from '@nestjs/common';
 import { FirebaseNotificationService } from './firebase-notification.service';
-import * as admin from 'firebase-admin';
 import { FirebaseAdminProvider } from './firebase.provider';
 
 @Global()

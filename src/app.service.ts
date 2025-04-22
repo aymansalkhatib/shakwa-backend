@@ -6,6 +6,7 @@ export class AppService {
   constructor(private readonly t: TranslateHelper) {}
 
   async getHello() {
+    // i18n.setLang("ar");
     this.t.tr('test.errors.network');
   }
 }

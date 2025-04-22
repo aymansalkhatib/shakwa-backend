@@ -2,7 +2,7 @@ import { Injectable, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as winston from 'winston';
 import { ConsoleFormatter } from './formatters/console.formatter';
-import { LogMetadata, ILogger } from './interfaces/logger.interface';
+import { ILogger, LogMetadata } from './interfaces/logger.interface';
 import { createFileTransports } from './transports/file.transport';
 import { AppConfigModel } from '../../config/app_config.module';
 

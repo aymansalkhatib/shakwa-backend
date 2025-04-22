@@ -10,6 +10,7 @@ export class ImageProcessingPipe implements PipeTransform {
     @Inject(STORAGE_CONSTANTS.IMAGE_COMPRESSION_CONFIG)
     private readonly options: ImageCompressionOptions,
   ) {}
+
   /**
    * Transforms uploaded files by optimizing their size and quality
    * Handles single files, arrays of files, and nested file structures

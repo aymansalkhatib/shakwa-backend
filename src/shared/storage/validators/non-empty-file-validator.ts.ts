@@ -20,15 +20,6 @@ export class NonEmptyFileValidator extends FileValidator {
   }
 
   /**
-   * Verifies that a single file has content (size > 0)
-   * @param {Express.Multer.File} file - The file to validate
-   * @returns {boolean} True if file has content, false if empty
-   */
-  private validateFileContent(file: Express.Multer.File): boolean {
-    return file.size > 0;
-  }
-
-  /**
    * Entry point for file validation
    * Handles different file upload patterns (single, array, multiple)
    * @param {any} files - The file(s) to validate
@@ -36,5 +27,14 @@ export class NonEmptyFileValidator extends FileValidator {
    */
   isValid(files: FileUpload): boolean {
     return validateFileUpload(files, this.validateFileContent);
+  }
+
+  /**
+   * Verifies that a single file has content (size > 0)
+   * @param {Express.Multer.File} file - The file to validate
+   * @returns {boolean} True if file has content, false if empty
+   */
+  private validateFileContent(file: Express.Multer.File): boolean {
+    return file.size > 0;
   }
 }

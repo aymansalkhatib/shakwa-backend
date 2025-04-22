@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, writeFileSync } from 'fs';
+import { readdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 // Console formatting utilities
@@ -135,6 +135,49 @@ class I18nValidator {
     this.basePath = basePath;
     this.referenceLanguage = referenceLanguage;
     this.initializeLanguages();
+  }
+
+  public validate(): void {
+    console.log(`\n${colors.bold}📊 Translation Validation Report${colors.reset}\n`);
+    this.generateStatistics();
+
+    this.printLanguageStats(this.referenceLanguage);
+
+    for (const lang of this.availableLanguages) {
+      if (lang !== this.referenceLanguage) {
+        this.printLanguageStats(lang);
+      }
+    }
+
+    const overallStatus = this.availableLanguages.every(
+      (lang) => this.languageStats[lang]?.coverage === 100,
+    );
+
+    console.log(
+      ConsoleFormatter.createBox('📈 Overall Status', [
+        ConsoleFormatter.formatStatus(
+          overallStatus ? 'success' : 'warning',
+          overallStatus
+            ? 'All translations complete!'
+            : 'Some translations need attention',
+        ),
+      ]),
+    );
+  }
+
+  public generateTypes(): void {
+    const typesContent = this.generateTypeScriptTypes();
+    const outputPath = join(process.cwd(), 'src/shared/i18n', 'translation-keys.ts');
+    writeFileSync(outputPath, typesContent, 'utf-8');
+
+    console.log(
+      ConsoleFormatter.createBox('📝 Type Generation', [
+        ConsoleFormatter.formatStatus(
+          'success',
+          `Types generated at: ${outputPath}`,
+        ),
+      ]),
+    );
   }
 
   private initializeLanguages(): void {
@@ -408,34 +451,6 @@ class I18nValidator {
     );
   }
 
-  public validate(): void {
-    console.log(`\n${colors.bold}📊 Translation Validation Report${colors.reset}\n`);
-    this.generateStatistics();
-
-    this.printLanguageStats(this.referenceLanguage);
-
-    for (const lang of this.availableLanguages) {
-      if (lang !== this.referenceLanguage) {
-        this.printLanguageStats(lang);
-      }
-    }
-
-    const overallStatus = this.availableLanguages.every(
-      (lang) => this.languageStats[lang]?.coverage === 100,
-    );
-
-    console.log(
-      ConsoleFormatter.createBox('📈 Overall Status', [
-        ConsoleFormatter.formatStatus(
-          overallStatus ? 'success' : 'warning',
-          overallStatus
-            ? 'All translations complete!'
-            : 'Some translations need attention',
-        ),
-      ]),
-    );
-  }
-
   private printLanguageStats(lang: string): void {
     const stats = this.languageStats[lang];
     if (!stats) return;
@@ -503,21 +518,6 @@ class I18nValidator {
     }
 
     console.log('');
-  }
-
-  public generateTypes(): void {
-    const typesContent = this.generateTypeScriptTypes();
-    const outputPath = join(process.cwd(), 'src', 'types', 'translation-keys.ts');
-    writeFileSync(outputPath, typesContent, 'utf-8');
-
-    console.log(
-      ConsoleFormatter.createBox('📝 Type Generation', [
-        ConsoleFormatter.formatStatus(
-          'success',
-          `Types generated at: ${outputPath}`,
-        ),
-      ]),
-    );
   }
 
   private normalizeValidationArgs(key: string): string {

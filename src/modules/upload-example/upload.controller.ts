@@ -17,8 +17,6 @@ import { ImageProcessingPipe } from 'src/shared/storage/pipes/image-processing.p
 import { CustomFileParsingPipe } from 'src/shared/storage/pipes/parse-file.pipe';
 import { UploadServiceExample } from './upload.service';
 import { FirebaseNotificationService } from 'src/services/notifications/firebase-notification.service';
-import { SupabaseStorageService } from 'src/shared/storage/supabase-storage.service';
-import { BaseStorageService } from 'src/shared/storage/base-storage.service';
 
 @Controller('upload')
 export class UploadControllerExample {
@@ -42,13 +40,11 @@ export class UploadControllerExample {
     file: Express.Multer.File,
   ) {
     try {
-      
-      var r= await this.storageService.storeMany([file, file, file, file], 'ttt');
+      var r = await this.storageService.storeMany([file, file, file, file], 'ttt');
     } catch (e) {
       return e;
     }
     return r;
- 
   }
 
   /**

@@ -4,9 +4,9 @@ import {
   INotificationService,
 } from './interfaces/notification.interface';
 import {
+  SingleTokenNotificationDto,
   TokensNotificationDto,
   TopicNotificationDto,
-  SingleTokenNotificationDto,
 } from './dto/notification.dto';
 import { FirebaseError } from 'firebase-admin/app';
 import * as admin from 'firebase-admin';
