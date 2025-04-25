@@ -1,31 +1,17 @@
-import {
-  Controller,
-  Inject,
-  Post,
-  UploadedFile,
-  UploadedFiles,
-} from '@nestjs/common';
-import { STORAGE_CONSTANTS } from 'src/shared/storage/constants/storage.constants';
+import { Controller, Post, UploadedFile, UploadedFiles } from '@nestjs/common';
 import {
   AnyFilesUpload,
   MultipleFieldFilesUpload,
   MultipleFilesUpload,
   SingleFileUpload,
-} from 'src/shared/storage/decorators/upload.decorator';
-import { LocalStorageService } from 'src/shared/storage/local-storage.service';
-import { ImageProcessingPipe } from 'src/shared/storage/pipes/image-processing.pipe';
-import { CustomFileParsingPipe } from 'src/shared/storage/pipes/parse-file.pipe';
+} from 'src/shared/modules/storage/decorators/upload.decorator';
+import { ImageProcessingPipe } from 'src/shared/modules/storage/pipes/image-processing.pipe';
+import { CustomFileParsingPipe } from 'src/shared/modules/storage/pipes/parse-file.pipe';
 import { UploadServiceExample } from './upload.service';
-import { FirebaseNotificationService } from 'src/services/notifications/firebase-notification.service';
 
 @Controller('upload')
 export class UploadControllerExample {
-  constructor(
-    private readonly fcm: FirebaseNotificationService,
-    private readonly uploadService: UploadServiceExample,
-    @Inject(STORAGE_CONSTANTS.STORAGE_PROVIDER_SERVICE)
-    private readonly storageService: LocalStorageService,
-  ) {}
+  constructor(private readonly uploadService: UploadServiceExample) {}
 
   /**
    * Handles the upload of a single file.
@@ -38,14 +24,7 @@ export class UploadControllerExample {
   async uploadSingleFile(
     @UploadedFile(CustomFileParsingPipe)
     file: Express.Multer.File,
-  ) {
-    try {
-      var r = await this.storageService.storeMany([file, file, file, file], 'ttt');
-    } catch (e) {
-      return e;
-    }
-    return r;
-  }
+  ) {}
 
   /**
    * Handles the upload of multiple files.

@@ -14,6 +14,8 @@ import {
   StorageProvider,
 } from './types/index.js';
 import { SupabaseStorageService } from './supabase-storage.service.js';
+import { EnvironmentConfig } from '../config/env.schema.js';
+import { ConfigService } from '@nestjs/config';
 
 @Module({})
 export class StorageModule {
@@ -22,14 +24,14 @@ export class StorageModule {
    */
   static register(config: {
     provider: StorageProvider;
-    options: StorageConfig;
+    options?: StorageConfig;
   }): DynamicModule {
     const storageProvider = this.createStorageProvider(config);
     const commonProviders = this.createCommonProviders();
 
     return {
       module: StorageModule,
-      providers: [...commonProviders, storageProvider],
+      providers: [ConfigService, ...commonProviders, storageProvider],
       exports: [...commonProviders.map((provider) => provider), storageProvider],
       global: true, // Makes the module available globally
     };
@@ -40,11 +42,37 @@ export class StorageModule {
    */
   private static createStorageProvider(config: {
     provider: StorageProvider;
-    options: StorageConfig;
+    options?: StorageConfig;
   }): Provider {
     return {
       provide: STORAGE_CONSTANTS.STORAGE_PROVIDER_SERVICE,
-      useFactory: () => {
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService<EnvironmentConfig>) => {
+        // Define default values for options
+        const defaultOptions: StorageConfig = {
+          //-1
+          supabaseConfig: {
+            BASE_PATH: configService.get<string>('BASE_PATH'),
+            SUPABASE_SERVICE_ROLE_KEY: configService.get(
+              'SUPABASE_SERVICE_ROLE_KEY',
+            ),
+            SUPABASE_BUCKET: configService.get<string>('SUPABASE_BUCKET'),
+            SUPABASE_URL: configService.get<string>('SUPABASE_URL'),
+          },
+          //-2
+          localConfig: {
+            BASE_PATH: configService.get('BASE_PATH'),
+          },
+        };
+
+        config = {
+          provider: config.provider,
+          options: {
+            ...defaultOptions,
+            ...config.options,
+          },
+        };
+
         switch (config.provider) {
           case 'local':
             if (!config.options.localConfig) {

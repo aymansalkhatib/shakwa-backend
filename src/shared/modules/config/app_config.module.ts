@@ -15,5 +15,7 @@ import { EnvironmentValidator } from './env.validator';
       ],
     }),
   ],
+  
+  exports: [],
 })
 export class AppConfigModel {}

@@ -6,7 +6,11 @@
     "deleteOutDir": true,
     "assets": [
       {
-        "include": "shared/i18n/translate/**/*",
+        "include": "shared/modules/i18n/translate/**/*",
+        "watchAssets": true
+      },
+      {
+        "include": "services/mail/templates/**/*.hbs",
         "watchAssets": true
       }
     ]

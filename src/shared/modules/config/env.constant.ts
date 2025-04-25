@@ -27,9 +27,10 @@ export const ENV_FILES = {
 };
 
 export const ENV_VALIDATION = {
+  BOOLEAN_TRUTHY: ['true', 'yes', '1', 'on'],
+  BOOLEAN_FALSY: ['false', 'no', '0', 'off'],
   MIN_JWT_LENGTH: 16,
-  BOOLEAN_TRUTHY: ['true', '1', 'yes'] as const,
-  BOOLEAN_FALSY: ['false', '0', 'no'] as const,
+  SMTP_PORTS: [25, 465, 587] as number[],
 } as const;
 
 export type BooleanTruthyValues = (typeof ENV_VALIDATION.BOOLEAN_TRUTHY)[number];

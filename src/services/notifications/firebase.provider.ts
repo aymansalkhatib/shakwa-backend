@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
-import { EnvironmentConfig } from 'src/config/env.schema';
+import { EnvironmentConfig } from 'src/shared/modules/config/env.schema';
 
 export const FirebaseAdminProvider = {
   provide: 'FIREBASE_ADMIN',

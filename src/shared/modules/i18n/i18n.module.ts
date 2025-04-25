@@ -7,7 +7,7 @@ import {
 } from 'nestjs-i18n';
 import * as path from 'path';
 import { TranslateHelper } from './translate.helper';
-import { Environment } from 'src/config/env.constant';
+import { Environment } from 'src/shared/modules/config/env.constant';
 
 @Global()
 @Module({

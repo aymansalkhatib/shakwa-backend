@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import {
@@ -38,6 +38,11 @@ async function bootstrap() {
       detailedErrors: false,
     }),
   );
+
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
+  app.setGlobalPrefix('api');
 
   // Start the server
   const port = process.env.PORT || 3000;
