@@ -14,7 +14,7 @@ export class MailService {
         template: mailData.template,
         context: mailData.context,
       });
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Failed to send email: ${error.message}`);
     }
   }

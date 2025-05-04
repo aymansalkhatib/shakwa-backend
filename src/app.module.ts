@@ -1,29 +1,40 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+} from '@nestjs/common';
 import { UploadModuleExample } from './modules/upload-example/upload.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { LoggerModule } from './shared/modules/logging/logger.module';
-import { LoggerMiddleware } from './shared/modules/logging/logger.middleware';
-import { WinstonLoggerService } from './shared/modules/logging/winston-logger.service';
-import { APP_FILTER } from '@nestjs/core';
-import { StorageModule } from './shared/modules/storage/storage_model';
+import { AppLoggerModule } from './shared/modules/app-logging/app-logger.module';
+import { AppLoggerMiddleware } from './shared/modules/app-logging/app-logger.middleware';
+import { WinstonLoggerService } from './shared/modules/app-logging/winston-logger.service';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ErrorHandlerFactory } from './shared/exceptions-filter/error-handler.factory';
 import { GlobalExceptionFilter } from './shared/exceptions-filter/global-exception.filter';
 // import { NotificationModule } from './services/notifications/notification.module';
-import { I18nModule } from './shared/modules/i18n/i18n.module';
-import { AppConfigModel } from './shared/modules/config/app_config.module';
+import { AppI18nModule } from './shared/modules/app-i18n/i18n.module';
+import { AppConfigModel } from './shared/modules/app-config/app_config.module';
 import { MailModule } from './services/mail/mail.module';
+import { AppStorageModule } from './shared/modules/app-storage/app-storage.module';
+import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.module';
+import { AppJwtModule } from './shared/modules/app-jwt/app-jwt.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
     AppConfigModel,
-    LoggerModule,
+    AppLoggerModule,
     UploadModuleExample,
     // NotificationModule,
-    I18nModule,
-
-    StorageModule.register({ provider: 'local' }),
+    AppI18nModule,
+    AppTypeOrmModule,
+    AppStorageModule.register({ provider: 'local' }),
     MailModule,
+
+    AppJwtModule,
+    AuthModule,
   ],
 
   controllers: [AppController],
@@ -36,10 +47,14 @@ import { MailModule } from './services/mail/mail.module';
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
+    },
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('*');
+    consumer.apply(AppLoggerMiddleware).forRoutes('*');
   }
 }

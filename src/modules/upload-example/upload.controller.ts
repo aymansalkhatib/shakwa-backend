@@ -1,13 +1,14 @@
 import { Controller, Post, UploadedFile, UploadedFiles } from '@nestjs/common';
+
+import { UploadServiceExample } from './upload.service';
 import {
+  SingleFileUpload,
+  MultipleFilesUpload,
   AnyFilesUpload,
   MultipleFieldFilesUpload,
-  MultipleFilesUpload,
-  SingleFileUpload,
-} from 'src/shared/modules/storage/decorators/upload.decorator';
-import { ImageProcessingPipe } from 'src/shared/modules/storage/pipes/image-processing.pipe';
-import { CustomFileParsingPipe } from 'src/shared/modules/storage/pipes/parse-file.pipe';
-import { UploadServiceExample } from './upload.service';
+} from 'src/shared/modules/app-storage/decorators/upload.decorator';
+import { ImageProcessingPipe } from 'src/shared/modules/app-storage/pipes/image-processing.pipe';
+import { CustomFileParsingPipe } from 'src/shared/modules/app-storage/pipes/parse-file.pipe';
 
 @Controller('upload')
 export class UploadControllerExample {

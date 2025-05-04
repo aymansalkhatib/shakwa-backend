@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailService } from './mail.service';
-import { EnvironmentConfig } from 'src/shared/modules/config/env.schema';
+import { EnvironmentConfig } from 'src/shared/modules/app-config/env.schema';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { join } from 'path';
 

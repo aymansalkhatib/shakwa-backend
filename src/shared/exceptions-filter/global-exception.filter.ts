@@ -2,10 +2,13 @@ import { ArgumentsHost, Catch, ExceptionFilter, Injectable } from '@nestjs/commo
 import { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import { ErrorHandlerFactory } from './error-handler.factory';
- import { extractRequestMetadata, getErrorStatus } from './utils/request-metadata.util';
-import { LogMetadata } from '../modules/logging/interfaces/logger.interface';
-import { WinstonLoggerService } from '../modules/logging/winston-logger.service';
- 
+import {
+  extractRequestMetadata,
+  getErrorStatus,
+} from './utils/request-metadata.util';
+import { LogMetadata } from '../modules/app-logging/interfaces/logger.interface';
+import { WinstonLoggerService } from '../modules/app-logging/winston-logger.service';
+
 /**
  * Global exception filter that handles all unhandled exceptions in the application
  */

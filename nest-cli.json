@@ -6,7 +6,7 @@
     "deleteOutDir": true,
     "assets": [
       {
-        "include": "shared/modules/i18n/translate/**/*",
+        "include": "shared/modules/app-i18n/translate/**/*",
         "watchAssets": true
       },
       {

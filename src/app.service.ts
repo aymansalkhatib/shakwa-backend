@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { TranslateHelper } from './shared/modules/i18n/translate.helper';
+import { TranslateHelper } from './shared/modules/app-i18n/translate.helper';
 
 @Injectable()
 export class AppService {

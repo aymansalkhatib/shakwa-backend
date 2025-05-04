@@ -1,7 +1,7 @@
 import { Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConfigService } from '@nestjs/config';
-import { EnvironmentConfig } from './shared/modules/config/env.schema';
+import { EnvironmentConfig } from './shared/modules/app-config/env.schema';
 import { MailService } from './services/mail/mail.service';
 
 @Controller()
