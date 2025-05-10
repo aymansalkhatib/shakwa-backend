@@ -1,9 +1,4 @@
-import {
-  ClassSerializerInterceptor,
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-} from '@nestjs/common';
+import { ClassSerializerInterceptor, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UploadModuleExample } from './modules/upload-example/upload.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -21,7 +16,7 @@ import { AppStorageModule } from './shared/modules/app-storage/app-storage.modul
 import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.module';
 import { AppJwtModule } from './shared/modules/app-jwt/app-jwt.module';
 import { AuthModule } from './modules/auth/auth.module';
-
+ 
 @Module({
   imports: [
     AppConfigModel,
@@ -55,6 +50,6 @@ import { AuthModule } from './modules/auth/auth.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AppLoggerMiddleware).forRoutes('*');
+    consumer.apply(AppLoggerMiddleware).forRoutes('*all');
   }
 }

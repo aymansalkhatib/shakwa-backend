@@ -3,8 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EnvironmentConfig } from '../app-config/env.schema';
 import { Environment } from '../app-config/env.constant';
-import { User } from 'src/modules/users/entities/user.entity';
-import { Session } from 'src/modules/users/entities/session.entity';
+import { User } from 'src/modules/users/entities/base/user.entity';
+import { Session } from 'src/modules/auth/session.entity';
+import { Client } from 'pg';
+console.log(__dirname + '/../**/*.entity{.ts,.js}');
 
 @Module({
   imports: [
@@ -18,9 +20,8 @@ import { Session } from 'src/modules/users/entities/session.entity';
           username: configService.get('POSTGRES_USER'),
           password: configService.get('POSTGRES_PASSWORD'),
           database: configService.get('POSTGRES_DB'),
-          entities: [User, Session],
-          synchronize:
-            configService.get<string>('NODE_ENV') !== Environment.PRODUCTION,
+          entities: ['dist/**/*.entity{.ts,.js}'],
+          synchronize: configService.get<string>('NODE_ENV') !== Environment.PRODUCTION,
         };
       },
       inject: [ConfigService],
@@ -28,8 +29,6 @@ import { Session } from 'src/modules/users/entities/session.entity';
   ],
 })
 export class AppTypeOrmModule {}
-
-import { Client } from 'pg';
 
 async function createDatabaseIfNotExists() {
   const client = new Client({
@@ -45,9 +44,7 @@ async function createDatabaseIfNotExists() {
 
     const dbName = process.env.POSTGRES_DB;
 
-    const result = await client.query(
-      `SELECT 1 FROM pg_database WHERE datname='${dbName}'`,
-    );
+    const result = await client.query(`SELECT 1 FROM pg_database WHERE datname='${dbName}'`);
     if (result.rowCount === 0) {
       await client.query(`CREATE DATABASE "${dbName}"`);
       console.log(`✅ Database "${dbName}" created successfully.`);

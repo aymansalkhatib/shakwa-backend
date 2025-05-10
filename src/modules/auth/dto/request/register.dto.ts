@@ -1,4 +1,3 @@
-import {} from 'class-transformer';
 import { IsEmail, IsString, MinLength, Matches } from 'class-validator';
 
 export class RegisterDto {

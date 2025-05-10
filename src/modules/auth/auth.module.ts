@@ -3,13 +3,22 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { User } from '../users/entities/user.entity';
+import { User } from '../users/entities/base/user.entity';
 import { JwtStrategy } from 'src/shared/modules/app-jwt/strategies/jwt.strategy';
 import { AppJwtModule } from 'src/shared/modules/app-jwt/app-jwt.module';
-import { Session } from '../users/entities/session.entity';
+import { Session } from './session.entity';
+import { EndUser } from '../users/entities/role-specific/end-user.entity';
+import { SuperAdmin } from '../users/entities/role-specific/super-admin.entity';
+import { Admin } from '../users/entities/role-specific/admin.entity';
+import { MailModule } from 'src/services/mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Session]), PassportModule, AppJwtModule],
+  imports: [
+    TypeOrmModule.forFeature([User, Session, EndUser, SuperAdmin]),
+    PassportModule,
+    AppJwtModule,
+    MailModule,
+  ],
 
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

@@ -3,17 +3,22 @@ import { z } from 'zod';
 export const jwtSchema = z.object({
   // Access Token Configuration
   JWT_ACCESS_SECRET: z.string().min(1, 'JWT_ACCESS_SECRET is required'),
-  JWT_ACCESS_EXPIRES_IN: z.string().min(1, 'JWT_ACCESS_EXPIRES_IN is required'),
+  JWT_ACCESS_EXPIRES_IN_MS: z.coerce
+    .number()
+    .int()
+    .positive('JWT_ACCESS_EXPIRES_IN_MS must be a positive number'),
 
   // Refresh Token Configuration
   JWT_REFRESH_SECRET: z.string().min(1, 'JWT_REFRESH_SECRET is required'),
-  JWT_REFRESH_EXPIRES_IN: z.string().min(1, 'JWT_REFRESH_EXPIRES_IN is required'),
+  JWT_REFRESH_EXPIRES_IN_MS: z.coerce
+    .number()
+    .int()
+    .positive('JWT_REFRESH_EXPIRES_IN_MS must be a positive number'),
 
-  // Verification Token Configuration
-  JWT_VERIFICATION_SECRET: z.string().min(1, 'JWT_VERIFICATION_SECRET is required'),
-  JWT_VERIFICATION_EXPIRES_IN: z
-    .string()
-    .min(1, 'JWT_VERIFICATION_EXPIRES_IN is required'),
+  // Security Token Configuration
+  JWT_SECURITY_SECRET: z.string().min(1, 'JWT_SECURITY_SECRET is required'),
+  JWT_SECURITY_EXPIRES_IN_MS: z.coerce
+    .number()
+    .int()
+    .positive('JWT_SECURITY_EXPIRES_IN_MS must be a positive number'),
 });
-
-export type JwtConfig = z.infer<typeof jwtSchema>;

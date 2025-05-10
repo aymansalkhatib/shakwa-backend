@@ -18,7 +18,7 @@ export class JwtErrorHandler extends BaseErrorHandler {
       ...this.createBaseResponse(
         'failure',
         HttpStatus.UNAUTHORIZED,
-        isExpired ? 'Token has expired' : 'Invalid token signature',
+        error.message ?? (isExpired ? 'Token has expired' : 'Invalid token signature'),
         traceId,
       ),
       context: {

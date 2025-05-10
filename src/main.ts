@@ -3,10 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
 import * as compression from 'compression';
-import {
-  i18nValidationErrorFactory,
-  I18nValidationExceptionFilter,
-} from 'nestjs-i18n';
+import { i18nValidationErrorFactory, I18nValidationExceptionFilter } from 'nestjs-i18n';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

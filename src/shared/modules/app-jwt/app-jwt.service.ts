@@ -4,74 +4,135 @@ import * as jwt from 'jsonwebtoken';
 import { EnvironmentConfig } from '../app-config/env.schema';
 import {
   AccessTokenPayload,
+  DecodedAccessTokenPayload,
+  DecodedRefreshTokenPayload,
+  DecodedSecurityTokenPayload,
   RefreshTokenPayload,
+  SecurityTokenPayload,
   TokenPair,
-  VerificationTokenPayload,
-} from './strategies/interfaces/token-payloads.interface';
+} from './interfaces';
 
+/**
+ * Service for handling JWT operations including token creation, verification and management
+ */
 @Injectable()
 export class AppJwtService {
   private readonly accessSecret: string;
-  private readonly accessExpiresIn: string;
+  private readonly accessExpiresIn: number;
   private readonly refreshSecret: string;
-  private readonly refreshExpiresIn: string;
-  private readonly verificationSecret: string;
-  private readonly verificationExpiresIn: string;
+  private readonly refreshExpiresIn: number;
+  private readonly securitySecret: string;
+  private readonly securityExpiresIn: number;
 
   constructor(private readonly configService: ConfigService<EnvironmentConfig>) {
     this.accessSecret = this.configService.getOrThrow('JWT_ACCESS_SECRET');
-    this.accessExpiresIn = this.configService.getOrThrow('JWT_ACCESS_EXPIRES_IN');
+    this.accessExpiresIn = this.configService.getOrThrow<number>('JWT_ACCESS_EXPIRES_IN_MS');
     this.refreshSecret = this.configService.getOrThrow('JWT_REFRESH_SECRET');
-    this.refreshExpiresIn = this.configService.getOrThrow('JWT_REFRESH_EXPIRES_IN');
-    this.verificationSecret = this.configService.getOrThrow('JWT_VERIFICATION_SECRET');
-    this.verificationExpiresIn = this.configService.getOrThrow('JWT_VERIFICATION_EXPIRES_IN');
+    this.refreshExpiresIn = this.configService.getOrThrow<number>('JWT_REFRESH_EXPIRES_IN_MS');
+    this.securitySecret = this.configService.getOrThrow('JWT_SECURITY_SECRET');
+    this.securityExpiresIn = this.configService.getOrThrow<number>('JWT_SECURITY_EXPIRES_IN_MS');
   }
 
+  /**
+   * Creates a token pair (access + refresh) for authentication
+   * @param payload User information to include in tokens
+   * @returns TokenPair containing access and refresh tokens
+   */
+  createTokenPair(payload: AccessTokenPayload & RefreshTokenPayload): TokenPair {
+    const accessToken = this.createAccessToken(payload);
+    const refreshToken = this.createRefreshToken(payload);
+    return { accessToken, refreshToken };
+  }
+
+  /**
+   * Creates an access token for user authentication
+   * @param payload User information to include in token
+   * @returns Signed JWT access token
+   */
   createAccessToken(payload: AccessTokenPayload): string {
     return jwt.sign(payload, this.accessSecret, { expiresIn: this.accessExpiresIn });
   }
 
+  /**
+   * Creates a refresh token for token renewal
+   * @param payload User information to include in token
+   * @returns Signed JWT refresh token
+   */
   private createRefreshToken(payload: RefreshTokenPayload): string {
     return jwt.sign(payload, this.refreshSecret, { expiresIn: this.refreshExpiresIn });
   }
 
-  createVerificationToken(payload: VerificationTokenPayload): string {
-    return jwt.sign(payload, this.verificationSecret, { expiresIn: this.verificationExpiresIn });
+  /**
+   * Creates a security token for operations like email verification or password reset
+   * @param payload Security information including email, code and operation type
+   * @returns Signed JWT security token
+   */
+  createSecurityToken(payload: SecurityTokenPayload): string {
+    return jwt.sign(payload, this.securitySecret, { expiresIn: this.securityExpiresIn });
   }
 
-  verifyAccessToken(token: string, ignoreExpiration = false): any {
+  /**
+   * Verifies an access token's validity
+   * @param token Access token to verify
+   * @param ignoreExpiration Whether to ignore token expiration
+   * @returns Decoded token payload if valid
+   * @throws UnauthorizedException if token is invalid
+   */
+  verifyAccessToken(token: string, ignoreExpiration = false): DecodedAccessTokenPayload {
     try {
-      return jwt.verify(token, this.accessSecret);
+      return jwt.verify(token, this.accessSecret, {
+        ignoreExpiration,
+      }) as DecodedAccessTokenPayload;
     } catch (error: any) {
       if (error.name === 'TokenExpiredError' && ignoreExpiration) {
         const decoded = jwt.decode(token);
         if (decoded) {
-          return decoded;
+          return decoded as DecodedAccessTokenPayload;
         }
       }
-      throw new UnauthorizedException('Invalid or expired Access Token');
+      throw new UnauthorizedException('Invalid or expired access token');
     }
   }
 
-  verifyRefreshToken(token: string): any {
+  /**
+   * Verifies a refresh token's validity
+   * @param token Refresh token to verify
+   * @returns Decoded token payload if valid
+   * @throws TokenExpiredError or JsonWebTokenError if token is invalid
+   */
+  verifyRefreshToken(token: string): DecodedRefreshTokenPayload {
     try {
-      return jwt.verify(token, this.refreshSecret);
+      return jwt.verify(token, this.refreshSecret) as DecodedRefreshTokenPayload;
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired Refresh Token');
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new jwt.TokenExpiredError('Refresh token has expired', null);
+      } else if (error instanceof jwt.JsonWebTokenError) {
+        throw new jwt.JsonWebTokenError('Invalid refresh token');
+      }
+      throw error;
     }
   }
 
-  verifyVerificationToken(token: string): any {
+  /**
+   * Verifies a security token's validity
+   * @param token Security token to verify
+   * @param ignoreExpiration Whether to ignore token expiration
+   * @returns Decoded token payload if valid
+   * @throws UnauthorizedException if token is invalid
+   */
+  verifySecurityToken(token: string, ignoreExpiration = false): DecodedSecurityTokenPayload {
     try {
-      return jwt.verify(token, this.verificationSecret);
-    } catch (error) {
-      throw new UnauthorizedException('Invalid or expired Verification Token');
+      return jwt.verify(token, this.securitySecret, {
+        ignoreExpiration,
+      }) as DecodedSecurityTokenPayload;
+    } catch (error: any) {
+      if (error.name === 'TokenExpiredError' && ignoreExpiration) {
+        const decoded = jwt.decode(token);
+        if (decoded) {
+          return decoded as DecodedSecurityTokenPayload;
+        }
+      }
+      throw new UnauthorizedException('Invalid or expired security token');
     }
-  }
-
-  generateTokens(payload: AccessTokenPayload & RefreshTokenPayload): TokenPair {
-    const accessToken = this.createAccessToken(payload);
-    const refreshToken = this.createRefreshToken(payload);
-    return { accessToken, refreshToken };
   }
 }
