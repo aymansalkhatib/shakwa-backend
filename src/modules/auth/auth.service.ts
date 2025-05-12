@@ -5,6 +5,7 @@ import {
   ConflictException,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
@@ -15,33 +16,32 @@ import { Session } from './session.entity';
 import { AppJwtService } from 'src/shared/modules/app-jwt/app-jwt.service';
 import { UserRole } from 'src/common/enums/role.enum';
 import { EndUser } from '../users/entities/role-specific/end-user.entity';
-import { SuperAdmin } from '../users/entities/role-specific/super-admin.entity';
 import { MailService } from 'src/services/mail/mail.service';
 
 // Import request DTOs
-import { 
-  LoginDto,
-  RegisterDto,
-  TokenPairDto,
-  VerifyEmailDto
-} from './dto/request';
+import { LoginDto, RegisterDto, TokenPairDto, VerifyEmailDto } from './dto/request';
 
 // Import response DTOs
-import { 
-  LoginResponseDto, 
-  UserResponseDto 
-} from './dto/response';
-import { DecodedAccessTokenPayload, DecodedRefreshTokenPayload, TokenPair } from 'src/shared/modules/app-jwt/interfaces';
+import { LoginResponseDto, UserResponseDto } from './dto/response';
+import {
+  DecodedAccessTokenPayload,
+  DecodedRefreshTokenPayload,
+  TokenPair,
+} from 'src/shared/modules/app-jwt/interfaces';
 
+/**
+ * Authentication Service
+ * Handles all authentication-related business logic
+ */
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(EndUser)
     private enduserRepository: Repository<EndUser>,
-    @InjectRepository(SuperAdmin)
-    private superAdminRepository: Repository<SuperAdmin>,
     @InjectRepository(Session)
     private sessionRepository: Repository<Session>,
     private appJwtService: AppJwtService,
@@ -135,15 +135,22 @@ export class AuthService {
       // Comprehensive account status validation
       await this.validateUserStatus(user);
 
+      user.sessionNumber++;
+
       // Generate tokens with role-specific claims
       const tokens = await this.generateUserTokens(user);
 
-      // Create and save new session
-      await this.createUserSession(queryRunner, user, tokens.refreshToken, ip, userAgent);
-
-      user.sessionNumber++;
-
       await queryRunner.manager.save(user);
+
+      // Create and save new session
+      await this.createUserSession(
+        queryRunner,
+        user,
+        tokens.refreshToken,
+        ip,
+        user.sessionNumber,
+        userAgent,
+      );
 
       await queryRunner.commitTransaction();
 
@@ -194,21 +201,41 @@ export class AuthService {
    * Refreshes the access token using a valid refresh token
    * @param tokens - Current token pair
    * @throws UnauthorizedException for invalid or expired tokens
+   * @returns New access token
    */
   async refreshTokens(tokens: TokenPairDto): Promise<string> {
-    const refreshTokenData = this.appJwtService.verifyRefreshToken(tokens.refreshToken);
+    const refreshTokenData: DecodedRefreshTokenPayload = this.appJwtService.verifyRefreshToken(
+      tokens.refreshToken,
+    );
+    const accessTokenData: DecodedAccessTokenPayload = this.appJwtService.verifyAccessToken(
+      tokens.accessToken,
+      true,
+    );
+
+    this.validateTokenMatch(refreshTokenData, accessTokenData);
+
+    if (accessTokenData.exp > Math.floor(Date.now() / 1000)) {
+      throw new BadRequestException('Access token has not expired yet. No need to refresh.');
+    }
 
     const session = await this.sessionRepository.findOne({
       where: {
-        refreshToken: tokens.refreshToken,
+        userId: refreshTokenData.userId,
+        sessionNumber: refreshTokenData.sessionNumber,
         revokedAt: null,
       },
       relations: ['user'],
     });
 
-    if (!session || session.isExpired()) {
+    if (
+      !session ||
+      session.isExpired() ||
+      !(await session.validateRefreshToken(tokens.refreshToken))
+    ) {
       throw new UnauthorizedException('Invalid or expired session');
     }
+
+    session.validateRefreshToken(tokens.refreshToken);
 
     await this.validateUserStatus(session.user);
 
@@ -271,6 +298,7 @@ export class AuthService {
     user: User,
     refreshToken: string,
     ip: string,
+    sessionNumber: number,
     userAgent: string,
   ): Promise<Session> {
     const sessionDuration: number = this.configService.get<number>('JWT_REFRESH_EXPIRES_IN_MS');
@@ -278,6 +306,7 @@ export class AuthService {
       user,
       refreshToken,
       ip,
+      sessionNumber,
       userAgent,
       expiresAt: new Date(Date.now() + sessionDuration),
     });
@@ -365,10 +394,6 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    if (user.verifiedAt) {
-      throw new BadRequestException('Email has already been verified');
-    }
-
     // Generate new verification code
     const verificationCode = this.generateVerificationCode();
 
@@ -428,7 +453,7 @@ export class AuthService {
     await this.mailService.sendMail({
       to: user.email,
       subject: 'Password Reset Code',
-      template: 'reset-password',
+      template: 'verify-code',
       context: {
         username: user.email.split('@')[0],
         email: user.email,
@@ -479,16 +504,6 @@ export class AuthService {
 
       // Save the user with the new password
       await this.userRepository.save(user);
-
-      // Send confirmation email
-      await this.mailService.sendMail({
-        to: user.email,
-        subject: 'Password Changed Successfully',
-        template: 'password-changed',
-        context: {
-          username: user.email.split('@')[0],
-        },
-      });
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;

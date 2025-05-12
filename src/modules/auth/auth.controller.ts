@@ -4,8 +4,6 @@ import {
   Body,
   UseGuards,
   Get,
-  Req,
-  Param,
   HttpCode,
   HttpStatus,
   Ip,
@@ -15,15 +13,33 @@ import {
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../../shared/modules/app-jwt/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/common/decorators/user.decorator';
-import { RegisterDto, LoginDto, TokenPairDto, VerifyEmailDto, ForgotPasswordDto, ResetPasswordDto } from './dto/request';
-import { RegisterResponseDto, LoginResponseDto, UserResponseDto } from './dto/response';
+import { 
+  RegisterDto, 
+  LoginDto, 
+  TokenPairDto, 
+  VerifyEmailDto, 
+  ForgotPasswordDto, 
+  ResetPasswordDto 
+} from './dto/request';
+import { 
+  RegisterResponseDto, 
+  LoginResponseDto, 
+  UserResponseDto 
+} from './dto/response';
 
-
-
+/**
+ * Authentication Controller
+ * Handles all authentication-related endpoints
+ */
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  /**
+   * Register a new user
+   * @param registerDto User registration data
+   * @returns Registration confirmation message
+   */
   @Post('register')
   async register(@Body() registerDto: RegisterDto): Promise<RegisterResponseDto> {
     await this.authService.register(registerDto);
@@ -32,7 +48,13 @@ export class AuthController {
     };
   }
 
-
+  /**
+   * Authenticate a user
+   * @param loginDto User login credentials
+   * @param ip Client IP address
+   * @param userAgent Client user agent
+   * @returns Login response with tokens and user data
+   */
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -40,36 +62,64 @@ export class AuthController {
     @Ip() ip: string,
     @Headers('user-agent') userAgent: string,
   ): Promise<LoginResponseDto> {
-    const loginResult = await this.authService.login(loginDto, ip, userAgent);
-    return new LoginResponseDto(loginResult);
+    return await this.authService.login(loginDto, ip, userAgent);
   }
 
+  /**
+   * Log out a user by revoking their session
+   * @param tokens Access and refresh tokens
+   * @returns Void
+   */
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Body() tokens: TokenPairDto) {
-    const response = await this.authService.logout(tokens);
-    return response;
+  async logout(@Body() tokens: TokenPairDto): Promise<{ message: string }> {
+    await this.authService.logout(tokens);
+    return {
+      message: 'Logged out successfully'
+    };
   }
-
+  /**
+   * Refresh access token using refresh token
+   * @param tokens Current token pair
+   * @returns New access token
+   */
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refreshTokens(@Body() tokens: TokenPairDto) {
-    return this.authService.refreshTokens(tokens);
+  async refreshTokens(@Body() tokens: TokenPairDto): Promise<{ accessToken: string }> {
+    const accessToken = await this.authService.refreshTokens(tokens);
+    return { accessToken };
   }
 
+  /**
+   * Get current user profile
+   * @param user Current authenticated user
+   * @returns User profile data
+   */
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getProfile(@CurrentUser() user): UserResponseDto {
     return new UserResponseDto(user);
   }
 
-  // Add this method to your AuthController class
+  /**
+   * Verify user email with verification code
+   * @param verifyEmailDto Email and verification code
+   * @returns Void
+   */
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
-  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<void> {
-    return this.authService.verifyEmail(verifyEmailDto);
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<{ message: string }> {
+    await this.authService.verifyEmail(verifyEmailDto);
+    return {
+      message: 'Email verified successfully. You can now log in.',
+    };
   }
 
+  /**
+   * Resend verification code to user email
+   * @param email User email address
+   * @returns Confirmation message
+   */
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   async resendVerificationCode(@Body('email') email: string): Promise<{ message: string }> {
@@ -79,6 +129,11 @@ export class AuthController {
     };
   }
 
+  /**
+   * Initiate password reset process
+   * @param forgotPasswordDto User email
+   * @returns Confirmation message
+   */
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
@@ -88,6 +143,11 @@ export class AuthController {
     };
   }
 
+  /**
+   * Reset user password with verification code
+   * @param resetPasswordDto Email, code and new password
+   * @returns Confirmation message
+   */
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {

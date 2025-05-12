@@ -7,6 +7,7 @@ import {
   BeforeInsert,
   OneToOne,
   OneToMany,
+  BeforeUpdate,
 } from 'typeorm';
 import { IsEmail, IsNotEmpty, MinLength, IsEnum, IsOptional, IsDate } from 'class-validator';
 import * as bcrypt from 'bcrypt';
@@ -100,8 +101,10 @@ export class User {
    * Automatically called by TypeORM before entity insertion.
    */
   @BeforeInsert()
+  @BeforeUpdate()
   async hashPassword() {
-    if (this.password) {
+    // Only hash the password if it's a new user or the password was changed
+    if (this.password && (!this.id || this.password !== this.password)) {
       const salt = await bcrypt.genSalt(12);
       this.password = await bcrypt.hash(this.password, salt);
     }

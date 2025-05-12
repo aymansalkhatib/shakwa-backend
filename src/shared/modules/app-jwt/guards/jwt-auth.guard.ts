@@ -41,8 +41,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
    */
   handleRequest(err: any, user: any, info: any) {
     if (err || !user) {
-      this.logger.debug(`Authentication failed: ${err?.message || info?.message || 'Unknown error'}`);
-      
+      this.logger.debug(
+        `Authentication failed: ${err?.message || info?.message || 'Unknown error'}`,
+      );
+
       // Handle JWT library errors
       if (info instanceof TokenExpiredError) {
         throw new TokenExpiredError('Your session has expired. Please log in again.', null);
@@ -57,39 +59,46 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       if (errorCode) {
         switch (errorCode) {
           case JwtErrorCode.USER_NOT_FOUND:
-            throw new UnauthorizedException('User not found. Please register or check your credentials.');
-          
+            throw new UnauthorizedException(
+              'User not found. Please register or check your credentials.',
+            );
+
           case JwtErrorCode.EMAIL_NOT_VERIFIED:
-            throw new UnauthorizedException('Email is not verified. Please check your email for verification instructions.');
-          
+            throw new UnauthorizedException(
+              'Email is not verified. Please check your email for verification instructions.',
+            );
+
           case JwtErrorCode.USER_BLOCKED:
-            throw new UnauthorizedException('Your account has been blocked. Please contact support for assistance.');
-          
+            throw new UnauthorizedException(
+              'Your account has been blocked. Please contact support for assistance.',
+            );
+
           case JwtErrorCode.USER_DELETED:
-            throw new UnauthorizedException('Your account has been deleted. Please contact support if this was not intended.');
-          
+            throw new UnauthorizedException(
+              'Your account has been deleted. Please contact support if this was not intended.',
+            );
+
           case JwtErrorCode.SESSION_NOT_FOUND:
             throw new UnauthorizedException('Session not found or invalid. Please log in again.');
-          
+
           case JwtErrorCode.SESSION_REVOKED:
             throw new UnauthorizedException('Your session has been revoked. Please log in again.');
-          
+
           case JwtErrorCode.SESSION_EXPIRED:
             throw new UnauthorizedException('Your session has expired. Please log in again.');
-          
+
           case JwtErrorCode.REFRESH_TOKEN_EXPIRED:
-            throw new TokenExpiredError('Your refresh token has expired. Please log in again.', null);
-          
-          default:
-            this.logger.warn(`Unhandled error code: ${errorCode}`, {
-              error: err,
-              info: info
-            });
+            throw new TokenExpiredError(
+              'Your refresh token has expired. Please log in again.',
+              null,
+            );
         }
       }
 
       // Fallback error message
-      throw new UnauthorizedException('Authentication failed. Please log in again.');
+      throw new UnauthorizedException(
+        err?.message ?? 'Authentication failed. Please log in again.',
+      );
     }
 
     return user;
