@@ -20,16 +20,16 @@ import { AuthModule } from './modules/auth/auth.module';
 @Module({
   imports: [
     AppConfigModel,
-    AppLoggerModule,
-    UploadModuleExample,
-    // NotificationModule,
     AppI18nModule,
-    AppTypeOrmModule,
-    AppStorageModule.register({ provider: 'local' }),
+    AppLoggerModule,
     MailModule,
+    AppStorageModule.register({ provider: 'local' }),
+    // AppTypeOrmModule,
+    // UploadModuleExample,
+    // NotificationModule,
 
-    AppJwtModule,
-    AuthModule,
+    // AppJwtModule,
+    // AuthModule,
   ],
 
   controllers: [AppController],

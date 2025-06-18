@@ -13,13 +13,14 @@ console.log(__dirname + '/../**/*.entity{.ts,.js}');
     TypeOrmModule.forRootAsync({
       async useFactory(configService: ConfigService<EnvironmentConfig>) {
         await createDatabaseIfNotExists(); // 🛠 تأكد القاعدة موجودة قبل الاتصال
+
         return {
           type: 'postgres',
           host: configService.get('POSTGRES_HOST'),
           port: parseInt(configService.get('POSTGRES_PORT'), 10),
           username: configService.get('POSTGRES_USER'),
           password: configService.get('POSTGRES_PASSWORD'),
-          database: configService.get('POSTGRES_DB'),
+          database: configService.get('POSTGRES_DB_Name'),
           entities: ['dist/**/*.entity{.ts,.js}'],
           synchronize: configService.get<string>('NODE_ENV') !== Environment.PRODUCTION,
         };
@@ -36,7 +37,7 @@ async function createDatabaseIfNotExists() {
     port: parseInt(process.env.POSTGRES_PORT, 10),
     user: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
-    database: 'postgres', // اتصال على database موجودة أكيد (postgres default)
+    database: 'postgres',
   });
 
   try {

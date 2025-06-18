@@ -18,7 +18,7 @@ export const mailSchema = z.object({
 
   SMTP_USER: z.string().email('SMTP_USER must be a valid email address'),
 
-  SMTP_PASS: z.string().min(8, 'SMTP_PASS must be at least 8 characters long'),
+  SMTP_PASS: z.string().min(16, 'SMTP_PASS must be at least 16 characters long'),
 
   SMTP_FROM: z.string().email('SMTP_FROM must be a valid email address'),
 });
