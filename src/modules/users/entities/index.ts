@@ -10,4 +10,4 @@ export { User } from './base/user.entity';
 export { Session } from '../../auth/session.entity';
 
 // Enums
-export { UserRole } from '../../../common/enums/role.enum';
+export { Role } from '../../../common/enums/role.enum';

@@ -1,4 +1,6 @@
 import { DynamicModule, Module, Provider } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { EnvironmentConfig } from '../app-config/env.schema.js';
 import {
   DEFAULT_COMPRESSION_OPTIONS,
   DEFAULT_FILE_VALIDATION_OPTIONS,
@@ -7,15 +9,13 @@ import { STORAGE_CONSTANTS } from './constants/storage.constants.js';
 import { LocalStorageService } from './local-storage.service.js';
 import { ImageProcessingPipe } from './pipes/image-processing.pipe.js';
 import { CustomFileParsingPipe } from './pipes/parse-file.pipe.js';
+import { SupabaseStorageService } from './supabase-storage.service.js';
 import {
   FileValidationOptions,
   ImageCompressionOptions,
   StorageConfig,
   StorageProvider,
 } from './types/index.js';
-import { SupabaseStorageService } from './supabase-storage.service.js';
-import { EnvironmentConfig } from '../app-config/env.schema.js';
-import { ConfigService } from '@nestjs/config';
 
 @Module({})
 export class AppStorageModule {
@@ -32,7 +32,10 @@ export class AppStorageModule {
     return {
       module: AppStorageModule,
       providers: [ConfigService, ...commonProviders, storageProvider],
-      exports: [...commonProviders.map((provider) => provider), storageProvider],
+      exports: [
+        ...commonProviders.map((provider) => provider),
+        storageProvider,
+      ],
       global: true, // Makes the module available globally
     };
   }

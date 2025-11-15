@@ -6,9 +6,9 @@ import {
   MultipleFilesUpload,
   AnyFilesUpload,
   MultipleFieldFilesUpload,
-} from 'src/shared/modules/app-storage/decorators/upload.decorator';
-import { ImageProcessingPipe } from 'src/shared/modules/app-storage/pipes/image-processing.pipe';
-import { CustomFileParsingPipe } from 'src/shared/modules/app-storage/pipes/parse-file.pipe';
+} from '../../shared/modules/app-storage/decorators/upload.decorator';
+import { ImageProcessingPipe } from '../../shared/modules/app-storage/pipes/image-processing.pipe';
+import { CustomFileParsingPipe } from '../../shared/modules/app-storage/pipes/parse-file.pipe';
 
 @Controller('upload')
 export class UploadControllerExample {

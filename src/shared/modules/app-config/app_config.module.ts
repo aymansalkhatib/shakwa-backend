@@ -10,12 +10,11 @@ import { EnvironmentValidator } from './env.validator';
       validate: EnvironmentValidator.validate,
       envFilePath: [
         'env/' + ENV_FILES.DEFAULT,
-        'env/' +
-          (ENV_FILES.getEnvFile(process.env.NODE_ENV) || ENV_FILES.DEVELOPMENT),
+        'env/' + (ENV_FILES.getEnvFile(process.env.NODE_ENV) || ENV_FILES.DEVELOPMENT),
       ],
     }),
   ],
-  
+
   exports: [],
 })
 export class AppConfigModel {}

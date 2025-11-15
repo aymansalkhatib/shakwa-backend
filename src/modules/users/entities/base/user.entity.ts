@@ -1,21 +1,21 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  BeforeInsert,
-  OneToOne,
-  OneToMany,
-  BeforeUpdate,
-} from 'typeorm';
-import { IsEmail, IsNotEmpty, MinLength, IsEnum, IsOptional, IsDate } from 'class-validator';
 import * as bcrypt from 'bcrypt';
-import { UserRole } from '../../../../common/enums/role.enum';
-import { EndUser } from '../role-specific/end-user.entity';
+import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Role } from '../../../../common/enums/role.enum';
+import { Session } from '../../../auth/session.entity';
 import { Admin } from '../role-specific/admin.entity';
+import { EndUser } from '../role-specific/end-user.entity';
 import { SuperAdmin } from '../role-specific/super-admin.entity';
-import { Session } from 'src/modules/auth/session.entity';
 
 /**
  * Base User entity for authentication and role management.
@@ -39,16 +39,16 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: UserRole,
+    enum: Role,
     array: true,
-    default: [UserRole.END_USER],
+    default: [Role.USER],
   })
-  @IsEnum(UserRole, {
+  @IsEnum(Role, {
     each: true,
     message: 'Invalid user role. Must be one of the defined UserRole values.',
   })
   @IsNotEmpty({ each: true })
-  roles: UserRole[];
+  roles: Role[];
 
   @Column({ nullable: true, name: 'security_token' })
   @IsOptional()
@@ -125,7 +125,7 @@ export class User {
    * @param matchAllRoles (Optional) Boolean to specify if all roles in the array must match
    * @returns True if the user has the specified role or any role from the list (or all roles if matchAllRoles is true)
    */
-  hasRole(roleToCheck: UserRole | UserRole[], matchAllRoles: boolean = false): boolean {
+  hasRole(roleToCheck: Role | Role[], matchAllRoles: boolean = false): boolean {
     if (Array.isArray(roleToCheck)) {
       if (matchAllRoles) {
         return roleToCheck.every((role) => this.roles.includes(role)); // Checks if all roles match

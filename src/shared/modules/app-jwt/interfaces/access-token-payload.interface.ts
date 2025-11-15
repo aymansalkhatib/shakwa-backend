@@ -8,16 +8,10 @@ import { BaseJwtPayload } from './base-jwt-payload.interface';
 @Exclude()
 export class AccessTokenPayload {
   @Expose()
-  sessionNumber: number;
-
-  @Expose()
   userId: number;
 
   @Expose()
-  email: string;
-
-  @Expose()
-  roles: string[];
+  username: string;
 }
 
 /**

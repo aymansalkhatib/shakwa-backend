@@ -1,21 +1,13 @@
 import { Global, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { EnvironmentConfig } from 'src/shared/modules/app-config/env.schema';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { EnvironmentConfig } from '../app-config/env.schema';
 import { AppJwtService } from './app-jwt.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/modules/users/entities/base/user.entity';
-import { Session } from 'src/modules/auth/session.entity';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 
-/**
- * Module for JWT authentication and authorization
- * Provides services for token creation, validation, and user authentication
- */
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Session]),
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService<EnvironmentConfig>) => ({
         secret: configService.get('JWT_ACCESS_SECRET'),
@@ -26,7 +18,7 @@ import { Session } from 'src/modules/auth/session.entity';
       inject: [ConfigService],
     }),
   ],
-  exports: [AppJwtService, JwtStrategy],
-  providers: [AppJwtService, JwtStrategy],
+  exports: [AppJwtService, JwtAuthGuard],
+  providers: [AppJwtService, JwtAuthGuard],
 })
 export class AppJwtModule {}

@@ -1,0 +1,49 @@
+import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+import { DataSource } from 'typeorm';
+import { AppModule } from '../../app.module';
+import { EnvironmentConfig } from '../../shared/modules/app-config/env.schema';
+import { seedEmployees } from './seed-employees';
+
+async function bootstrap() {
+  const args = process.argv.slice(2);
+  const runEmployees = args.includes('employees');
+  const runAll = args.includes('all');
+
+  const app = await NestFactory.create(AppModule);
+  const dataSource = app.get(DataSource);
+  const configService = app.get(ConfigService<EnvironmentConfig>);
+  const queryRunner = dataSource.createQueryRunner();
+
+  try {
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    if (runEmployees) {
+      await seedEmployees(queryRunner);
+      console.log('✅ Employees seeded');
+    }
+    if (runAll) {
+      await seedEmployees(queryRunner);
+      console.log('✅ All seeders ran');
+    }
+
+    await queryRunner.commitTransaction();
+  } catch (error) {
+    await queryRunner.rollbackTransaction();
+    console.error('Error seeding:', error);
+  } finally {
+    await queryRunner.release();
+    await app.close();
+  }
+}
+
+bootstrap()
+  .then(() => {
+    console.log('✨ Seeder finished successfully');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('💥 Seeder failed:', error.message);
+    process.exit(1);
+  });

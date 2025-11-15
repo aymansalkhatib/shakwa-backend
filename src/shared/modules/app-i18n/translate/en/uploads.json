@@ -1,0 +1,7 @@
+{
+  "errors": {
+    "not_found": "Upload with ID {id} not found",
+    "upload_failed": "Failed to upload file",
+    "delete_failed": "Failed to delete file"
+  }
+}

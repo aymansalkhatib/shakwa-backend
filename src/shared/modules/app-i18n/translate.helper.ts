@@ -5,9 +5,9 @@ import { TranslationInterpolations, TranslationKey } from './translation-keys';
 
 /**
  * A helper service to simplify translation usage across the application.
- * This service automatically picks up the current request language unless overridden.
+ * This service automatically picks up the current requests language unless overridden.
  */
-@Injectable({ scope: Scope.REQUEST }) // Scoped per request to access I18nContext
+@Injectable({ scope: Scope.REQUEST }) // Scoped per requests to access I18nContext
 export class TranslateHelper {
   constructor(private readonly i18n: I18nService) {}
 
@@ -18,8 +18,15 @@ export class TranslateHelper {
    * @param key - The i18n translation key for validation (e.g., 'validation.MAX_LENGTH')
    * @returns A function that receives validation arguments and returns the translated message
    */
-  static trValMsg(key: TranslationKey): (a: ValidationArguments) => string {
-    return i18nValidationMessage(key);
+  static trValMsg(key: TranslationKey, interpolations?: any): (a: ValidationArguments) => string {
+    return (args: ValidationArguments) => {
+      return i18nValidationMessage(key, {
+        ...interpolations,
+        property: I18nContext.current()?.translate
+          ? I18nContext.current().translate('keys.' + args.property)
+          : args.property,
+      })(args);
+    };
   }
 
   /**
@@ -41,8 +48,8 @@ export class TranslateHelper {
   };
 
   /**
-   * Get the current language from the request context.
-   * This is typically used to retrieve the language set by the user in the request.
+   * Get the current language from the requests context.
+   * This is typically used to retrieve the language set by the user in the requests.
    *
    * @returns The current language code or undefined if no language is set
    */

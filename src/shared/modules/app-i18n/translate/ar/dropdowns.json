@@ -1,0 +1,32 @@
+{
+  "errors": {
+    "category_not_found": "فئة القائمة المنسدلة ذات المعرف {id} غير موجودة",
+    "category_name_exists": "الفئة ذات الاسم \"{name}\" موجودة بالفعل",
+    "category_has_dropdowns": "لا يمكن حذف الفئة التي تحتوي على قوائم منسدلة. قم بإزالة القوائم المنسدلة أولاً.",
+    "category_has_children": "لا يمكن حذف الفئة التي تحتوي على فئات فرعية. قم بإزالة الفئات الفرعية أولاً.",
+    "dropdown_not_found": "القائمة المنسدلة ذات المعرف {id} غير موجودة",
+    "dropdown_name_exists": "القائمة المنسدلة ذات الاسم \"{name}\" موجودة بالفعل في هذه الفئة",
+    "dropdown_has_options": "لا يمكن حذف القائمة المنسدلة التي تحتوي على خيارات. قم بإزالة الخيارات أولاً أو استخدم الحذف القسري.",
+    "option_not_found": "خيار القائمة المنسدلة ذو المعرف {id} غير موجود",
+    "option_name_exists": "خيار القائمة المنسدلة ذو الاسم \"{name}\" موجود بالفعل في هذه القائمة المنسدلة.",
+    "option_has_selections": "لا يمكن حذف الخيار المستخدم في التحديدات. قم بإزالة التحديدات أولاً.",
+    "selection_not_found": "تحديد القائمة المنسدلة ذو المعرف {id} غير موجود",
+    "single_selection_exists": "القائمة المنسدلة ذات التحديد الفردي لديها بالفعل تحديد لهذا السجل. قم بتحديث التحديد الموجود بدلاً من ذلك.",
+    "option_not_in_dropdown": "الخيار ذو المعرف {optionId} لا ينتمي إلى القائمة المنسدلة ذات المعرف {dropdownId}",
+    "max_depth_exceeded": "لا يمكن إنشاء الفئة. تم تجاوز الحد الأقصى للعمق {maxDepth}.",
+    "invalid_selection_type": "نوع تحديد القائمة المنسدلة غير صحيح",
+    "single_selection_requires_one_option": "القائمة المنسدلة ذات التحديد الفردي تتطلب خياراً واحداً بالضبط",
+    "multiple_selection_requires_at_least_one_option": "القائمة المنسدلة ذات التحديد المتعدد تتطلب خياراً واحداً على الأقل",
+    "category_mismatch": "معرف الفئة {categoryId} لا يتطابق مع معرف فئة القائمة المنسدلة {dropdownCategoryId}",
+    "duplicate_options_not_allowed": "الخيارات المكررة غير مسموح بها لهذا النوع من القوائم المنسدلة",
+    "cannot_create_subcategory": "لا يمكن إنشاء فئة فرعية لهذه الفئة.",
+    "option_not_found_in_dropdown": "الخيار ذو المعرف {optionId} غير موجود في القائمة المنسدلة '{dropdownName}'",
+    "dropdown_not_found_in_category": "القائمة المنسدلة '{dropdownName}' في الفئة '{categoryName}' غير موجودة",
+    "cannot_delete_core_category": "لا يمكن حذف فئة أساسية.",
+    "cannot_delete_option_referenced": "لا يمكن حذف خيار القائمة المنسدلة '{optionName}': هذا الخيار مستخدم في بيانات أخرى.",
+    "cannot_delete_dropdown_referenced": "لا يمكن حذف القائمة المنسدلة '{dropdownName}': هذه القائمة مستخدمة في بيانات أخرى.",
+    "duplicate_option_names_in_request": "تم العثور على أسماء خيارات مكررة في الطلب: {duplicates}",
+    "option_name_already_exists": "اسم الخيار '{optionName}' موجود بالفعل في هذه القائمة المنسدلة",
+    "cannot_update_options_not_found": "لا يمكن تحديث خيارات القائمة المنسدلة: الخيارات التالية غير موجودة: {missingOptions}"
+  }
+}

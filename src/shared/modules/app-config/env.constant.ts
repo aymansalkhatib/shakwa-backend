@@ -16,10 +16,7 @@ export const ENV_FILES = {
   getEnvFile: (env: string) => {
     const envFile = `.env.${env}`;
     // Check if the environment name exists in the keys of ENV_FILES
-    if (
-      !Object.values(ENV_FILES).includes(envFile) &&
-      envFile !== ENV_FILES.DEFAULT
-    ) {
+    if (!Object.values(ENV_FILES).includes(envFile) && envFile !== ENV_FILES.DEFAULT) {
       return null; // Return null if the environment file doesn't exist
     }
     return envFile;

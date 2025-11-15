@@ -45,15 +45,10 @@ export class ConsoleFormatter {
     const strippedContent = content.map(stripAnsi);
 
     const width =
-      Math.max(
-        strippedTitle.length,
-        ...strippedContent.map((line) => line.length),
-        50,
-      ) + 4;
+      Math.max(strippedTitle.length, ...strippedContent.map((line) => line.length), 50) + 4;
 
     const top = box.topLeft + box.horizontal.repeat(width - 2);
-    const titleLine =
-      `${box.vertical} ${title}` + ' '.repeat(width - 2 - strippedTitle.length - 1);
+    const titleLine = `${box.vertical} ${title}` + ' '.repeat(width - 2 - strippedTitle.length - 1);
 
     const separator = box.middleLeft + box.middleHorizontal.repeat(width - 2);
 
@@ -70,12 +65,7 @@ export class ConsoleFormatter {
   static createProgressBar(percentage: number, width = 20): string {
     const filled = Math.round((percentage / 100) * width);
     const empty = width - filled;
-    const color =
-      percentage >= 90
-        ? colors.green
-        : percentage >= 70
-          ? colors.yellow
-          : colors.red;
+    const color = percentage >= 90 ? colors.green : percentage >= 70 ? colors.yellow : colors.red;
     // Use a block character and lighter block for empty
     return (
       color +
@@ -129,7 +119,7 @@ class I18nValidator {
   private keyParameters: Map<string, Set<string>> = new Map();
 
   constructor(
-    basePath: string = join(process.cwd(), 'src/shared/i18n/translate'),
+    basePath: string = join(process.cwd(), 'src/shared/modules/app-i18n/translate'),
     referenceLanguage: string = 'en',
   ) {
     this.basePath = basePath;
@@ -157,9 +147,7 @@ class I18nValidator {
       ConsoleFormatter.createBox('📈 Overall Status', [
         ConsoleFormatter.formatStatus(
           overallStatus ? 'success' : 'warning',
-          overallStatus
-            ? 'All translations complete!'
-            : 'Some translations need attention',
+          overallStatus ? 'All translations complete!' : 'Some translations need attention',
         ),
       ]),
     );
@@ -167,15 +155,12 @@ class I18nValidator {
 
   public generateTypes(): void {
     const typesContent = this.generateTypeScriptTypes();
-    const outputPath = join(process.cwd(), 'src/shared/i18n', 'translation-keys.ts');
+    const outputPath = join(process.cwd(), 'src/shared/modules/app-i18n', 'translation-keys.ts');
     writeFileSync(outputPath, typesContent, 'utf-8');
 
     console.log(
       ConsoleFormatter.createBox('📝 Type Generation', [
-        ConsoleFormatter.formatStatus(
-          'success',
-          `Types generated at: ${outputPath}`,
-        ),
+        ConsoleFormatter.formatStatus('success', `Types generated at: ${outputPath}`),
       ]),
     );
   }
@@ -225,11 +210,7 @@ class I18nValidator {
     return parameters;
   }
 
-  private extractKeysAndValues(
-    obj: any,
-    prefix = '',
-    file: string,
-  ): Map<string, TranslationValue> {
+  private extractKeysAndValues(obj: any, prefix = '', file: string): Map<string, TranslationValue> {
     const entries = new Map<string, TranslationValue>();
     const fileName = file.split('\\').pop()?.replace('.json', '') || '';
 
@@ -340,9 +321,7 @@ class I18nValidator {
       }
     }
 
-    const referenceKeys = [
-      ...(this.translationValues.get(this.referenceLanguage)?.keys() ?? []),
-    ];
+    const referenceKeys = [...(this.translationValues.get(this.referenceLanguage)?.keys() ?? [])];
 
     for (const lang of this.availableLanguages) {
       const langTranslations = this.translationValues.get(lang);
@@ -359,9 +338,7 @@ class I18nValidator {
       };
 
       stats.missingKeys = referenceKeys.filter((key) => !langTranslations.has(key));
-      stats.extraKeys = [...langTranslations.keys()].filter(
-        (key) => !referenceKeys.includes(key),
-      );
+      stats.extraKeys = [...langTranslations.keys()].filter((key) => !referenceKeys.includes(key));
 
       langTranslations.forEach((translation, key) => {
         if (!translation.value.trim()) {
@@ -395,7 +372,7 @@ class I18nValidator {
       .map(([key, params]) => {
         const interfaceName = this.generateInterfaceName(key);
         const parameters = [...params]
-          .map((param) => `${this.normalizeValidationArgs(param)}: string`)
+          .map((param) => `${this.normalizeValidationArgs(param)}: string | number`)
           .join('; ');
         return `interface ${interfaceName} {\n  ${parameters}\n}`;
       })
@@ -457,11 +434,7 @@ class I18nValidator {
 
     const content = [
       ConsoleFormatter.formatStatus(
-        stats.coverage >= 90
-          ? 'success'
-          : stats.coverage >= 70
-            ? 'warning'
-            : 'error',
+        stats.coverage >= 90 ? 'success' : stats.coverage >= 70 ? 'warning' : 'error',
         `Coverage: ${ConsoleFormatter.createProgressBar(stats.coverage)}`,
       ),
       '',

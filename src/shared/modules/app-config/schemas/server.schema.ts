@@ -9,13 +9,9 @@ export const serverSchema = z.object({
 
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
-  LOG_REQUEST: z
-    .union([z.boolean(), z.string().transform(booleanTransformer)])
-    .default(false),
+  LOG_REQUEST: z.union([z.boolean(), z.string().transform(booleanTransformer)]).default(false),
 
-  LOG_ERROR: z
-    .union([z.boolean(), z.string().transform(booleanTransformer)])
-    .default(true),
+  LOG_ERROR: z.union([z.boolean(), z.string().transform(booleanTransformer)]).default(true),
 
   APP_NAME: z
     .string()

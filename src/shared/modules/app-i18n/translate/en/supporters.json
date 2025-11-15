@@ -1,0 +1,12 @@
+{
+  "errors": {
+    "not_found": "Supporter with ID {id} not found",
+    "already_supporter": "This person is already a supporter",
+    "child_sponsorship": {
+      "only_children_can_be_sponsored": "Only children (son or daughter) can be sponsored",
+      "child_already_sponsored": "This child already has an active sponsorship",
+      "not_found": "Supporter child sponsorship with ID {id} not found",
+      "child_already_has_active_sponsorship": "The selected child already has an active sponsorship"
+    }
+  }
+}

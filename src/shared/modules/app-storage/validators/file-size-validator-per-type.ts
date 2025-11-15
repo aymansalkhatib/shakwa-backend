@@ -1,10 +1,18 @@
-import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
-import { FileSizeUnit, FileUpload, SupportedFileType } from '../types/file.types';
-import * as bytes from 'bytes';
-import { isArrayOfFiles, isSingleFile, validateFileUpload } from '../functions/file-structure-checker';
 import { BadRequestException } from '@nestjs/common';
-import { formatBytes } from '../functions/format-bytes';
+import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
+import bytes from 'bytes';
 import { extractFileExtension } from '../functions/file-helper.functions.ts';
+import {
+  isArrayOfFiles,
+  isSingleFile,
+  validateFileUpload,
+} from '../functions/file-structure-checker';
+import { formatBytes } from '../functions/format-bytes';
+import {
+  FileSizeUnit,
+  FileUpload,
+  SupportedFileType,
+} from '../types/file.types';
 
 /**
  * Validates file sizes based on their type.

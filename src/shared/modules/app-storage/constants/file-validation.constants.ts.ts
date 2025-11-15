@@ -23,7 +23,11 @@ export const FILE_SIZE_LIMITS: Record<SupportedFileType, FileSizeUnit> = {
 /**
  * Predefined allowed file types grouped by usage context.
  */
-const IMAGE_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['png', 'jpg', 'jpeg'];
+const IMAGE_FILE_TYPES: NonEmptyArray<SupportedFileType> = [
+  'png',
+  'jpg',
+  'jpeg',
+];
 const VIDEO_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['mp4'];
 const AUDIO_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['ogg'];
 const DOCUMENT_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['txt'];
@@ -71,9 +75,9 @@ export const SHARP_SUPPORTED_FORMATS: string[] = [
 
 export const DEFAULT_COMPRESSION_OPTIONS: ImageCompressionOptions = {
   quality: 80,
-  minQuality: 30,
-  maxFileSize: '200KB',
-  outputFormat: 'png',
+  minQuality: 50,
+  maxFileSize: '150KB',
+  outputFormat: 'jpeg',
 };
 
 export const FORMAT_PRIORITIES: ImageFormat[] = ['webp', 'jpeg', 'png'];

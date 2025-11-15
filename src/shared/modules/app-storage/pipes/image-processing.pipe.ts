@@ -1,8 +1,15 @@
 import { Inject, Injectable, PipeTransform } from '@nestjs/common';
-import { isArrayOfFiles, isSingleFile } from '../functions/file-structure-checker';
-import { optimizeImage } from '../functions/optimize-image';
-import { FileUpload, ImageCompressionOptions, NestedFileUpload } from '../types';
 import { STORAGE_CONSTANTS } from '../constants/storage.constants';
+import {
+  isArrayOfFiles,
+  isSingleFile,
+} from '../functions/file-structure-checker';
+import { optimizeImage } from '../functions/optimize-image';
+import {
+  FileUpload,
+  ImageCompressionOptions,
+  NestedFileUpload,
+} from '../types';
 
 @Injectable()
 export class ImageProcessingPipe implements PipeTransform {
@@ -36,7 +43,9 @@ export class ImageProcessingPipe implements PipeTransform {
     if (isArrayOfFiles(files)) {
       return this.processFileArray(files as Express.Multer.File[]);
     }
-    return this.processNestedFiles(files as Record<string, Express.Multer.File[]>);
+    return this.processNestedFiles(
+      files as Record<string, Express.Multer.File[]>,
+    );
   }
 
   /**

@@ -1,13 +1,7 @@
-import {
-  BooleanTruthyValues,
-  BooleanFalsyValues,
-  ENV_VALIDATION,
-} from '../env.constant';
+import { BooleanFalsyValues, BooleanTruthyValues, ENV_VALIDATION } from '../env.constant';
 
 export const booleanTransformer = (val: string): boolean => {
-  const normalized = val.toLowerCase().trim() as
-    | BooleanTruthyValues
-    | BooleanFalsyValues;
+  const normalized = val.toLowerCase().trim() as BooleanTruthyValues | BooleanFalsyValues;
 
   if (ENV_VALIDATION.BOOLEAN_TRUTHY.includes(normalized as BooleanTruthyValues)) {
     return true;

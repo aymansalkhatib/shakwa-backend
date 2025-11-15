@@ -1,0 +1,9 @@
+{
+    "errors": {
+        "user_not_authenticated": "المستخدم غير مصادق عليه",
+        "access_denied": "تم رفض الوصول. الأذونات المطلوبة: {permissions}",
+        "access_token_required": "رمز الوصول مطلوب",
+        "token_issued_before_password_change": "تم إصدار الرمز قبل آخر تغيير لكلمة المرور",
+        "token_issued_before_login": "تم إصدار الرمز قبل آخر تسجيل دخول"
+    }
+}

@@ -57,7 +57,9 @@ export class SupabaseStorageService extends BaseStorageService {
       const arrayBuffer = await data.arrayBuffer();
       return Buffer.from(arrayBuffer);
     } catch (error: any) {
-      throw new Error(`Failed to retrieve file from Supabase: ${error.message}`);
+      throw new Error(
+        `Failed to retrieve file from Supabase: ${error.message}`,
+      );
     }
   }
 

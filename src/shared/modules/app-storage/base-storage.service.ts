@@ -1,6 +1,5 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { createUniqueFileName } from './functions/create-unique-file_name';
 
 /**
  * Abstract base class for file storage implementations
@@ -46,7 +45,10 @@ export abstract class BaseStorageService {
    * @param path - Optional path where the files should be stored
    * @returns Array of stored file paths
    */
-  abstract storeMany(files: Express.Multer.File[], path?: string): Promise<string[]>;
+  abstract storeMany(
+    files: Express.Multer.File[],
+    path?: string,
+  ): Promise<string[]>;
 
   /**
    * Deletes multiple files from storage using batch operations
@@ -74,11 +76,15 @@ export abstract class BaseStorageService {
    * @param customPath - Optional custom directory path to store the file.
    * @returns The full storage path for the file.
    */
-  buildStoragePath(baseUrl: string, filename: string, customPath?: string): string {
+  buildStoragePath(
+    baseUrl: string,
+    filename: string,
+    customPath?: string,
+  ): string {
     const sanitizedCustomPath = customPath || ''; // Default to empty string if customPath is not provided
-    const uniqueFileName = createUniqueFileName(filename); // Generate a unique file name
+    // const uniqueFileName = createUniqueFileName(filename); // Generate a unique file name
 
-    return path.join(baseUrl, sanitizedCustomPath, uniqueFileName); // Build and return the full storage path
+    return path.join(baseUrl, sanitizedCustomPath, filename); // Build and return the full storage path
   }
 
   /**

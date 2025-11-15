@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { LocalStorageConfig } from './types';
 import { BaseStorageService } from './base-storage.service';
+import { LocalStorageConfig } from './types';
 
 @Injectable()
 export class LocalStorageService extends BaseStorageService {
@@ -15,10 +15,20 @@ export class LocalStorageService extends BaseStorageService {
   /**
    * Stores file in local filesystem
    */
-  async store(file: Express.Multer.File, customPath?: string): Promise<string> {
+  async store(
+    file: Express.Multer.File,
+    name?: string,
+    customPath?: string,
+  ): Promise<string> {
+    let newFilename: any;
+
+    if (name) {
+      newFilename = name + '.' + file.originalname.split('.').pop();
+    }
+
     const storagePath = super.buildStoragePath(
       this.localConfig.BASE_PATH,
-      file.originalname,
+      newFilename || file.originalname,
       customPath,
     );
 
@@ -26,8 +36,10 @@ export class LocalStorageService extends BaseStorageService {
 
     try {
       await fs.writeFile(storagePath, file.buffer);
-    } catch (error:any) {
-      throw new Error(`Failed to store file at ${storagePath}: ${error.message}`);
+    } catch (error: any) {
+      throw new Error(
+        `Failed to store file at ${storagePath}: ${error.message}`,
+      );
     }
     return storagePath;
   }

@@ -1,0 +1,9 @@
+{
+    "errors": {
+        "not_found": "Emergency assistance request with ID {id} not found",
+        "cannot_approve_non_pending": "Cannot approve the request because it is not in pending status",
+        "cannot_reject_non_pending": "Cannot reject the request because it is not in pending status",
+        "cannot_disburse_non_approved": "Cannot disburse assistance because it has not been approved yet",
+        "cannot_cancel_unmodifiable": "Cannot cancel the request because it is unmodifiable"
+    }
+}

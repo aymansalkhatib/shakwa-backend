@@ -1,0 +1,32 @@
+{
+  "errors": {
+    "category_not_found": "Dropdown category with ID {id} not found",
+    "category_name_exists": "Category with name \"{name}\" already exists",
+    "category_has_dropdowns": "Cannot delete category with dropdowns. Remove dropdowns first.",
+    "category_has_children": "Cannot delete category with children. Remove child categories first.",
+    "dropdown_not_found": "Dropdown with ID {id} not found",
+    "dropdown_name_exists": "Dropdown with name \"{name}\" already exists in this category",
+    "dropdown_has_options": "Cannot delete dropdown with options. Remove options first or use force delete.",
+    "option_not_found": "Dropdown option with ID {id} not found",
+    "option_name_exists": "Dropdown option with name \"{name}\" already exists in this dropdown.",
+    "option_has_selections": "Cannot delete option that is being used in selections. Remove selections first.",
+    "selection_not_found": "Dropdown selection with ID {id} not found",
+    "single_selection_exists": "Single selection dropdown already has a selection for this record. Update the existing selection instead.",
+    "option_not_in_dropdown": "Option with ID {optionId} does not belong to dropdown with ID {dropdownId}",
+    "max_depth_exceeded": "Cannot create category. Maximum depth of {maxDepth} exceeded.",
+    "invalid_selection_type": "Invalid dropdown selection type",
+    "single_selection_requires_one_option": "Single selection dropdown requires exactly one option",
+    "multiple_selection_requires_at_least_one_option": "Multiple selection dropdown requires at least one option",
+    "category_mismatch": "Category ID {categoryId} does not match dropdown category ID {dropdownCategoryId}",
+    "duplicate_options_not_allowed": "Duplicate options are not allowed for this dropdown type",
+    "cannot_create_subcategory": "Cannot create subcategory for this category.",
+    "option_not_found_in_dropdown": "Option with ID {optionId} not found in dropdown '{dropdownName}'",
+    "dropdown_not_found_in_category": "Dropdown '{dropdownName}' in category '{categoryName}' not found",
+    "cannot_delete_core_category": "Cannot delete core category.",
+    "cannot_delete_option_referenced": "Cannot delete dropdown option '{optionName}': This option is referenced by other data.",
+    "cannot_delete_dropdown_referenced": "Cannot delete dropdown '{dropdownName}': This dropdown is referenced by other data.",
+    "duplicate_option_names_in_request": "Duplicate option names found in request: {duplicates}",
+    "option_name_already_exists": "Option name '{optionName}' already exists in this dropdown",
+    "cannot_update_options_not_found": "Cannot update dropdown options: The following options were not found: {missingOptions}"
+  }
+}

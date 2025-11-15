@@ -1,17 +1,17 @@
-import * as bytes from 'bytes';
-import * as sharp from 'sharp';
+import bytes from 'bytes';
+import sharp from 'sharp';
 import {
   DEFAULT_COMPRESSION_OPTIONS,
   FORMAT_PRIORITIES,
   SHARP_SUPPORTED_FORMATS,
 } from '../constants/file-validation.constants.ts.js';
-import { extractFileExtension } from './file-helper.functions.ts.js';
 import {
   FileSizeUnit,
   ImageCompressionOptions,
   ImageDimensions,
   ImageFormat,
 } from '../types/index.js';
+import { extractFileExtension } from './file-helper.functions.ts.js';
 
 /**
  * Optimizes an image by finding the best balance between quality and file size
@@ -39,10 +39,11 @@ export async function optimizeImage(
       minQuality,
       maxSize: maxFileSize,
     });
+
     const originalnameParts = file.originalname.split('.');
     originalnameParts.pop(); // Removes the last item (the file extension)
-    const newFilename = originalnameParts.join('.') + format; // Rebuild the filename without the extension and append the new format
 
+    const newFilename = originalnameParts.join('.') + '.' + format; // Rebuild the filename without the extension and append the new format
     return {
       ...file,
       buffer: result.buffer,
@@ -157,7 +158,12 @@ async function compressImageIteratively({
   while (
     needsCompression(currentBuffer.length, maxSize, currentQuality, minQuality)
   ) {
-    currentBuffer = await processImage(buffer, currentQuality, format, dimensions);
+    currentBuffer = await processImage(
+      buffer,
+      currentQuality,
+      format,
+      dimensions,
+    );
     currentQuality -= 5;
   }
 

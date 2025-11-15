@@ -1,0 +1,9 @@
+{
+  "errors": {
+    "user_not_authenticated": "User not authenticated",
+    "access_denied": "Access denied. Required permissions: {permissions}",
+    "access_token_required": "Access token is required",
+    "token_issued_before_password_change": "Token was issued before the last password change",
+    "token_issued_before_login": "Token was issued before the last login"
+  }
+}

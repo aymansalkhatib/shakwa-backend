@@ -1,5 +1,5 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
-import * as bytes from 'bytes';
+import bytes from 'bytes';
 import { FileSizeUnit, FileUpload } from '../types/file.types';
 import { validateFileUpload } from '../functions/file-structure-checker';
 

@@ -1,0 +1,19 @@
+{
+  "errors": {
+    "permission_not_found": "Permission with ID {id} not found",
+    "user_not_found": "User with ID {userId} not found",
+    "system_user_not_found": "System user with ID {systemUserId} not found",
+    "permission_not_assigned": "Permission {permissionId} is not assigned to user {systemUserId}",
+    "duplicate_permission_ids": "Duplicate permission IDs found: {duplicateIds}",
+    "permissions_not_found": "Permissions with IDs {missingIds} not found",
+    "role_not_found": "Role with ID {id} not found",
+    "role_name_exists": "Role with name \"{name}\" already exists",
+    "role_name_in_use": "Role name \"{name}\" is already in use",
+    "role_protected": "This role is protected by the system and cannot be changed.",
+    "superadmin_role_protected": "Superadmin role cannot be deleted as it contains protected system user permissions.",
+    "role_has_users": "Cannot delete role because it is associated with one or more users. Please reassign users to different roles before deleting.",
+    "permission_ids_not_exist": "One or more permission IDs do not exist",
+    "cannot_change_superadmin_permissions": "Cannot change permissions for superadmin users.",
+    "cannot_modify_protected_users": "Cannot modify permissions for protected users with superadmin role"
+  }
+}
