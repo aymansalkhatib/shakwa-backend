@@ -12,14 +12,16 @@ import { EnvironmentConfig } from '../app-config/env.schema';
       inject: [ConfigService<EnvironmentConfig>],
       useFactory: (configService: ConfigService<EnvironmentConfig>) => {
         const ttl = configService.get<number>('RATE_LIMIT_TTL') || 60;
-        const limit = configService.get<number>('RATE_LIMIT_MAX') || 100;
+        const limit = configService.get<number>('RATE_LIMIT_MAX') || 20;
 
-        return [
-          {
-            ttl: ttl * 1000,
-            limit: limit,
-          },
-        ];
+        return {
+          throttlers: [
+            {
+              ttl: ttl * 1000,
+              limit: limit,
+            },
+          ],
+        };
       },
     }),
   ],
