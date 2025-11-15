@@ -3,9 +3,10 @@ import {
   databaseSchema,
   jwtSchema,
   mailSchema,
+  rateLimitSchema,
   securitySchema,
   serverSchema,
-  storageSchema
+  storageSchema,
 } from './schemas';
 
 export const environmentSchema = z.object({
@@ -15,6 +16,7 @@ export const environmentSchema = z.object({
   ...jwtSchema.shape,
   ...mailSchema.shape,
   ...storageSchema.shape,
+  ...rateLimitSchema.shape,
 });
 
 export type EnvironmentConfig = z.infer<typeof environmentSchema>;
