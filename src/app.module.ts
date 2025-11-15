@@ -1,12 +1,11 @@
 import { ClassSerializerInterceptor, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 import { ParseQueryMiddleware } from './common/middlewares/parse-query.middleware';
 import { CitizensModule } from './modules/citizens/citizens.module';
 import { ErrorHandlerFactory } from './shared/exceptions-filter/error-handler.factory';
-import { GlobalExceptionFilter } from './shared/exceptions-filter/global-exception.filter';
 import { AppConfigModule } from './shared/modules/app-config/app-config.module';
 import { AppI18nModule } from './shared/modules/app-i18n/i18n.module';
 import { AppLoggerModule, LoggingMiddleware } from './shared/modules/app-logger';
@@ -34,10 +33,10 @@ import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.mod
     LoggingMiddleware,
     ParseQueryMiddleware,
     // // Global Exception Filter
-    {
-      provide: APP_FILTER,
-      useClass: GlobalExceptionFilter,
-    },
+    // {
+    //   provide: APP_FILTER,
+    //   useClass: GlobalExceptionFilter,
+    // },
     // Global Serializer Interceptor
     {
       provide: APP_INTERCEPTOR,

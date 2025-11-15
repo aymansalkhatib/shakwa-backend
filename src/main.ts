@@ -1,4 +1,4 @@
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { HttpStatus, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import compression from 'compression';
@@ -44,6 +44,13 @@ async function bootstrap() {
   app.useGlobalFilters(
     new I18nValidationExceptionFilter({
       detailedErrors: false,
+      responseBodyFormatter: (formattedErrors: object) => {
+        return {
+          status: 'failure',
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: formattedErrors[0],
+        };
+      },
     }),
   );
 

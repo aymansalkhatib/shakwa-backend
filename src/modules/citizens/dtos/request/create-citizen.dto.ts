@@ -1,18 +1,20 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { SyriaPhone } from '../../../../common/decorators/syria-phone.decorator';
 
 export class CreateCitizenDto {
-  @IsEmail({}, { message: 'Please provide a valid email address' })
   @IsOptional()
+  @IsEmail({}, { message: 'Please provide a valid email address' })
   @MaxLength(120, { message: 'Email must not exceed 120 characters' })
   email?: string | null;
 
-  @IsString({ message: 'Phone must be a string' })
   @IsOptional()
+  @IsString({ message: 'Phone must be a string' })
+  @SyriaPhone()
   @MaxLength(20, { message: 'Phone must not exceed 20 characters' })
   phone?: string | null;
 
-  @IsString({ message: 'Password must be a string' })
   @IsOptional()
+  @IsString({ message: 'Password must be a string' })
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   password?: string | null;
 

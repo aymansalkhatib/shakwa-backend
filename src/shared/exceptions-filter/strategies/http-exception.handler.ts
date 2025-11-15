@@ -1,6 +1,6 @@
 import { HttpException } from '@nestjs/common';
-import BaseErrorHandler from './error-handler.strategy';
 import { ErrorResponse } from '../interfaces/error-response.interface';
+import BaseErrorHandler from './error-handler.strategy';
 
 /**
  * Handles NestJS HttpExceptions

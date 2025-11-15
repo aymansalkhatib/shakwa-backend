@@ -49,14 +49,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         });
       }
     } catch (error: any) {
-      // Handle errors that occur during error handling
-      // this.logger.error('Error in exception filter', {
-      //   error,
-      //   traceId,
-      //   responseTime: new Date().toISOString(),
-      // });
+      this.logError(exception);
 
-      console.error(error.toString());
       if (developerMode) {
         response.status(500).json({
           status: 'error',

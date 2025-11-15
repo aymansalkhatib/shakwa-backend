@@ -8,7 +8,7 @@ export interface ErrorResponse {
   /** HTTP status code for the error */
   statusCode: number;
 
-  /** Human-readable error message or messages */
+  /** Human-readable error message */
   message: string | string[];
 
   /** Unique identifier for error tracking */
