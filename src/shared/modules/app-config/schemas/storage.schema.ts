@@ -1,20 +1,20 @@
 import { z } from 'zod';
 
 export const storageSchema = z.object({
-  // Base path for file storage
+  // Local storage configuration
   BASE_PATH: z.string().min(1, 'BASE_PATH is required').default('./uploads'),
 
-  // Supabase configuration for cloud storage
-  SUPABASE_SERVICE_ROLE_KEY: z
-    .string()
-    .min(1, 'SUPABASE_SERVICE_ROLE_KEY is required for Supabase storage'),
+  // Supabase configuration (optional - for cloud storage)
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required').optional(),
 
-  SUPABASE_BUCKET: z.string().min(1, 'SUPABASE_BUCKET is required for Supabase storage'),
+  SUPABASE_BUCKET: z.string().min(1, 'SUPABASE_BUCKET is required').optional(),
 
-  SUPABASE_URL: z
-    .string()
-    .min(1, 'SUPABASE_URL is required for Supabase storage')
-    .url('SUPABASE_URL must be a valid URL'),
+  SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL').optional(),
+
+  // Firebase configuration (optional - for storage and notifications)
+  STORAGE_BUCKET: z.string().min(1, 'STORAGE_BUCKET is required').optional(),
+
+  FIREBASE_SERVICE_ACCOUNT: z.string().min(1, 'FIREBASE_SERVICE_ACCOUNT is required').optional(),
 });
 
 export type StorageConfig = z.infer<typeof storageSchema>;

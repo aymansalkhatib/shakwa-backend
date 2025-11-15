@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
-import BaseErrorHandler from './error-handler.strategy';
 import { ErrorResponse } from '../interfaces/error-response.interface';
+import BaseErrorHandler from './error-handler.strategy';
 
 /**
  * Handles Multer file upload errors
@@ -8,7 +8,7 @@ import { ErrorResponse } from '../interfaces/error-response.interface';
 export class MulterErrorHandler extends BaseErrorHandler {
   private readonly errorMessages: Record<string, string> = {
     'Too many files': 'Too many files uploaded',
-    'Unexpected field': 'Unexpected fieldwe',
+    'Unexpected field': 'Unexpected field',
   };
 
   canHandle(error: Error): boolean {

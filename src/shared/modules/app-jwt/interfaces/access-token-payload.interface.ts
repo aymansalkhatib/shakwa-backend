@@ -1,17 +1,13 @@
-import { Exclude, Expose } from 'class-transformer';
 import { BaseJwtPayload } from './base-jwt-payload.interface';
 
 /**
  * Payload for storing data in access tokens
  * Used for authenticating API requests
  */
-@Exclude()
-export class AccessTokenPayload {
-  @Expose()
+export interface AccessTokenPayload {
   userId: number;
-
-  @Expose()
   username: string;
+  sessionNumber?: number;
 }
 
 /**

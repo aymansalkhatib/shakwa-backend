@@ -1,20 +1,23 @@
 import { Global, Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { EnvironmentConfig } from '../app-config/env.schema';
 import { AppJwtService } from './app-jwt.service';
-import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 
 @Global()
 @Module({
   imports: [
     JwtModule.registerAsync({
-      useFactory: async (configService: ConfigService<EnvironmentConfig>) => ({
-        secret: configService.get('JWT_ACCESS_SECRET'),
-        signOptions: {
-          expiresIn: configService.get('JWT_ACCESS_EXPIRES_IN_MS'),
-        },
-      }),
+      useFactory: async (configService: ConfigService<EnvironmentConfig>) => {
+        const expiresInMs = configService.getOrThrow<number>('JWT_ACCESS_EXPIRES_IN_MS');
+        return {
+          secret: configService.getOrThrow('JWT_ACCESS_SECRET'),
+          signOptions: {
+            expiresIn: Math.floor(expiresInMs / 1000), // Convert ms to seconds
+          },
+        };
+      },
       inject: [ConfigService],
     }),
   ],

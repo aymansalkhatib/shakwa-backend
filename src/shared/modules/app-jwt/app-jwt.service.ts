@@ -11,14 +11,18 @@ import { AccessTokenPayload, DecodedAccessTokenPayload } from './interfaces';
 @Injectable()
 export class AppJwtService {
   private readonly accessSecret: string;
-  private readonly accessExpiresIn: number;
+  private readonly accessExpiresInMs: number;
+  private readonly refreshSecret?: string;
+  private readonly refreshExpiresInMs?: number;
 
   constructor(
     private readonly configService: ConfigService<EnvironmentConfig>,
     private readonly translateHelper: TranslateHelper,
   ) {
     this.accessSecret = this.configService.getOrThrow('JWT_ACCESS_SECRET');
-    this.accessExpiresIn = this.configService.getOrThrow<number>('JWT_ACCESS_EXPIRES_IN_MS');
+    this.accessExpiresInMs = this.configService.getOrThrow<number>('JWT_ACCESS_EXPIRES_IN_MS');
+    this.refreshSecret = this.configService.get('JWT_REFRESH_SECRET');
+    this.refreshExpiresInMs = this.configService.get<number>('JWT_REFRESH_EXPIRES_IN_MS');
   }
 
   /**
@@ -28,7 +32,22 @@ export class AppJwtService {
    */
   createAccessToken(payload: AccessTokenPayload): string {
     return jwt.sign(payload, this.accessSecret, {
-      expiresIn: this.accessExpiresIn,
+      expiresIn: Math.floor(this.accessExpiresInMs / 1000), // Convert ms to seconds
+    });
+  }
+
+  /**
+   * Creates a refresh token for user authentication
+   * @param payload User information to include in token
+   * @returns Signed JWT refresh token
+   */
+  createRefreshToken(payload: AccessTokenPayload): string {
+    if (!this.refreshSecret || !this.refreshExpiresInMs) {
+      throw new Error('Refresh token configuration is missing');
+    }
+
+    return jwt.sign(payload, this.refreshSecret, {
+      expiresIn: Math.floor(this.refreshExpiresInMs / 1000), // Convert ms to seconds
     });
   }
 
@@ -55,5 +74,38 @@ export class AppJwtService {
         this.translateHelper.tr('auth.errors.invalid_or_expired_access_token'),
       );
     }
+  }
+
+  /**
+   * Verifies a refresh token's validity
+   * @param token Refresh token to verify
+   * @param ignoreExpiration Whether to ignore token expiration
+   * @returns Decoded token payload if valid
+   * @throws UnauthorizedException if token is invalid
+   */
+  verifyRefreshToken(token: string, ignoreExpiration = false): DecodedAccessTokenPayload {
+    if (!this.refreshSecret) {
+      throw new Error('Refresh token configuration is missing');
+    }
+
+    try {
+      return jwt.verify(token, this.refreshSecret, {
+        ignoreExpiration,
+      }) as DecodedAccessTokenPayload;
+    } catch (error: any) {
+      throw new UnauthorizedException(
+        this.translateHelper.tr('auth.errors.invalid_or_expired_access_token'),
+      );
+    }
+  }
+
+  /**
+   * Decodes a token without verifying its signature
+   * @param token Token to decode
+   * @returns Decoded token payload or null if invalid
+   */
+  decodeToken(token: string): DecodedAccessTokenPayload | null {
+    const decoded = jwt.decode(token);
+    return decoded as DecodedAccessTokenPayload | null;
   }
 }

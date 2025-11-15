@@ -4,7 +4,10 @@ export const databaseSchema = z.object({
   // PostgreSQL Configuration
   POSTGRES_HOST: z.string().min(1, 'POSTGRES_HOST is required'),
 
-  POSTGRES_PORT: z.string().min(1, 'POSTGRES_PORT is required'),
+  POSTGRES_PORT: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().positive('POSTGRES_PORT must be a valid port number')),
 
   POSTGRES_USER: z.string().min(1, 'POSTGRES_USER is required'),
 

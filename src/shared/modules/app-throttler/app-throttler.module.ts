@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { AppConfigModule } from '../app-config/app_config.module';
+import { AppConfigModule } from '../app-config/app-config.module';
 import { EnvironmentConfig } from '../app-config/env.schema';
 
 @Global()
