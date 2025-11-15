@@ -2,12 +2,12 @@ import { z } from 'zod';
 import {
   databaseSchema,
   jwtSchema,
+  loggerSchema,
   mailSchema,
   rateLimitSchema,
   securitySchema,
   serverSchema,
   storageSchema,
-  loggerSchema,
 } from './schemas';
 
 export const environmentSchema = z.object({

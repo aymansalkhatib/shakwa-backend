@@ -7,11 +7,16 @@ import { I18nValidationExceptionFilter, i18nValidationErrorFactory } from 'nestj
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { AppLogger } from './shared/modules/app-logger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
     logger: ['error', 'debug', 'log', 'verbose', 'fatal'],
   });
+
+  // Get logger instance
+  const logger = app.get(AppLogger);
 
   // Enable CORS
   app.enableCors();
@@ -58,14 +63,16 @@ async function bootstrap() {
   // Start the server
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}`);
+  logger.log(`Application is running on: http://localhost:${port}`, 'Bootstrap');
 
-  process.on('unhandledRejection', (reason) => {
-    console.error('[Unhandled Rejection] ', reason);
+  // Handle unhandled rejections
+  process.on('unhandledRejection', (reason: any) => {
+    logger.error('Unhandled Rejection', reason?.stack || String(reason), 'Process');
   });
 
-  process.on('uncaughtException', (err) => {
-    console.error('[Uncaught Exception]', err);
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (err: Error) => {
+    logger.error('Uncaught Exception', err.stack || err.message, 'Process');
   });
 }
 
