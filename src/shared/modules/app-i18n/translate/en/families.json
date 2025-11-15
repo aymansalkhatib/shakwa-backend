@@ -1,9 +1,0 @@
-{
-  "not_found": "Family not found",
-  "family_book_number_exists": "Family book number already exists",
-  "request_number_exists": "Request number already exists",
-  "family_book_number_exists_another": "Family book number already exists for another family",
-  "request_number_exists_another": "Request number already exists for another family",
-  "form_number_exists_another": "Form number already exists for another family",
-  "form_number_exists": "Form number already exists"
-}

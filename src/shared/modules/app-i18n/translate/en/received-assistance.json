@@ -1,6 +1,0 @@
-{
-  "errors": {
-    "not_found": "Received assistance with ID {id} was not found.",
-    "family_member_mismatch": "familyMemberId must belong to the same family"
-  }
-}

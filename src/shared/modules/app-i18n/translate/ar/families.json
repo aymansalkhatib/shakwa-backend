@@ -1,9 +1,0 @@
-{
-  "not_found": "العائلة غير موجودة",
-  "family_book_number_exists": "رقم دفتر العائلة موجود مسبقاً",
-  "request_number_exists": "رقم الطلب موجود مسبقاً",
-  "family_book_number_exists_another": "رقم دفتر العائلة موجود مسبقاً لعائلة أخرى",
-  "request_number_exists_another": "رقم الطلب موجود مسبقاً لعائلة أخرى",
-  "form_number_exists_another": "رقم الاستمارة موجود مسبقاً لعائلة أخرى",
-  "form_number_exists": "رقم الاستمارة موجود مسبقاً"
-}

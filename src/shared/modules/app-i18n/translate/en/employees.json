@@ -1,7 +1,0 @@
-{
-  "errors": {
-    "already_employee": "This person is already an employee",
-    "cannot_delete_with_system_account": "Cannot delete employee with system account. Please delete the system account first.",
-    "not_found": "Employee with ID {id} not found"
-  }
-}

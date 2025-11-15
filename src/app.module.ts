@@ -14,7 +14,7 @@ import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.mod
 @Module({
   imports: [
     AppConfigModel,
-    // AppI18nModule,
+    AppI18nModule,
     // AppTypeOrmModule,
     // AppJwtModule,
     // AppStorageModule.register({
