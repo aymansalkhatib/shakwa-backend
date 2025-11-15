@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
-import { CITIZENS_REPOSITORY_TOKEN } from '../citizens.tokens';
+import { CITIZENS_REPOSITORY_TOKEN } from '../constants/citizens.tokens';
 import { CitizenFilterDto } from '../dtos/query/citizen-filter.dto';
 import { CreateCitizenDto } from '../dtos/request/create-citizen.dto';
 import { UpdateCitizenDto } from '../dtos/request/update-citizen.dto';
@@ -16,12 +16,12 @@ export class CitizensService {
 
   async create(createCitizenDto: CreateCitizenDto): Promise<CitizenEntity> {
     // Check if email already exists
-    if (createCitizenDto.email) {
-      const existingCitizen = await this.citizensRepository.findByEmail(createCitizenDto.email);
-      if (existingCitizen) {
-        throw new BadRequestException('Citizen with this email already exists');
-      }
-    }
+    // if (createCitizenDto.email) {
+    //   const existingCitizen = await this.citizensRepository.findByEmail(createCitizenDto.email);
+    //   if (existingCitizen) {
+    //     throw new BadRequestException('Citizen with this email already exists');
+    //   }
+    // }
 
     // Check if phone already exists
     if (createCitizenDto.phone) {

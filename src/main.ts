@@ -55,7 +55,7 @@ async function bootstrap() {
       ) => {
         return {
           statusCode: HttpStatus.BAD_REQUEST,
-          errors: 'Bad Request',
+          errors: 'BAD_REQUEST',
           message: formattedErrors[0],
         };
       },

@@ -13,7 +13,7 @@ export class UnknownErrorHandler extends BaseErrorHandler {
   handle(error: Error, requestId: string): ErrorResponse {
     const baseResponse = this.createBaseResponse(
       HttpStatus.INTERNAL_SERVER_ERROR,
-      'Internal Server Error',
+      'INTERNAL_SERVER_ERROR',
       'An unexpected error occurred',
       requestId,
     );

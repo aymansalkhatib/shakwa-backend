@@ -25,7 +25,7 @@ export class HttpExceptionHandler extends BaseErrorHandler {
 
     const baseResponse = this.createBaseResponse(
       statusCode,
-      statusCode >= 500 ? 'Internal Server Error' : 'Bad Request',
+      statusCode >= 500 ? 'INTERNAL_SERVER_ERROR' : 'BAD_REQUEST',
       message,
       traceId,
     );
@@ -34,7 +34,9 @@ export class HttpExceptionHandler extends BaseErrorHandler {
       ...baseResponse,
       context: {
         ...baseResponse.context,
-        ...(response.data || response.code ? { details: response.data || response.code } : {}),
+        ...(response.data || response.error || response.code
+          ? { details: response.data || response.error || response.code }
+          : {}),
       },
     };
   }

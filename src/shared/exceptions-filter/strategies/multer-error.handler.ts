@@ -19,7 +19,7 @@ export class MulterErrorHandler extends BaseErrorHandler {
     return {
       ...this.createBaseResponse(
         HttpStatus.BAD_REQUEST,
-        'Bad Request',
+        'BAD_REQUEST',
         this.errorMessages[error.message] || 'File upload error',
         traceId,
       ),

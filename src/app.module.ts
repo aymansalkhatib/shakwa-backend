@@ -1,5 +1,5 @@
 import { ClassSerializerInterceptor, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
@@ -12,6 +12,7 @@ import { AppLoggerModule, LoggingMiddleware } from './shared/modules/app-logger'
 import { AppStorageModule } from './shared/modules/app-storage/app-storage.module';
 import { AppThrottlerModule } from './shared/modules/app-throttler/app-throttler.module';
 import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.module';
+import { GlobalExceptionFilter } from './shared/exceptions-filter/global-exception.filter';
 
 @Module({
   imports: [
@@ -33,10 +34,10 @@ import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.mod
     LoggingMiddleware,
     ParseQueryMiddleware,
     // // Global Exception Filter
-    // {
-    //   provide: APP_FILTER,
-    //   useClass: GlobalExceptionFilter,
-    // },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
     // Global Serializer Interceptor
     {
       provide: APP_INTERCEPTOR,

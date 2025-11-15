@@ -3,10 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('citizens')
+@Unique("UNIQUE_EMAIL",['email'])
+@Unique("UNIQUE_PHONE",['phone'])
+@Entity('citizens', )
 export class CitizenEntity {
   @PrimaryGeneratedColumn()
   id: number;
