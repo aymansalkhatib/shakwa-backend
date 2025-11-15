@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EnvironmentConfig } from '../app-config/env.schema';
-import { Environment } from '../app-config/env.constant';
 import { Client } from 'pg';
+import { Environment } from '../app-config/env.constant';
+import { EnvironmentConfig } from '../app-config/env.schema';
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
       async useFactory(configService: ConfigService<EnvironmentConfig>) {
-        await createDatabaseIfNotExists(configService); // 🛠 تأكد القاعدة موجودة قبل الاتصال
+        await createDatabaseIfNotExists(configService); // 🛠 Check if the database exists before connecting
 
         const isDev = configService.get<string>('NODE_ENV') !== Environment.PRODUCTION;
 
@@ -22,6 +22,16 @@ import { Client } from 'pg';
           database: configService.get('POSTGRES_DATABASE'),
           entities: ['dist/**/*.entity{.ts,.js}'],
 
+          // ✅ Enable logging
+          logging: isDev ? ['error', 'warn', 'migration'] : ['error'],
+
+          // ✅ Enable connection pool settings
+          extra: {
+            max: 10,
+            min: 2,
+            idleTimeoutMillis: 30000,
+          },
+
           ...(!isDev
             ? {
                 ssl: {
@@ -30,7 +40,12 @@ import { Client } from 'pg';
               }
             : {}),
 
-          synchronize: true,
+          // ⚠️ Very dangerous in production! Use migrations instead
+          synchronize: isDev,
+
+          // ✅ Enable migrations in production
+          migrationsRun: !isDev,
+          migrations: isDev ? [] : ['dist/migrations/**/*{.ts,.js}'],
         };
       },
       inject: [ConfigService],
@@ -53,17 +68,17 @@ async function createDatabaseIfNotExists(configService: ConfigService<Environmen
 
     const dbName = configService.get('POSTGRES_DATABASE');
 
-    const result = await client.query(`SELECT 1
-                                       FROM pg_database
-                                       WHERE datname = '${dbName}'`);
+    // ✅ Use parameterized query to prevent SQL Injection
+    const result = await client.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
+
     if (result.rowCount === 0) {
+      // ✅ Use protected identifier to prevent SQL injection
       await client.query(`CREATE DATABASE "${dbName}"`);
       console.log(`✅ Database "${dbName}" created successfully.`);
-    } else {
-      // console.log(`✅ Database "${dbName}" already exists.`);
     }
   } catch (error) {
     console.error('❌ Error creating database:', error);
+    throw error;
   } finally {
     await client.end();
   }

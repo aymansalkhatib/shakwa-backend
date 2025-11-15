@@ -1,6 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, Injectable } from '@nestjs/common';
-import { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
+import { Request, Response } from 'express';
 import { ErrorHandlerFactory } from './error-handler.factory';
 
 /**
@@ -19,10 +19,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     // Generate a unique trace ID for error tracking
     const traceId = randomUUID();
 
-    // const developerMode: boolean =
-    //   requests.headers['developer-mode'] === 'true' && process.env.NODE_ENV === 'development';
-
-    const developerMode = true;
+    // ✅ Determine developer mode based on environment and headers
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const devModeHeader = request.headers['x-developer-mode'] === 'true';
+    const developerMode = isDevelopment && devModeHeader;
 
     try {
       // Get the appropriate handler for this type of error
