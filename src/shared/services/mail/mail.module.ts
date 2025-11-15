@@ -1,30 +1,28 @@
-import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MailService } from './mail.service';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { EnvironmentConfig } from '../../modules/app-config/env.schema';
+import { MailService } from './mail.service';
 
 @Module({
   imports: [
     MailerModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: async (config: ConfigService<EnvironmentConfig>) => ({
+      useFactory: (configService: ConfigService<EnvironmentConfig>) => ({
         transport: {
-          host: config.get<string>('SMTP_HOST'),
-          port: config.get<number>('SMTP_PORT'),
-          secure: config.get<boolean>('SMTP_SECURE'),
+          host: configService.getOrThrow<string>('SMTP_HOST'),
+          port: configService.getOrThrow<number>('SMTP_PORT'),
+          secure: configService.getOrThrow<boolean>('SMTP_SECURE'),
           auth: {
-            user: config.get<string>('SMTP_USER'),
-            pass: config.get<string>('SMTP_PASS'),
+            user: configService.getOrThrow<string>('SMTP_USER'),
+            pass: configService.getOrThrow<string>('SMTP_PASS'),
           },
         },
-
         defaults: {
-          from: `${config.get<string>('APP_NAME')} ${config.get<string>('SMTP_FROM')}`,
+          from: `"${configService.getOrThrow<string>('APP_NAME')}" <${configService.getOrThrow<string>('SMTP_FROM')}>`,
         },
-
         template: {
           dir: join(__dirname, 'templates'),
           adapter: new HandlebarsAdapter(),
