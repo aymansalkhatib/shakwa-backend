@@ -5,7 +5,7 @@ import { BadRequestException, Injectable, InternalServerErrorException } from '@
 export class MailService {
   constructor(private readonly mailer: MailerService) {}
 
-  async sendMail(mailData: ISendMailOptions): Promise<void> {
+  private async sendMail(mailData: ISendMailOptions): Promise<void> {
     this.validateMailData(mailData);
 
     try {
