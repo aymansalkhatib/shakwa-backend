@@ -11,14 +11,15 @@ import { EnvironmentConfig } from '../app-config/env.schema';
       imports: [AppConfigModule],
       inject: [ConfigService<EnvironmentConfig>],
       useFactory: (configService: ConfigService<EnvironmentConfig>) => {
-        const ttl = configService.get<number>('RATE_LIMIT_TTL') || 60;
-        const limit = configService.get<number>('RATE_LIMIT_MAX') || 20;
+        const ttlSeconds = configService.getOrThrow<number>('RATE_LIMIT_TTL');
+        const limit = configService.getOrThrow<number>('RATE_LIMIT_MAX');
 
         return {
           throttlers: [
             {
-              ttl: ttl * 1000,
-              limit: limit,
+              name: 'default',
+              ttl: ttlSeconds * 1000, // Convert seconds to milliseconds
+              limit,
             },
           ],
         };
