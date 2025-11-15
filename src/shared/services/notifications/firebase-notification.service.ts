@@ -1,216 +1,175 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import * as admin from 'firebase-admin';
+import { FirebaseError } from 'firebase-admin/app';
 import {
-  BatchResponse,
-  INotificationService,
-} from './interfaces/notification.interface';
-import {
+  BaseNotificationDto,
   SingleTokenNotificationDto,
   TokensNotificationDto,
   TopicNotificationDto,
 } from './dto/notification.dto';
-import { FirebaseError } from 'firebase-admin/app';
-import * as admin from 'firebase-admin';
+import { BatchResponse, INotificationService } from './interfaces/notification.interface';
+import { FIREBASE_ADMIN } from './notification.constants';
+
+type NotificationTarget = { token: string; topic?: never } | { topic: string; token?: never };
 
 @Injectable()
 export class FirebaseNotificationService implements INotificationService {
   private readonly logger = new Logger(FirebaseNotificationService.name);
   private readonly batchSize = 500;
 
-  constructor(
-    @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
-  ) {}
+  constructor(@Inject(FIREBASE_ADMIN) private readonly firebaseAdmin: admin.app.App) {}
 
-  /**
-   * Send notification to a single token
-   */
   async sendToToken(notification: SingleTokenNotificationDto): Promise<string> {
-    try {
-      const response = await this.firebaseAdmin.messaging().send({
-        token: notification.token,
-        notification: {
-          title: notification.title,
-          body: notification.body,
-        },
-        data: notification.data,
-        android: {
-          ttl: notification.ttlInSeconds
-            ? notification.ttlInSeconds * 1000
-            : undefined,
-          priority: notification.priority || 'normal',
-          notification: {
-            sound: notification.sound || 'default',
-            clickAction: notification.clickAction,
-          },
-        },
-        apns: {
-          payload: {
-            aps: {
-              sound: notification.sound || 'default',
-            },
-          },
-        },
-      });
+    const message = this.buildBaseMessage(notification, { token: notification.token });
 
-      this.logger.log(
-        `Successfully sent notification to token ${notification.token}`,
-      );
+    try {
+      const response = await this.firebaseAdmin.messaging().send(message);
+
+      this.logger.log(`Successfully sent notification to token ${notification.token}`);
       return response;
     } catch (error) {
       this.logger.error(
-        `Failed to send notification to token ${notification.token}:`,
-        error,
+        `Failed to send notification to token ${notification.token}`,
+        (error as Error).stack,
       );
       throw error;
     }
   }
 
-  /**
-   * Send notification to multiple tokens with batching
-   */
   async sendToTokens(notification: TokensNotificationDto): Promise<BatchResponse> {
     const { tokens, ...notificationData } = notification;
     const batches = this.createBatches(tokens);
 
-    let totalSuccessCount = 0;
-    let totalFailureCount = 0;
+    let successCount = 0;
+    let failureCount = 0;
     const failures: { index: number; error: Error | FirebaseError }[] = [];
 
-    try {
-      const batchPromises = batches.map(async (batchTokens, batchIndex) => {
-        try {
-          const response = await this.firebaseAdmin
-            .messaging()
-            .sendEachForMulticast({
-              tokens: batchTokens,
-              notification: {
-                title: notificationData.title,
-                body: notificationData.body,
-              },
-              data: notificationData.data,
-              android: {
-                ttl: notificationData.ttlInSeconds
-                  ? notificationData.ttlInSeconds * 1000
-                  : undefined,
-                priority: notificationData.priority || 'normal',
-                notification: {
-                  sound: notificationData.sound || 'default',
-                  clickAction: notificationData.clickAction,
-                },
-              },
-              apns: {
-                payload: {
-                  aps: {
-                    sound: notificationData.sound || 'default',
-                  },
-                },
-              },
+    const results = await Promise.allSettled(
+      batches.map((batchTokens, batchIndex) =>
+        this.firebaseAdmin
+          .messaging()
+          .sendEachForMulticast(this.buildMulticastMessage(notificationData, batchTokens))
+          .then((response) => {
+            successCount += response.successCount;
+            failureCount += response.failureCount;
+
+            response.responses.forEach((resp, index) => {
+              if (!resp.success && resp.error) {
+                failures.push({
+                  index: batchIndex * this.batchSize + index,
+                  error: resp.error,
+                });
+              }
             });
+          }),
+      ),
+    );
 
-          totalSuccessCount += response.successCount;
-          totalFailureCount += response.failureCount;
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        this.logger.error(`Batch ${index} failed`, result.reason);
+      }
+    });
 
-          // Record failures with adjusted indices
-          response.responses.forEach((resp, index) => {
-            if (!resp.success) {
-              failures.push({
-                index: batchIndex * this.batchSize + index,
-                error: resp.error,
-              });
-            }
-          });
-        } catch (error) {
-          this.logger.error(`Batch ${batchIndex} failed:`, error);
-          throw error;
-        }
-      });
-
-      await Promise.all(batchPromises);
-
-      return {
-        successCount: totalSuccessCount,
-        failureCount: totalFailureCount,
-        failures,
-      };
-    } catch (error) {
-      this.logger.error('Failed to send notifications:', error);
-      throw error;
-    }
+    return { successCount, failureCount, failures };
   }
 
-  /**
-   * Send notification to a topic
-   */
   async sendToTopic(notification: TopicNotificationDto): Promise<string> {
     const { topic, ...notificationData } = notification;
+    const message = this.buildBaseMessage(notificationData, { topic });
 
     try {
-      const response = await this.firebaseAdmin.messaging().send({
-        topic,
-        notification: {
-          title: notificationData.title,
-          body: notificationData.body,
-        },
-        data: notificationData.data,
-        android: {
-          ttl: notificationData.ttlInSeconds
-            ? notificationData.ttlInSeconds * 1000
-            : undefined,
-          priority: notificationData.priority || 'normal',
-          notification: {
-            sound: notificationData.sound || 'default',
-            clickAction: notificationData.clickAction,
-          },
-        },
-        apns: {
-          payload: {
-            aps: {
-              sound: notificationData.sound || 'default',
-            },
-          },
-        },
-      });
-
+      const response = await this.firebaseAdmin.messaging().send(message);
       this.logger.log(`Successfully sent notification to topic ${topic}`);
       return response;
     } catch (error) {
-      this.logger.error(`Failed to send notification to topic ${topic}:`, error);
+      this.logger.error(`Failed to send notification to topic ${topic}`, (error as Error).stack);
       throw error;
     }
   }
 
-  /**
-   * Subscribe tokens to a topic
-   */
   async subscribeToTopic(tokens: string[], topic: string): Promise<void> {
     try {
       await this.firebaseAdmin.messaging().subscribeToTopic(tokens, topic);
-      this.logger.log(
-        `Successfully subscribed ${tokens.length} tokens to topic: ${topic}`,
-      );
+      this.logger.log(`Successfully subscribed ${tokens.length} tokens to topic: ${topic}`);
     } catch (error) {
-      this.logger.error(`Failed to subscribe tokens to topic ${topic}:`, error);
+      this.logger.error(`Failed to subscribe tokens to topic ${topic}`, (error as Error).stack);
       throw error;
     }
   }
 
-  /**
-   * Unsubscribe tokens from a topic
-   */
   async unsubscribeFromTopic(tokens: string[], topic: string): Promise<void> {
     try {
       await this.firebaseAdmin.messaging().unsubscribeFromTopic(tokens, topic);
-      this.logger.log(
-        `Successfully unsubscribed ${tokens.length} tokens from topic: ${topic}`,
-      );
+      this.logger.log(`Successfully unsubscribed ${tokens.length} tokens from topic: ${topic}`);
     } catch (error) {
-      this.logger.error(`Failed to unsubscribe tokens from topic ${topic}:`, error);
+      this.logger.error(`Failed to unsubscribe tokens from topic ${topic}`, (error as Error).stack);
       throw error;
     }
   }
 
-  /**
-   * Create batches of tokens with specified batch size
-   */
+  private buildBaseMessage(
+    notification: BaseNotificationDto,
+    target: NotificationTarget,
+  ): admin.messaging.Message {
+    const cleanedTarget: any = {};
+    if (target.token) cleanedTarget.token = target.token;
+    if (target.topic) cleanedTarget.topic = target.topic;
+
+    return {
+      ...cleanedTarget,
+      notification: {
+        title: notification.title,
+        body: notification.body,
+      },
+      data: notification.data,
+      android: {
+        ttl: notification.ttlInSeconds ? notification.ttlInSeconds * 1000 : undefined,
+        priority: notification.priority || 'normal',
+        notification: {
+          sound: notification.sound || 'default',
+          clickAction: notification.clickAction,
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: notification.sound || 'default',
+          },
+        },
+      },
+    };
+  }
+
+  private buildMulticastMessage(
+    notification: BaseNotificationDto,
+    tokens: string[],
+  ): admin.messaging.MulticastMessage {
+    return {
+      tokens,
+      notification: {
+        title: notification.title,
+        body: notification.body,
+      },
+      data: notification.data,
+      android: {
+        ttl: notification.ttlInSeconds ? notification.ttlInSeconds * 1000 : undefined,
+        priority: notification.priority || 'normal',
+        notification: {
+          sound: notification.sound || 'default',
+          clickAction: notification.clickAction,
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: notification.sound || 'default',
+          },
+        },
+      },
+    };
+  }
+
   private createBatches(tokens: string[]): string[][] {
     const batches: string[][] = [];
     for (let i = 0; i < tokens.length; i += this.batchSize) {

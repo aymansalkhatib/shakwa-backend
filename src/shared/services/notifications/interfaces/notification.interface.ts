@@ -1,3 +1,4 @@
+// File: interfaces/notification.interface.ts
 import { FirebaseError } from 'firebase-admin/app';
 import {
   SingleTokenNotificationDto,
