@@ -1,4 +1,5 @@
 import * as path from 'path';
+import { isValidFilename, sanitizePath } from './functions/sanitize-path';
 
 /**
  * Abstract base class for file storage implementations
@@ -61,17 +62,47 @@ export abstract class BaseStorageService {
   abstract deleteMany(fileIds: string[]): Promise<boolean[]>;
 
   /**
-   * Builds a storage path for the file
+   * Builds a storage path for the file with security checks
    * @param baseDir - The base directory for storage
    * @param filename - The file name
    * @param customPath - Optional custom subdirectory path
    * @returns The full storage path
+   * @throws Error if filename or customPath contains unsafe characters
    */
   protected buildStoragePath(baseDir: string, filename: string, customPath?: string): string {
-    if (customPath) {
-      return path.join(baseDir, customPath, filename);
+    // Validate filename
+    if (!isValidFilename(filename)) {
+      throw new Error(`Invalid filename: ${filename}. Filename cannot contain path separators.`);
+    }
+
+    // Sanitize custom path if provided
+    const sanitizedCustomPath = customPath ? sanitizePath(customPath) : '';
+
+    if (sanitizedCustomPath) {
+      return path.join(baseDir, sanitizedCustomPath, filename);
     }
     return path.join(baseDir, filename);
+  }
+
+  /**
+   * Builds a relative storage path (without base directory)
+   * @param filename - The file name
+   * @param customPath - Optional custom subdirectory path
+   * @returns The relative storage path
+   */
+  protected buildRelativePath(filename: string, customPath?: string): string {
+    // Validate filename
+    if (!isValidFilename(filename)) {
+      throw new Error(`Invalid filename: ${filename}. Filename cannot contain path separators.`);
+    }
+
+    // Sanitize custom path if provided
+    const sanitizedCustomPath = customPath ? sanitizePath(customPath) : '';
+
+    if (sanitizedCustomPath) {
+      return path.join(sanitizedCustomPath, filename);
+    }
+    return filename;
   }
 
   /**

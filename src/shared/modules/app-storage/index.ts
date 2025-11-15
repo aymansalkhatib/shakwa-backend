@@ -33,3 +33,4 @@ export * from './functions/file-helper';
 export * from './functions/file-structure-checker';
 export * from './functions/format-bytes';
 export * from './functions/optimize-image';
+export * from './functions/sanitize-path';

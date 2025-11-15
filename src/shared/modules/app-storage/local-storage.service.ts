@@ -14,56 +14,66 @@ export class LocalStorageService extends BaseStorageService {
 
   /**
    * Stores file in local filesystem
+   * @returns Relative path (without BASE_PATH) for database storage consistency
    */
   async store(file: Express.Multer.File, filename?: string, customPath?: string): Promise<string> {
     const finalFilename = this.buildFilename(file, filename);
-    const storagePath = this.buildStoragePath(this.config.BASE_PATH, finalFilename, customPath);
+    const relativePath = this.buildRelativePath(finalFilename, customPath);
+    const absolutePath = path.join(this.config.BASE_PATH, relativePath);
 
-    await this.ensureDirectoryExists(path.dirname(storagePath));
+    await this.ensureDirectoryExists(path.dirname(absolutePath));
 
     try {
-      await fs.writeFile(storagePath, file.buffer);
-      return storagePath;
-    } catch (error: any) {
-      throw new Error(`Failed to store file at ${storagePath}: ${error.message}`);
+      await fs.writeFile(absolutePath, file.buffer);
+      return relativePath; // Return relative path for consistency
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to store file at ${absolutePath}: ${message}`);
     }
   }
 
   /**
    * Retrieves file from local filesystem
+   * @param fileId - Relative path to the file
    */
   async retrieve(fileId: string): Promise<Buffer> {
-    const filePath = path.join(this.config.BASE_PATH, fileId);
+    // Build absolute path, handling both relative and absolute inputs safely
+    const filePath = path.isAbsolute(fileId) ? fileId : path.join(this.config.BASE_PATH, fileId);
 
     try {
       return await fs.readFile(filePath);
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
         throw new Error(`File not found: ${filePath}`);
       }
-      throw new Error(`Failed to retrieve file: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to retrieve file: ${message}`);
     }
   }
 
   /**
    * Deletes file from local filesystem
+   * @param fileId - Relative path to the file
    */
   async delete(fileId: string): Promise<boolean> {
-    const filePath = path.join(this.config.BASE_PATH, fileId);
+    // Build absolute path, handling both relative and absolute inputs safely
+    const filePath = path.isAbsolute(fileId) ? fileId : path.join(this.config.BASE_PATH, fileId);
 
     try {
       await fs.unlink(filePath);
       return true;
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
         throw new Error(`File not found: ${filePath}`);
       }
-      throw new Error(`Failed to delete file: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to delete file: ${message}`);
     }
   }
 
   /**
    * Replaces an existing file with a new one
+   * @returns Relative path of the new file
    */
   async replace(
     oldFilePath: string,
@@ -77,7 +87,8 @@ export class LocalStorageService extends BaseStorageService {
     }
 
     const filename = path.basename(oldFilePath);
-    return await this.store(newFile, filename, customPath);
+    const relativePath = await this.store(newFile, filename, customPath);
+    return relativePath;
   }
 
   /**

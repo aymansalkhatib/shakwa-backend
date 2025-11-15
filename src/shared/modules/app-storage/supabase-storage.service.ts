@@ -21,7 +21,7 @@ export class SupabaseStorageService extends BaseStorageService {
    */
   async store(file: Express.Multer.File, filename?: string, customPath?: string): Promise<string> {
     const finalFilename = filename || file.originalname;
-    const storagePath = this.buildStoragePath('', finalFilename, customPath);
+    const storagePath = this.buildRelativePath(finalFilename, customPath);
 
     try {
       const { error } = await this.supabase.storage
@@ -33,8 +33,9 @@ export class SupabaseStorageService extends BaseStorageService {
 
       if (error) throw error;
       return storagePath;
-    } catch (error: any) {
-      throw new Error(`Failed to store file in Supabase: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to store file in Supabase: ${message}`);
     }
   }
 
@@ -49,8 +50,9 @@ export class SupabaseStorageService extends BaseStorageService {
 
       const arrayBuffer = await data.arrayBuffer();
       return Buffer.from(arrayBuffer);
-    } catch (error: any) {
-      throw new Error(`Failed to retrieve file from Supabase: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to retrieve file from Supabase: ${message}`);
     }
   }
 
@@ -63,8 +65,9 @@ export class SupabaseStorageService extends BaseStorageService {
 
       if (error) throw error;
       return true;
-    } catch (error: any) {
-      throw new Error(`Failed to delete file from Supabase: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to delete file from Supabase: ${message}`);
     }
   }
 
@@ -77,7 +80,7 @@ export class SupabaseStorageService extends BaseStorageService {
     customPath?: string,
   ): Promise<string> {
     const filename = path.basename(oldFilePath);
-    const finalPath = customPath ? this.buildStoragePath('', filename, customPath) : oldFilePath;
+    const finalPath = customPath ? this.buildRelativePath(filename, customPath) : oldFilePath;
 
     try {
       const { error } = await this.supabase.storage
@@ -89,8 +92,9 @@ export class SupabaseStorageService extends BaseStorageService {
 
       if (error) throw error;
       return finalPath;
-    } catch (error: any) {
-      throw new Error(`Failed to replace file in Supabase: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to replace file in Supabase: ${message}`);
     }
   }
 
