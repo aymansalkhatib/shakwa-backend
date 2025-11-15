@@ -1,32 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import * as path from 'path';
 import { BaseStorageService } from './base-storage.service';
 import { SupabaseStorageConfig } from './types';
 
 @Injectable()
 export class SupabaseStorageService extends BaseStorageService {
-  private readonly BATCH_SIZE = 1000; // Supabase optimal batch size
-  private supabase;
-  private bucketName: string;
+  private readonly BATCH_SIZE = 1000;
+  private readonly supabase: SupabaseClient;
+  private readonly bucketName: string;
 
   constructor(private readonly config: SupabaseStorageConfig) {
     super();
-    this.supabase = createClient(
-      config.SUPABASE_URL,
-      config.SUPABASE_SERVICE_ROLE_KEY,
-    );
+    this.supabase = createClient(config.SUPABASE_URL, config.SUPABASE_SERVICE_ROLE_KEY);
     this.bucketName = config.SUPABASE_BUCKET;
   }
 
   /**
    * Stores file in Supabase storage
    */
-  async store(file: Express.Multer.File, customPath?: string): Promise<string> {
-    const storagePath = super.buildStoragePath(
-      this.config.BASE_PATH, // Base URL not needed for Supabase
-      file.originalname,
-      customPath,
-    );
+  async store(file: Express.Multer.File, filename?: string, customPath?: string): Promise<string> {
+    const finalFilename = filename || file.originalname;
+    const storagePath = this.buildStoragePath('', finalFilename, customPath);
 
     try {
       const { error } = await this.supabase.storage
@@ -48,18 +43,14 @@ export class SupabaseStorageService extends BaseStorageService {
    */
   async retrieve(fileId: string): Promise<Buffer> {
     try {
-      const { data, error } = await this.supabase.storage
-        .from(this.bucketName)
-        .download(fileId);
+      const { data, error } = await this.supabase.storage.from(this.bucketName).download(fileId);
 
       if (error) throw error;
 
       const arrayBuffer = await data.arrayBuffer();
       return Buffer.from(arrayBuffer);
     } catch (error: any) {
-      throw new Error(
-        `Failed to retrieve file from Supabase: ${error.message}`,
-      );
+      throw new Error(`Failed to retrieve file from Supabase: ${error.message}`);
     }
   }
 
@@ -68,9 +59,7 @@ export class SupabaseStorageService extends BaseStorageService {
    */
   async delete(fileId: string): Promise<boolean> {
     try {
-      const { error } = await this.supabase.storage
-        .from(this.bucketName)
-        .remove([fileId]);
+      const { error } = await this.supabase.storage.from(this.bucketName).remove([fileId]);
 
       if (error) throw error;
       return true;
@@ -87,78 +76,54 @@ export class SupabaseStorageService extends BaseStorageService {
     newFile: Express.Multer.File,
     customPath?: string,
   ): Promise<string> {
-    const storagePath = customPath || oldFilePath;
+    const filename = path.basename(oldFilePath);
+    const finalPath = customPath ? this.buildStoragePath('', filename, customPath) : oldFilePath;
 
     try {
-      const { data, error } = await this.supabase.storage
+      const { error } = await this.supabase.storage
         .from(this.bucketName)
-        .upload(storagePath, newFile.buffer, {
+        .upload(finalPath, newFile.buffer, {
           contentType: newFile.mimetype,
           upsert: true,
         });
 
       if (error) throw error;
-      return storagePath;
+      return finalPath;
     } catch (error: any) {
       throw new Error(`Failed to replace file in Supabase: ${error.message}`);
     }
   }
 
   /**
-   * Stores multiple files in Supabase storage using built-in batch operations
+   * Stores multiple files in Supabase storage using batch operations
    */
-  async storeMany(
-    files: Express.Multer.File[],
-    customPath?: string,
-  ): Promise<string[]> {
+  async storeMany(files: Express.Multer.File[], customPath?: string): Promise<string[]> {
     return await this.processBatch(files, this.BATCH_SIZE, async (batch) => {
-      const uploadPromises = batch.map((file) => {
-        const storagePath = super.buildStoragePath(
-          '',
-          file.originalname,
-          customPath,
-        );
-        return this.supabase.storage
-          .from(this.bucketName)
-          .upload(storagePath, file.buffer, {
-            contentType: file.mimetype,
-            upsert: false,
-          })
-          .then(({ data, error }) => {
-            if (error) throw error;
-            return storagePath;
-          });
-      });
-
-      return await Promise.all(uploadPromises);
+      return await Promise.all(batch.map((file) => this.store(file, undefined, customPath)));
     });
   }
 
   /**
-   * Deletes multiple files from Supabase storage using built-in batch operations
+   * Deletes multiple files from Supabase storage using batch operations
    */
   async deleteMany(fileIds: string[]): Promise<boolean[]> {
     return await this.processBatch(fileIds, this.BATCH_SIZE, async (batch) => {
       try {
-        const { error } = await this.supabase.storage
-          .from(this.bucketName)
-          .remove(batch);
+        const { error } = await this.supabase.storage.from(this.bucketName).remove(batch);
 
         if (error) throw error;
         return batch.map(() => true);
-      } catch (error) {
+      } catch {
         // If batch operation fails, try individual deletions
-        const results = await Promise.all(
+        return await Promise.all(
           batch.map(async (fileId) => {
             try {
-              await this.delete(fileId);
-              return true;
+              return await this.delete(fileId);
             } catch {
               return false;
             }
           }),
         );
-        return results;
       }
     });
   }

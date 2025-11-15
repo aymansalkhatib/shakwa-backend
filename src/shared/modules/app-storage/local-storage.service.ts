@@ -6,49 +6,34 @@ import { LocalStorageConfig } from './types';
 
 @Injectable()
 export class LocalStorageService extends BaseStorageService {
-  private readonly BATCH_SIZE = 100; // Optimal batch size for local filesystem operations
+  private readonly BATCH_SIZE = 100;
 
-  constructor(private readonly localConfig?: LocalStorageConfig) {
+  constructor(private readonly config: LocalStorageConfig) {
     super();
   }
 
   /**
    * Stores file in local filesystem
    */
-  async store(
-    file: Express.Multer.File,
-    name?: string,
-    customPath?: string,
-  ): Promise<string> {
-    let newFilename: any;
+  async store(file: Express.Multer.File, filename?: string, customPath?: string): Promise<string> {
+    const finalFilename = this.buildFilename(file, filename);
+    const storagePath = this.buildStoragePath(this.config.BASE_PATH, finalFilename, customPath);
 
-    if (name) {
-      newFilename = name + '.' + file.originalname.split('.').pop();
-    }
-
-    const storagePath = super.buildStoragePath(
-      this.localConfig.BASE_PATH,
-      newFilename || file.originalname,
-      customPath,
-    );
-
-    await super.ensureDirectoryExists(path.dirname(storagePath));
+    await this.ensureDirectoryExists(path.dirname(storagePath));
 
     try {
       await fs.writeFile(storagePath, file.buffer);
+      return storagePath;
     } catch (error: any) {
-      throw new Error(
-        `Failed to store file at ${storagePath}: ${error.message}`,
-      );
+      throw new Error(`Failed to store file at ${storagePath}: ${error.message}`);
     }
-    return storagePath;
   }
 
   /**
    * Retrieves file from local filesystem
    */
   async retrieve(fileId: string): Promise<Buffer> {
-    const filePath = path.join(this.localConfig.BASE_PATH, fileId);
+    const filePath = path.join(this.config.BASE_PATH, fileId);
 
     try {
       return await fs.readFile(filePath);
@@ -64,7 +49,7 @@ export class LocalStorageService extends BaseStorageService {
    * Deletes file from local filesystem
    */
   async delete(fileId: string): Promise<boolean> {
-    const filePath = path.join(this.localConfig.BASE_PATH, fileId);
+    const filePath = path.join(this.config.BASE_PATH, fileId);
 
     try {
       await fs.unlink(filePath);
@@ -78,7 +63,7 @@ export class LocalStorageService extends BaseStorageService {
   }
 
   /**
-   * Replaces an existing file with a new one.
+   * Replaces an existing file with a new one
    */
   async replace(
     oldFilePath: string,
@@ -87,22 +72,20 @@ export class LocalStorageService extends BaseStorageService {
   ): Promise<string> {
     try {
       await this.delete(oldFilePath);
-    } catch (error) {
+    } catch {
       // Ignore if file doesn't exist
     }
-    return await this.store(newFile, customPath);
+
+    const filename = path.basename(oldFilePath);
+    return await this.store(newFile, filename, customPath);
   }
 
   /**
    * Stores multiple files in local filesystem using batched operations
    */
-  async storeMany(
-    files: Express.Multer.File[],
-    customPath?: string,
-  ): Promise<string[]> {
+  async storeMany(files: Express.Multer.File[], customPath?: string): Promise<string[]> {
     return await this.processBatch(files, this.BATCH_SIZE, async (batch) => {
-      const promises = batch.map((file) => this.store(file, customPath));
-      return await Promise.all(promises);
+      return await Promise.all(batch.map((file) => this.store(file, undefined, customPath)));
     });
   }
 
@@ -111,15 +94,38 @@ export class LocalStorageService extends BaseStorageService {
    */
   async deleteMany(fileIds: string[]): Promise<boolean[]> {
     return await this.processBatch(fileIds, this.BATCH_SIZE, async (batch) => {
-      const promises = batch.map(async (fileId) => {
-        try {
-          await this.delete(fileId);
-          return true;
-        } catch {
-          return false;
-        }
-      });
-      return await Promise.all(promises);
+      return await Promise.all(
+        batch.map(async (fileId) => {
+          try {
+            return await this.delete(fileId);
+          } catch {
+            return false;
+          }
+        }),
+      );
     });
+  }
+
+  /**
+   * Builds the final filename, optionally appending the extension
+   */
+  private buildFilename(file: Express.Multer.File, filename?: string): string {
+    if (!filename) {
+      return file.originalname;
+    }
+
+    const extension = path.extname(file.originalname);
+    return filename.endsWith(extension) ? filename : filename + extension;
+  }
+
+  /**
+   * Ensures directory exists, creates if not
+   */
+  private async ensureDirectoryExists(dirPath: string): Promise<void> {
+    try {
+      await fs.access(dirPath);
+    } catch {
+      await fs.mkdir(dirPath, { recursive: true });
+    }
   }
 }

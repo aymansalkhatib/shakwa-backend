@@ -13,30 +13,28 @@ import { SupabaseStorageService } from './supabase-storage.service';
 import {
   FileValidationOptions,
   ImageCompressionOptions,
+  LocalStorageConfig,
   StorageConfig,
   StorageProvider,
+  SupabaseStorageConfig,
 } from './types';
 
 @Module({})
 export class AppStorageModule {
   /**
    * Registers the storage module with the specified provider and configuration
+   * @param config - Storage provider configuration
+   * @returns Dynamic module configuration
    */
-  static register(config: {
-    provider: StorageProvider;
-    options?: StorageConfig;
-  }): DynamicModule {
+  static register(config: { provider: StorageProvider; options?: StorageConfig }): DynamicModule {
     const storageProvider = this.createStorageProvider(config);
     const commonProviders = this.createCommonProviders();
 
     return {
       module: AppStorageModule,
-      providers: [ConfigService, ...commonProviders, storageProvider],
-      exports: [
-        ...commonProviders.map((provider) => provider),
-        storageProvider,
-      ],
-      global: true, // Makes the module available globally
+      global: true,
+      providers: [...commonProviders, storageProvider],
+      exports: [...commonProviders, storageProvider],
     };
   }
 
@@ -50,51 +48,66 @@ export class AppStorageModule {
     return {
       provide: STORAGE_CONSTANTS.STORAGE_PROVIDER_SERVICE,
       inject: [ConfigService],
-      useFactory: (configService: ConfigService<EnvironmentConfig>) => {
-        // Define default values for options
-        const defaultOptions: StorageConfig = {
-          //-1
-          supabaseConfig: {
-            BASE_PATH: configService.get<string>('BASE_PATH'),
-            SUPABASE_SERVICE_ROLE_KEY: configService.get(
-              'SUPABASE_SERVICE_ROLE_KEY',
-            ),
-            SUPABASE_BUCKET: configService.get<string>('SUPABASE_BUCKET'),
-            SUPABASE_URL: configService.get<string>('SUPABASE_URL'),
-          },
-          //-2
-          localConfig: {
-            BASE_PATH: configService.get('BASE_PATH'),
-          },
-        };
-
-        config = {
-          provider: config.provider,
-          options: {
-            ...defaultOptions,
-            ...config.options,
-          },
-        };
+      useFactory: (
+        configService: ConfigService<EnvironmentConfig>,
+      ): LocalStorageService | SupabaseStorageService => {
+        const finalConfig = this.buildFinalConfig(config, configService);
 
         switch (config.provider) {
-          case 'local':
-            if (!config.options.localConfig) {
-              throw new Error(
-                'Local configuration is required for local storage provider',
-              );
+          case 'local': {
+            const localConfig = finalConfig.localConfig;
+            if (!localConfig?.BASE_PATH) {
+              throw new Error('Local storage requires BASE_PATH configuration');
             }
-            return new LocalStorageService(config.options.localConfig);
+            return new LocalStorageService(localConfig);
+          }
 
-          case 'supabase':
-            if (!config.options.supabaseConfig) {
+          case 'supabase': {
+            const supabaseConfig = finalConfig.supabaseConfig;
+            if (
+              !supabaseConfig?.SUPABASE_URL ||
+              !supabaseConfig?.SUPABASE_SERVICE_ROLE_KEY ||
+              !supabaseConfig?.SUPABASE_BUCKET
+            ) {
               throw new Error(
-                'Supabase configuration is required for Supabase storage provider',
+                'Supabase storage requires SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_BUCKET',
               );
             }
-            return new SupabaseStorageService(config.options.supabaseConfig);
+            return new SupabaseStorageService(supabaseConfig);
+          }
+
           default:
             throw new Error(`Unsupported storage provider: ${config.provider}`);
         }
+      },
+    };
+  }
+
+  /**
+   * Builds the final configuration by merging defaults with user-provided options
+   */
+  private static buildFinalConfig(
+    config: { provider: StorageProvider; options?: StorageConfig },
+    configService: ConfigService<EnvironmentConfig>,
+  ): StorageConfig {
+    const defaultLocal: LocalStorageConfig = {
+      BASE_PATH: configService.getOrThrow<string>('BASE_PATH'),
+    };
+
+    const defaultSupabase: SupabaseStorageConfig = {
+      SUPABASE_URL: configService.get<string>('SUPABASE_URL'),
+      SUPABASE_SERVICE_ROLE_KEY: configService.get<string>('SUPABASE_SERVICE_ROLE_KEY'),
+      SUPABASE_BUCKET: configService.get<string>('SUPABASE_BUCKET'),
+    };
+
+    return {
+      localConfig: {
+        ...defaultLocal,
+        ...config.options?.localConfig,
+      },
+      supabaseConfig: {
+        ...defaultSupabase,
+        ...config.options?.supabaseConfig,
       },
     };
   }
@@ -104,21 +117,14 @@ export class AppStorageModule {
    */
   private static createCommonProviders(): Provider[] {
     return [
-      // Image compression configuration
       {
         provide: STORAGE_CONSTANTS.IMAGE_COMPRESSION_CONFIG,
-        useValue: {
-          ...DEFAULT_COMPRESSION_OPTIONS,
-        } as ImageCompressionOptions,
+        useValue: DEFAULT_COMPRESSION_OPTIONS as ImageCompressionOptions,
       },
-      // File validation configuration
       {
         provide: STORAGE_CONSTANTS.FILE_VALIDATION_CONFIG,
-        useValue: {
-          ...DEFAULT_FILE_VALIDATION_OPTIONS,
-        } as FileValidationOptions,
+        useValue: DEFAULT_FILE_VALIDATION_OPTIONS as FileValidationOptions,
       },
-      // Pipes
       ImageProcessingPipe,
       CustomFileParsingPipe,
     ];
