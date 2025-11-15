@@ -40,8 +40,7 @@ export class AppLogger implements LoggerService, OnModuleInit, OnModuleDestroy {
     }
 
     this.config = {
-      level:
-        this.configService.get('LOG_LEVEL', { infer: true }) || (isProduction ? 'info' : 'debug'),
+      level: this.configService.get('LOG_LEVEL'),
       logDir,
       maxSize: this.configService.get('LOG_MAX_SIZE', { infer: true }) || '20m',
       maxFiles: this.configService.get('LOG_MAX_FILES', { infer: true }) || '14d',

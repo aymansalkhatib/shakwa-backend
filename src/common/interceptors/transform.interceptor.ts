@@ -49,7 +49,7 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
             status: this.getResponseStatus(response.statusCode),
             path: request.url,
             method: request.method,
-            requestId: this.generateRequestId(),
+            requestId: request.requestId,
           },
         };
       }),
@@ -71,9 +71,5 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
     if (statusCode >= 200 && statusCode < 300) return 'success';
     if (statusCode >= 400 && statusCode < 500) return 'failure';
     return 'error';
-  }
-
-  private generateRequestId(): string {
-    return `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   }
 }

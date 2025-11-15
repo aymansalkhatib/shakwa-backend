@@ -2,8 +2,8 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
-import { EnvironmentConfig } from '../app-config';
-import { AppLogger } from './app-logger.service';
+import { EnvironmentConfig } from '../../shared/modules/app-config';
+import { AppLogger } from '../../shared/modules/app-logger/app-logger.service';
 
 // Extend Express Request to include requestId
 declare global {
@@ -25,14 +25,12 @@ export class LoggingMiddleware implements NestMiddleware {
     private readonly logger: AppLogger,
     private readonly configService: ConfigService<EnvironmentConfig>,
   ) {
-    this.logHttp = this.configService.get('LOG_HTTP', { infer: true }) ?? true;
-    this.logSlowRequests = this.configService.get('LOG_SLOW_REQUESTS', { infer: true }) ?? true;
-    this.slowRequestThreshold =
-      this.configService.get('LOG_SLOW_REQUEST_THRESHOLD', { infer: true }) || 1000;
+    this.logHttp = this.configService.getOrThrow('LOG_HTTP', { infer: true });
+    this.logSlowRequests = this.configService.getOrThrow('LOG_SLOW_REQUESTS');
+    this.slowRequestThreshold = this.configService.getOrThrow('LOG_SLOW_REQUEST_THRESHOLD');
   }
 
   use(req: Request, res: Response, next: NextFunction): void {
-    console.log('LoggingMiddleware');
     if (!this.logHttp) {
       return next();
     }

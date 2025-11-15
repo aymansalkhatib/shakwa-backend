@@ -5,7 +5,6 @@ import qs from 'qs';
 @Injectable()
 export class ParseQueryMiddleware implements NestMiddleware {
   use(req: Request, _: Response, next: NextFunction): void {
-    console.log('ParseQueryMiddleware');
     try {
       const url = req.originalUrl || req.url;
 
