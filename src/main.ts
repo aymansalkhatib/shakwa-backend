@@ -9,7 +9,9 @@ import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: ['error', 'debug', 'log', 'verbose', 'fatal'],
+  });
 
   // Enable CORS
   app.enableCors();
