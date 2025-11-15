@@ -18,9 +18,7 @@ export class AppJwtService {
     private readonly translateHelper: TranslateHelper,
   ) {
     this.accessSecret = this.configService.getOrThrow('JWT_ACCESS_SECRET');
-    this.accessExpiresIn = this.configService.getOrThrow<number>(
-      'JWT_ACCESS_EXPIRES_IN_MS',
-    );
+    this.accessExpiresIn = this.configService.getOrThrow<number>('JWT_ACCESS_EXPIRES_IN_MS');
   }
 
   /**
@@ -41,10 +39,7 @@ export class AppJwtService {
    * @returns Decoded token payload if valid
    * @throws UnauthorizedException if token is invalid
    */
-  verifyAccessToken(
-    token: string,
-    ignoreExpiration = false,
-  ): DecodedAccessTokenPayload {
+  verifyAccessToken(token: string, ignoreExpiration = false): DecodedAccessTokenPayload {
     try {
       return jwt.verify(token, this.accessSecret, {
         ignoreExpiration,
