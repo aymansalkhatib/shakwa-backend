@@ -4,14 +4,14 @@ import { CitizensController } from './controllers/citizens.controller';
 import { CitizenEntity } from './entities/citizen.entity';
 import { CitizensRepository } from './repositories/citizens.repository';
 import { CitizensService } from './services/citizens.service';
-
-export const CITIZENS_REPOSITORY_TOKEN = Symbol('ICitizensRepository');
+import { CITIZENS_REPOSITORY_TOKEN } from './citizens.tokens';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CitizenEntity])],
   controllers: [CitizensController],
   providers: [
     CitizensService,
+
     {
       provide: CITIZENS_REPOSITORY_TOKEN,
       useClass: CitizensRepository,

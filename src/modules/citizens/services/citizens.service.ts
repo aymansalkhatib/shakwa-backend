@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
-import { CITIZENS_REPOSITORY_TOKEN } from '../citizens.module';
+import { CITIZENS_REPOSITORY_TOKEN } from '../citizens.tokens';
 import { CitizenFilterDto } from '../dtos/query/citizen-filter.dto';
 import { CreateCitizenDto } from '../dtos/request/create-citizen.dto';
 import { UpdateCitizenDto } from '../dtos/request/update-citizen.dto';
