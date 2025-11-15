@@ -3,6 +3,7 @@ import { ErrorHandlerStrategy } from './strategies/error-handler.strategy';
 import { HttpExceptionHandler } from './strategies/http-exception.handler';
 import { JwtErrorHandler } from './strategies/jwt-error.handler';
 import { MulterErrorHandler } from './strategies/multer-error.handler';
+import { TypeOrmErrorHandler } from './strategies/typeorm-error.handler';
 import { UnknownErrorHandler } from './strategies/unknown-error.handler';
 
 /**
@@ -17,6 +18,7 @@ export class ErrorHandlerFactory {
     this.handlers = [
       new MulterErrorHandler(),
       new JwtErrorHandler(),
+      new TypeOrmErrorHandler(),
       new HttpExceptionHandler(),
     ];
     this.fallbackHandler = new UnknownErrorHandler();
@@ -26,9 +28,6 @@ export class ErrorHandlerFactory {
    * Gets the appropriate handler for the given error
    */
   getHandler(error: Error): ErrorHandlerStrategy {
-    return (
-      this.handlers.find((handler) => handler.canHandle(error)) ||
-      this.fallbackHandler
-    );
+    return this.handlers.find((handler) => handler.canHandle(error)) || this.fallbackHandler;
   }
 }

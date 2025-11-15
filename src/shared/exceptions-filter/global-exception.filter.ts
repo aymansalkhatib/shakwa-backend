@@ -2,9 +2,6 @@ import { ArgumentsHost, Catch, ExceptionFilter, Injectable } from '@nestjs/commo
 import { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import { ErrorHandlerFactory } from './error-handler.factory';
-import { extractRequestMetadata, getErrorStatus } from './utils/request-metadata.util';
-import { LogMetadata } from '../modules/app-logging/interfaces/logger.interface';
-import { WinstonLoggerService } from '../modules/app-logging/winston-logger.service';
 
 /**
  * Global exception filter that handles all unhandled exceptions in the application
@@ -12,10 +9,7 @@ import { WinstonLoggerService } from '../modules/app-logging/winston-logger.serv
 @Injectable()
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  constructor(
-    private readonly errorHandlerFactory: ErrorHandlerFactory,
-    private readonly logger: WinstonLoggerService,
-  ) {}
+  constructor(private readonly errorHandlerFactory: ErrorHandlerFactory) {}
 
   catch(exception: any, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -25,6 +19,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     // Generate a unique trace ID for error tracking
     const traceId = randomUUID();
 
+    // const developerMode: boolean =
+    //   requests.headers['developer-mode'] === 'true' && process.env.NODE_ENV === 'development';
+
+    const developerMode = true;
+
     try {
       // Get the appropriate handler for this type of error
       const handler = this.errorHandlerFactory.getHandler(exception);
@@ -32,47 +31,65 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const errorResponse = handler.handle(exception, traceId);
 
       // Add stack trace in development
-      if (process.env.NODE_ENV === 'development') {
+      if (developerMode) {
         errorResponse.stack = exception.stack;
       }
 
-      // Log the error with request context
-      this.logError(request, exception, traceId);
+      // Log the error with requests context
+      this.logError(exception);
 
-      // Send response
-      const { statusCode, ...responseBody } = errorResponse;
-      response.status(statusCode).json(responseBody);
-    } catch (error) {
+      // Send responses
+
+      if (developerMode) {
+        response.status(errorResponse.statusCode).json(errorResponse);
+      } else {
+        response.status(errorResponse.statusCode).json({
+          status: errorResponse.status,
+          message: errorResponse.message,
+        });
+      }
+    } catch (error: any) {
       // Handle errors that occur during error handling
-      this.logger.error('Error in exception filter', {
-        error,
-        traceId,
-        responseTime: new Date().toISOString(),
-      });
+      // this.logger.error('Error in exception filter', {
+      //   error,
+      //   traceId,
+      //   responseTime: new Date().toISOString(),
+      // });
 
-      response.status(500).json({
-        status: 'error',
-        message: 'An unexpected error occurred',
-        traceId,
-        timestamp: new Date().toISOString(),
-      });
+      console.error(error.toString());
+      if (developerMode) {
+        response.status(500).json({
+          status: 'error',
+          message: 'An unexpected error occurred',
+          statusCode: 500,
+          traceId,
+          timestamp: new Date().toISOString(),
+          context: {
+            code: 'INTERNAL_SERVER_ERROR',
+            details: error?.message,
+          },
+        });
+      } else {
+        response.status(500).json({
+          status: 'error',
+          message: 'An unexpected error occurred',
+        });
+      }
     }
   }
 
-  private logError(request: Request, exception: Error, traceId: string): void {
-    const metadata: LogMetadata = extractRequestMetadata(request);
-    const status = getErrorStatus(exception);
-
-    this.logger.error(`Request failed: ${request.method} ${request.url}`, {
-      ...metadata,
-      statusCode: status,
-      levelLog: 'ERROR',
-      error: {
-        name: exception.name,
-        message: exception.message,
-        stack: exception.stack,
-      },
-      traceId,
-    });
+  private logError(exception: Error): void {
+    // this.logger.error(`Request failed: ${requests.method} ${requests.url}`, {
+    //   ...metadata,
+    //   statusCode: status,
+    //   levelLog: 'ERROR',
+    //   error: {
+    //     name: exception.name,
+    //     message: exception.message,
+    //     stack: exception.stack,
+    //   },
+    //   traceId,
+    // });
+    console.error(exception.stack.toString());
   }
 }

@@ -20,6 +20,7 @@ export class UnknownErrorHandler extends BaseErrorHandler {
       ),
       context: {
         code: 'INTERNAL_SERVER_ERROR',
+        details: error?.message,
       },
     };
   }

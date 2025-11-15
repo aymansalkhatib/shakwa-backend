@@ -10,7 +10,7 @@ export interface ErrorHandlerStrategy {
   canHandle(error: Error): boolean;
 
   /**
-   * Processes the error and returns a standardized error response
+   * Processes the error and returns a standardized error responses
    */
   handle(error: Error, traceId: string): ErrorResponse;
 }
@@ -24,7 +24,7 @@ export default abstract class BaseErrorHandler implements ErrorHandlerStrategy {
   abstract handle(error: Error, traceId: string): ErrorResponse;
 
   /**
-   * Creates a base error response structure
+   * Creates a base error responses structure
    */
   protected createBaseResponse(
     status: 'error' | 'failure',

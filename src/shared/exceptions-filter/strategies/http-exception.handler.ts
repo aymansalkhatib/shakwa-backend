@@ -11,13 +11,13 @@ export class HttpExceptionHandler extends BaseErrorHandler {
   }
 
   handle(error: HttpException, traceId: string): ErrorResponse {
-    const status = error.getStatus();
+    const statusCode = error.getStatus();
     const response = error.getResponse() as any;
 
     return {
       ...this.createBaseResponse(
-        status >= 500 ? 'error' : 'failure',
-        status,
+        statusCode >= 500 ? 'error' : 'failure',
+        statusCode,
         response.message || error.message,
         traceId,
       ),

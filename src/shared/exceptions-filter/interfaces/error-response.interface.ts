@@ -1,5 +1,5 @@
 /**
- * Represents the standardized error response structure
+ * Represents the standardized error responses structure
  */
 export interface ErrorResponse {
   /** Indicates if this is a client error ('failure') or server error ('error') */
@@ -23,7 +23,7 @@ export interface ErrorResponse {
     request?: Record<string, any>;
 
     /** Additional error details */
-    details?: Record<string, any>;
+    details?: Record<string, any> | string;
 
     /** Error code for client-side error handling */
     code?: string;
@@ -34,7 +34,7 @@ export interface ErrorResponse {
 }
 
 /**
- * Configuration options for error response generation
+ * Configuration options for error responses generation
  */
 export interface ErrorResponseOptions {
   includeStack?: boolean;
