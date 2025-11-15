@@ -1,5 +1,5 @@
 import { FormatEnum } from 'sharp';
-import { FileSizeUnit } from './file.types';
+import { FileSizeUnit } from './file';
 
 /**
  * Supported output formats for image compression, as defined by Sharp.

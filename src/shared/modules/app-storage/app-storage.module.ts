@@ -1,21 +1,21 @@
 import { DynamicModule, Module, Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EnvironmentConfig } from '../app-config/env.schema.js';
+import { EnvironmentConfig } from '../app-config/env.schema';
 import {
   DEFAULT_COMPRESSION_OPTIONS,
   DEFAULT_FILE_VALIDATION_OPTIONS,
-} from './constants/file-validation.constants.ts.js';
-import { STORAGE_CONSTANTS } from './constants/storage.constants.js';
-import { LocalStorageService } from './local-storage.service.js';
-import { ImageProcessingPipe } from './pipes/image-processing.pipe.js';
-import { CustomFileParsingPipe } from './pipes/parse-file.pipe.js';
-import { SupabaseStorageService } from './supabase-storage.service.js';
+} from './constants/file-validation';
+import { STORAGE_CONSTANTS } from './constants/storage';
+import { LocalStorageService } from './local-storage.service';
+import { ImageProcessingPipe } from './pipes/image-processing.pipe';
+import { CustomFileParsingPipe } from './pipes/parse-file.pipe';
+import { SupabaseStorageService } from './supabase-storage.service';
 import {
   FileValidationOptions,
   ImageCompressionOptions,
   StorageConfig,
   StorageProvider,
-} from './types/index.js';
+} from './types';
 
 @Module({})
 export class AppStorageModule {

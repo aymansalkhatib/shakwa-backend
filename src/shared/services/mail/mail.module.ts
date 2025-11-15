@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailService } from './mail.service';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { join } from 'path';
-import { EnvironmentConfig } from '../../shared/modules/app-config/env.schema';
+import { EnvironmentConfig } from '../../modules/app-config/env.schema';
 
 @Module({
   imports: [

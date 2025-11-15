@@ -1,4 +1,4 @@
-import { extractFileExtension, extractFileNameWithoutExtension } from './file-helper.functions.ts';
+import { extractFileExtension, extractFileNameWithoutExtension } from './file-helper';
 
 /**
  * Generates a unique file name using original name, date, and time.

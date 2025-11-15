@@ -1,5 +1,5 @@
 import { Inject, Injectable, PipeTransform } from '@nestjs/common';
-import { STORAGE_CONSTANTS } from '../constants/storage.constants';
+import { STORAGE_CONSTANTS } from '../constants/storage';
 import {
   isArrayOfFiles,
   isSingleFile,

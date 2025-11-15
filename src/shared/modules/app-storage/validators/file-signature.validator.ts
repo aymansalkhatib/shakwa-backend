@@ -1,7 +1,7 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
 import { validateFileUpload } from '../functions/file-structure-checker';
-import { FileUpload, NonEmptyArray, SupportedFileType } from '../types/file.types';
-import { FIELD_FILE_TYPE_CONSTRAINTS } from '../constants/file-validation.constants.ts';
+import { FileUpload, NonEmptyArray, SupportedFileType } from '../types/file';
+import { FIELD_FILE_TYPE_CONSTRAINTS } from '../constants/file-validation';
 import { extname } from 'path';
 import magicBytes from 'magic-bytes.js';
 

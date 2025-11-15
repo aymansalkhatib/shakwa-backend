@@ -6,13 +6,13 @@ import {
   ParseFilePipe,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { STORAGE_CONSTANTS } from '../constants/storage.constants';
+import { STORAGE_CONSTANTS } from '../constants/storage';
 import { FileValidationOptions } from '../types';
-import { FileNameValidator } from '../validators/file-name-validator.ts.js';
+import { FileNameValidator } from '../validators/file-name-validator';
 import { FileValidationSignatureValidator } from '../validators/file-signature.validator';
-import { FileSizeValidatorPerType } from '../validators/file-size-validator-per-type.js';
+import { FileSizeValidatorPerType } from '../validators/file-size-validator-per-type';
 import { MaxFileSizeValidator } from '../validators/max-file-size.validator';
-import { NonEmptyFileValidator } from '../validators/non-empty-file-validator.ts';
+import { NonEmptyFileValidator } from '../validators/non-empty-file-validator';
 
 /**
  * CustomFileParsingPipe provides comprehensive file validation for uploaded files

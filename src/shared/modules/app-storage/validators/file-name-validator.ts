@@ -1,6 +1,6 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
 import { validateFileUpload } from '../functions/file-structure-checker';
-import { FileUpload } from '../types/file.types';
+import { FileUpload } from '../types/file';
 
 /**
  * Validates the file name during the upload process.

@@ -4,14 +4,14 @@ import {
   DEFAULT_COMPRESSION_OPTIONS,
   FORMAT_PRIORITIES,
   SHARP_SUPPORTED_FORMATS,
-} from '../constants/file-validation.constants.ts.js';
+} from '../constants/file-validation';
 import {
   FileSizeUnit,
   ImageCompressionOptions,
   ImageDimensions,
   ImageFormat,
-} from '../types/index.js';
-import { extractFileExtension } from './file-helper.functions.ts.js';
+} from '../types';
+import { extractFileExtension } from './file-helper';
 
 /**
  * Optimizes an image by finding the best balance between quality and file size
