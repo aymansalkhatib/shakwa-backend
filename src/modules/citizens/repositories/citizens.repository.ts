@@ -112,12 +112,12 @@ export class CitizensRepository implements ICitizensRepository {
 
     // Email filter
     if (filter.email) {
-      queryBuilder.andWhere('citizen.email = :email', { email: filter.email });
+      queryBuilder.andWhere('citizen.email ILIKE :email', { email: `%${filter.email}%` });
     }
 
     // Phone filter
     if (filter.phone) {
-      queryBuilder.andWhere('citizen.phone = :phone', { phone: filter.phone });
+      queryBuilder.andWhere('citizen.phone LIKE :phone', { phone: `%${filter.phone}%` });
     }
 
     // Full name filter

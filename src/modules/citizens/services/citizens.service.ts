@@ -16,12 +16,12 @@ export class CitizensService {
 
   async create(createCitizenDto: CreateCitizenDto): Promise<CitizenEntity> {
     // Check if email already exists
-    // if (createCitizenDto.email) {
-    //   const existingCitizen = await this.citizensRepository.findByEmail(createCitizenDto.email);
-    //   if (existingCitizen) {
-    //     throw new BadRequestException('Citizen with this email already exists');
-    //   }
-    // }
+    if (createCitizenDto.email) {
+      const existingCitizen = await this.citizensRepository.findByEmail(createCitizenDto.email);
+      if (existingCitizen) {
+        throw new BadRequestException('Citizen with this email already exists');
+      }
+    }
 
     // Check if phone already exists
     if (createCitizenDto.phone) {

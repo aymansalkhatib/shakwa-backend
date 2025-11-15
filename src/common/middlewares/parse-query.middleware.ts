@@ -26,28 +26,7 @@ export class ParseQueryMiddleware implements NestMiddleware {
           try {
             let decoded = str;
 
-            try {
-              decoded = decodeURIComponent(decoded);
-            } catch {
-              try {
-                decoded = unescape(decoded);
-              } catch {
-                decoded = str;
-              }
-            }
-
-            decoded = decoded
-              .replace(/\+/g, ' ')
-              .replace(/%20/g, ' ')
-              .replace(/%2B/g, '+')
-              .replace(/%26/g, '&')
-              .replace(/%3D/g, '=')
-              .replace(/%2F/g, '/')
-              .replace(/%3A/g, ':')
-              .replace(/%3B/g, ';')
-              .replace(/%2C/g, ',')
-              .replace(/%3F/g, '?')
-              .replace(/%23/g, '#');
+            decoded = decodeURIComponent(decoded);
 
             return decoded;
           } catch (error) {

@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
-import { IsBoolean, IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { StrictBoolean } from '../../../../common/decorators/strict-boolean.decorator';
 import { PaginationQueryDto } from '../../../../common/pagination/dto/pagination-query.dto';
 
 export class CitizenFilterDto extends PaginationQueryDto {
@@ -7,7 +7,6 @@ export class CitizenFilterDto extends PaginationQueryDto {
   @IsOptional()
   search?: string;
 
-  @IsEmail({}, { message: 'Please provide a valid email address' })
   @IsOptional()
   @MaxLength(120, { message: 'Email must not exceed 120 characters' })
   email?: string;
@@ -22,8 +21,7 @@ export class CitizenFilterDto extends PaginationQueryDto {
   @MaxLength(100, { message: 'Full name must not exceed 100 characters' })
   fullName?: string;
 
-  @Type(() => Boolean)
-  @IsBoolean({ message: 'Blocked must be a boolean' })
   @IsOptional()
+  @StrictBoolean()
   blocked?: boolean;
 }
