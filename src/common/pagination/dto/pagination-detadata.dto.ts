@@ -5,7 +5,7 @@ export class PaginationMetadataDto {
   total: number;
 
   @Expose()
-  currentPage: number;
+  page: number;
 
   @Expose()
   limit: number;

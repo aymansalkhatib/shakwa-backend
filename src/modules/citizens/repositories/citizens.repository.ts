@@ -6,6 +6,7 @@ import { paginate } from '../../../common/pagination/paginate.service';
 import { CitizenEntity } from '../entities/citizen.entity';
 import { ICitizensRepository } from './citizens.repository.interface';
 import { ICitizenFilter } from './interfaces/citizen-filter.interface';
+import { ICitizenStatistics } from './interfaces/citizen-statistics.interface';
 import { ICreateCitizenData } from './interfaces/create-citizen-data.interface';
 import { IUpdateCitizenData } from './interfaces/update-citizen-data.interface';
 
@@ -42,16 +43,17 @@ export class CitizensRepository implements ICitizensRepository {
     return await this.repository.findOne({ where: { email } });
   }
 
-  async findByEmailOrPhone(email: string, phone: string): Promise<CitizenEntity | null> {
+  async findByPhone(phone: string): Promise<CitizenEntity | null> {
     return await this.repository.findOne({
-      where: [{ email }, { phone }],
+      where: { phone },
     });
   }
 
-  async update(id: number, data: IUpdateCitizenData): Promise<CitizenEntity> {
+  async update(id: number, data: IUpdateCitizenData): Promise<CitizenEntity | null> {
     const citizen = await this.findOne(id);
+
     if (!citizen) {
-      throw new Error(`Citizen with ID ${id} not found`);
+      return null;
     }
 
     const updatedCitizen = this.repository.merge(citizen, data);
@@ -66,6 +68,31 @@ export class CitizensRepository implements ICitizensRepository {
   async exists(id: number): Promise<boolean> {
     const count = await this.repository.count({ where: { id } });
     return count > 0;
+  }
+
+  async getStatistics(): Promise<ICitizenStatistics> {
+    const qb = this.repository.createQueryBuilder('citizen');
+
+    const raw = await qb
+      .select('COUNT(*)', 'totalCitizens')
+      .addSelect(
+        'SUM(CASE WHEN citizen.blockedAt IS NOT NULL THEN 1 ELSE 0 END)',
+        'blockedCitizens',
+      )
+      .getRawOne<{
+        totalCitizens: string;
+        blockedCitizens: string;
+      }>();
+
+    const totalCitizens = Number(raw.totalCitizens) || 0;
+    const blockedCitizens = Number(raw.blockedCitizens) || 0;
+    const activeCitizens = totalCitizens - blockedCitizens;
+
+    return {
+      totalCitizens,
+      blockedCitizens,
+      activeCitizens,
+    };
   }
 
   /**

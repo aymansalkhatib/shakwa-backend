@@ -19,7 +19,7 @@ export class PaginationResponseDto<T> {
 
     this.pagination = {
       limit,
-      currentPage,
+      page: currentPage,
       total,
       totalPages,
       nextPage: hasNextPage ? currentPage + 1 : null,

@@ -1,6 +1,7 @@
 import { IPaginatedResponse } from '../../../common/pagination/interfaces/paginated-response.interface';
 import { CitizenEntity } from '../entities/citizen.entity';
 import { ICitizenFilter } from './interfaces/citizen-filter.interface';
+import { ICitizenStatistics } from './interfaces/citizen-statistics.interface';
 import { ICreateCitizenData } from './interfaces/create-citizen-data.interface';
 import { IUpdateCitizenData } from './interfaces/update-citizen-data.interface';
 
@@ -26,14 +27,14 @@ export interface ICitizensRepository {
   findByEmail(email: string): Promise<CitizenEntity | null>;
 
   /**
-   * Finds a citizen by email or phone
+   * Finds a citizen by phone
    */
-  findByEmailOrPhone(email: string, phone: string): Promise<CitizenEntity | null>;
+  findByPhone(phone: string): Promise<CitizenEntity | null>;
 
   /**
    * Updates a citizen by ID
    */
-  update(id: number, data: IUpdateCitizenData): Promise<CitizenEntity>;
+  update(id: number, data: IUpdateCitizenData): Promise<CitizenEntity | null>;
 
   /**
    * Deletes a citizen by ID
@@ -44,4 +45,9 @@ export interface ICitizensRepository {
    * Checks if a citizen exists by ID
    */
   exists(id: number): Promise<boolean>;
+
+  /**
+   * Gets citizens statistics including total, blocked, active, etc.
+   */
+  getStatistics(): Promise<ICitizenStatistics>;
 }

@@ -4,7 +4,6 @@ import { CITIZENS_REPOSITORY_TOKEN } from '../citizens.module';
 import { CitizenFilterDto } from '../dtos/query/citizen-filter.dto';
 import { CreateCitizenDto } from '../dtos/request/create-citizen.dto';
 import { UpdateCitizenDto } from '../dtos/request/update-citizen.dto';
-import { CitizenResponseDto } from '../dtos/response/citizen-response.dto';
 import { CitizenEntity } from '../entities/citizen.entity';
 import { ICitizensRepository } from '../repositories/citizens.repository.interface';
 
@@ -35,29 +34,21 @@ export class CitizensService {
     return await this.citizensRepository.create(createCitizenDto);
   }
 
-  async findAll(
-    filterCitizenDto: CitizenFilterDto,
-  ): Promise<PaginationResponseDto<CitizenResponseDto>> {
+  async findAll(filterCitizenDto: CitizenFilterDto): Promise<PaginationResponseDto<CitizenEntity>> {
     return await this.citizensRepository.findAll(filterCitizenDto);
   }
 
-  async findOne(id: number): Promise<CitizenResponseDto> {
+  async findOne(id: number): Promise<CitizenEntity> {
     const citizen = await this.citizensRepository.findOne(id);
 
     if (!citizen) {
       throw new NotFoundException('Citizen not found');
     }
 
-    return citizen as CitizenResponseDto;
+    return citizen;
   }
 
   async update(id: number, updateCitizenDto: UpdateCitizenDto): Promise<CitizenEntity> {
-    // Check if citizen exists
-    const exists = await this.citizensRepository.exists(id);
-    if (!exists) {
-      throw new NotFoundException('Citizen not found');
-    }
-
     // Check if email is being updated and already exists
     if (updateCitizenDto.email) {
       const existingCitizen = await this.citizensRepository.findByEmail(updateCitizenDto.email);
@@ -74,7 +65,13 @@ export class CitizensService {
       }
     }
 
-    return await this.citizensRepository.update(id, updateCitizenDto);
+    const updatedCitizen = await this.citizensRepository.update(id, updateCitizenDto);
+
+    if (!updatedCitizen) {
+      throw new NotFoundException('Citizen not found');
+    }
+
+    return updatedCitizen;
   }
 
   async delete(id: number): Promise<void> {

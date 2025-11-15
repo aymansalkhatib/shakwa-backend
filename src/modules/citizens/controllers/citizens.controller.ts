@@ -10,6 +10,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { SerializeResponse } from '../../../common/decorators/serialize-response.decorator';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
@@ -25,16 +26,19 @@ export class CitizensController {
 
   @Post()
   @SerializeResponse(CitizenResponseDto)
-  async create(@Body() createCitizenDto: CreateCitizenDto): Promise<CitizenResponseDto> {
-    const citizen = await this.citizensService.create(createCitizenDto);
-    return citizen as CitizenResponseDto;
+  create(@Body() createCitizenDto: CreateCitizenDto): Promise<CitizenResponseDto> {
+    return this.citizensService.create(createCitizenDto);
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Query() filterCitizenDto: CitizenFilterDto,
   ): Promise<PaginationResponseDto<CitizenResponseDto>> {
-    return this.citizensService.findAll(filterCitizenDto);
+    const result = await this.citizensService.findAll(filterCitizenDto);
+    return {
+      data: plainToInstance(CitizenResponseDto, result.data),
+      pagination: result.pagination,
+    };
   }
 
   @Get(':id')
