@@ -27,7 +27,7 @@ export class CitizenEntity {
   // your-bucket-name: Complaint[];
 
   @Column({ type: 'timestamp', nullable: true })
-  blockedAt: boolean;
+  blockedAt: Date | null;
 
   @Column({ type: 'timestamp', nullable: true })
   lastLoginAt: Date | null;

@@ -1,61 +1,86 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
-import { paginate } from '../../../common/pagination/paginate.service';
+import { CITIZENS_REPOSITORY_TOKEN } from '../citizens.module';
 import { CitizenFilterDto } from '../dtos/query/citizen-filter.dto';
 import { CreateCitizenDto } from '../dtos/request/create-citizen.dto';
 import { UpdateCitizenDto } from '../dtos/request/update-citizen.dto';
 import { CitizenResponseDto } from '../dtos/response/citizen-response.dto';
 import { CitizenEntity } from '../entities/citizen.entity';
+import { ICitizensRepository } from '../repositories/citizens.repository.interface';
 
 @Injectable()
 export class CitizensService {
   constructor(
-    @InjectRepository(CitizenEntity)
-    private readonly citizenRepository: Repository<CitizenEntity>,
+    @Inject(CITIZENS_REPOSITORY_TOKEN)
+    private readonly citizensRepository: ICitizensRepository,
   ) {}
 
   async create(createCitizenDto: CreateCitizenDto): Promise<CitizenEntity> {
-    const citizen = this.citizenRepository.create(createCitizenDto);
-    const savedCitizen = await this.citizenRepository.save(citizen);
-    return savedCitizen;
+    // Check if email already exists
+    if (createCitizenDto.email) {
+      const existingCitizen = await this.citizensRepository.findByEmail(createCitizenDto.email);
+      if (existingCitizen) {
+        throw new BadRequestException('Citizen with this email already exists');
+      }
+    }
+
+    // Check if phone already exists
+    if (createCitizenDto.phone) {
+      const existingCitizen = await this.citizensRepository.findByPhone(createCitizenDto.phone);
+      if (existingCitizen) {
+        throw new BadRequestException('Citizen with this phone already exists');
+      }
+    }
+
+    return await this.citizensRepository.create(createCitizenDto);
   }
 
   async findAll(
     filterCitizenDto: CitizenFilterDto,
   ): Promise<PaginationResponseDto<CitizenResponseDto>> {
-    const queryBuilder = this.citizenRepository.createQueryBuilder('citizen');
-
-    return paginate(queryBuilder, filterCitizenDto, CitizenResponseDto);
+    return await this.citizensRepository.findAll(filterCitizenDto);
   }
 
   async findOne(id: number): Promise<CitizenResponseDto> {
-    const citizen = await this.citizenRepository.findOne({ where: { id } });
+    const citizen = await this.citizensRepository.findOne(id);
 
     if (!citizen) {
       throw new NotFoundException('Citizen not found');
     }
 
-    return citizen;
+    return citizen as CitizenResponseDto;
   }
 
   async update(id: number, updateCitizenDto: UpdateCitizenDto): Promise<CitizenEntity> {
-    const citizen = await this.citizenRepository.findOne({ where: { id } });
-
-    if (!citizen) {
+    // Check if citizen exists
+    const exists = await this.citizensRepository.exists(id);
+    if (!exists) {
       throw new NotFoundException('Citizen not found');
     }
 
-    const updatedCitizen = this.citizenRepository.merge(citizen, updateCitizenDto);
-    const savedCitizen = await this.citizenRepository.save(updatedCitizen);
-    return savedCitizen;
+    // Check if email is being updated and already exists
+    if (updateCitizenDto.email) {
+      const existingCitizen = await this.citizensRepository.findByEmail(updateCitizenDto.email);
+      if (existingCitizen && existingCitizen.id !== id) {
+        throw new BadRequestException('Citizen with this email already exists');
+      }
+    }
+
+    // Check if phone is being updated and already exists
+    if (updateCitizenDto.phone) {
+      const existingCitizen = await this.citizensRepository.findByPhone(updateCitizenDto.phone);
+      if (existingCitizen && existingCitizen.id !== id) {
+        throw new BadRequestException('Citizen with this phone already exists');
+      }
+    }
+
+    return await this.citizensRepository.update(id, updateCitizenDto);
   }
 
   async delete(id: number): Promise<void> {
-    const result = await this.citizenRepository.delete(id);
+    const deleted = await this.citizensRepository.delete(id);
 
-    if (result.affected === 0) {
+    if (!deleted) {
       throw new NotFoundException('Citizen not found');
     }
   }
