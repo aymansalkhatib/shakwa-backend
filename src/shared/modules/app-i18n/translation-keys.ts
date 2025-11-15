@@ -44,6 +44,7 @@ const TranslationKeys = {
   'guards.errors.access_token_required': 'guards.errors.access_token_required',
   'guards.errors.token_issued_before_login': 'guards.errors.token_issued_before_login',
   'guards.errors.token_issued_before_password_change': 'guards.errors.token_issued_before_password_change',
+  'guards.errors.too_many_requests': 'guards.errors.too_many_requests',
   'guards.errors.user_not_authenticated': 'guards.errors.user_not_authenticated',
   'pipes.validation.array_required': 'pipes.validation.array_required',
   'pipes.validation.exactly_one_of_fields': 'pipes.validation.exactly_one_of_fields',
@@ -75,6 +76,7 @@ export interface TranslationInterpolations {
   'guards.errors.access_token_required': NoParams;
   'guards.errors.token_issued_before_login': NoParams;
   'guards.errors.token_issued_before_password_change': NoParams;
+  'guards.errors.too_many_requests': NoParams;
   'guards.errors.user_not_authenticated': NoParams;
   'pipes.validation.array_required': NoParams;
   'pipes.validation.exactly_one_of_fields': PipesValidationExactlyoneoffieldsParams;
