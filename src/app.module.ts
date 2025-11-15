@@ -8,6 +8,7 @@ import { ErrorHandlerFactory } from './shared/exceptions-filter/error-handler.fa
 import { GlobalExceptionFilter } from './shared/exceptions-filter/global-exception.filter';
 import { AppConfigModule } from './shared/modules/app-config/app-config.module';
 import { AppI18nModule } from './shared/modules/app-i18n/i18n.module';
+import { AppLoggerModule, LoggingMiddleware } from './shared/modules/app-logger';
 import { AppStorageModule } from './shared/modules/app-storage/app-storage.module';
 import { AppThrottlerModule } from './shared/modules/app-throttler/app-throttler.module';
 import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.module';
@@ -15,6 +16,7 @@ import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.mod
 @Module({
   imports: [
     AppConfigModule,
+    AppLoggerModule,
     AppI18nModule,
     AppTypeOrmModule,
     AppThrottlerModule,
@@ -46,6 +48,6 @@ import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.mod
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ParseQueryMiddleware).forRoutes('*');
+    consumer.apply(LoggingMiddleware, ParseQueryMiddleware).forRoutes('*');
   }
 }

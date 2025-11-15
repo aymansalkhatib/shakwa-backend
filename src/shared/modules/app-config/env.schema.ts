@@ -7,6 +7,7 @@ import {
   securitySchema,
   serverSchema,
   storageSchema,
+  loggerSchema,
 } from './schemas';
 
 export const environmentSchema = z.object({
@@ -17,6 +18,7 @@ export const environmentSchema = z.object({
   ...mailSchema.shape,
   ...storageSchema.shape,
   ...rateLimitSchema.shape,
+  ...loggerSchema.shape,
 });
 
 export type EnvironmentConfig = z.infer<typeof environmentSchema>;
