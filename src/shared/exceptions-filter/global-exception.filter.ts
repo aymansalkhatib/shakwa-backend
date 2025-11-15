@@ -1,7 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { Request, Response } from 'express';
 import { ErrorHandlerFactory } from './error-handler.factory';
+import { ErrorResponse } from './interfaces/error-response.interface';
 
 /**
  * Global exception filter that handles all unhandled exceptions in the application
@@ -16,8 +16,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    // Generate a unique trace ID for error tracking
-    const traceId = randomUUID();
+    const requestId = request.requestId;
 
     // ✅ Determine developer mode based on environment and headers
     const isDevelopment = process.env.NODE_ENV === 'development';
@@ -28,51 +27,38 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       // Get the appropriate handler for this type of error
       const handler = this.errorHandlerFactory.getHandler(exception);
 
-      const errorResponse = handler.handle(exception, traceId);
+      const errorResponse = handler.handle(exception, requestId);
 
       // Add stack trace in development
-      if (developerMode) {
-        errorResponse.stack = exception.stack;
+      if (developerMode && errorResponse.context) {
+        errorResponse.context.stack = exception.stack;
       }
 
       // Log the error with requests context
-      this.logError(exception);
+      this.logError(errorResponse);
 
       // Send responses
-
-      if (developerMode) {
-        response.status(errorResponse.statusCode).json(errorResponse);
-      } else {
-        response.status(errorResponse.statusCode).json({
-          status: errorResponse.status,
-          message: errorResponse.message,
-        });
-      }
+      response.status(errorResponse.statusCode).json(errorResponse);
     } catch (error: any) {
       this.logError(exception);
 
-      if (developerMode) {
-        response.status(500).json({
-          status: 'error',
-          message: 'An unexpected error occurred',
-          statusCode: 500,
-          traceId,
+      const fallbackResponse: ErrorResponse = {
+        statusCode: 500,
+        errors: 'Internal Server Error',
+        message: 'An unexpected error occurred',
+        context: {
+          requestId,
           timestamp: new Date().toISOString(),
-          context: {
-            code: 'INTERNAL_SERVER_ERROR',
-            details: error?.message,
-          },
-        });
-      } else {
-        response.status(500).json({
-          status: 'error',
-          message: 'An unexpected error occurred',
-        });
-      }
+          details: error?.message,
+          ...(developerMode && { stack: error?.stack }),
+        },
+      };
+
+      response.status(500).json(fallbackResponse);
     }
   }
 
-  private logError(exception: Error): void {
+  private logError(exception: ErrorResponse): void {
     // this.logger.error(`Request failed: ${requests.method} ${requests.url}`, {
     //   ...metadata,
     //   statusCode: status,
@@ -84,6 +70,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     //   },
     //   traceId,
     // });
-    console.error(exception.stack.toString());
+    console.error(exception);
   }
 }

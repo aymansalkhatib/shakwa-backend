@@ -13,13 +13,13 @@ export class CreateCitizenDto {
   @MaxLength(20, { message: 'Phone must not exceed 20 characters' })
   phone?: string | null;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'Password is required' })
   @IsString({ message: 'Password must be a string' })
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  password?: string | null;
+  password: string;
 
-  @IsString({ message: 'Full name must be a string' })
   @IsNotEmpty({ message: 'Full name is required' })
+  @IsString({ message: 'Full name must be a string' })
   @MaxLength(100, { message: 'Full name must not exceed 100 characters' })
   fullName: string;
 }

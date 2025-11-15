@@ -1,9 +1,13 @@
-import { HttpStatus, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ArgumentsHost, HttpStatus, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import compression from 'compression';
 import helmet from 'helmet';
-import { I18nValidationExceptionFilter, i18nValidationErrorFactory } from 'nestjs-i18n';
+import {
+  I18nValidationException,
+  I18nValidationExceptionFilter,
+  i18nValidationErrorFactory,
+} from 'nestjs-i18n';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -44,10 +48,14 @@ async function bootstrap() {
   app.useGlobalFilters(
     new I18nValidationExceptionFilter({
       detailedErrors: false,
-      responseBodyFormatter: (formattedErrors: object) => {
+      responseBodyFormatter: (
+        _host: ArgumentsHost,
+        _exc: I18nValidationException,
+        formattedErrors: object,
+      ) => {
         return {
-          status: 'failure',
           statusCode: HttpStatus.BAD_REQUEST,
+          errors: 'Bad Request',
           message: formattedErrors[0],
         };
       },

@@ -14,16 +14,27 @@ export class HttpExceptionHandler extends BaseErrorHandler {
     const statusCode = error.getStatus();
     const response = error.getResponse() as any;
 
+    // Convert message array to single string if needed
+    let message: string | string[];
+    if (Array.isArray(response.message)) {
+      // If single error, return as string; otherwise return array
+      message = response.message.length === 1 ? response.message[0] : response.message;
+    } else {
+      message = response.message || error.message;
+    }
+
+    const baseResponse = this.createBaseResponse(
+      statusCode,
+      statusCode >= 500 ? 'Internal Server Error' : 'Bad Request',
+      message,
+      traceId,
+    );
+
     return {
-      ...this.createBaseResponse(
-        statusCode >= 500 ? 'error' : 'failure',
-        statusCode,
-        response.message || error.message,
-        traceId,
-      ),
+      ...baseResponse,
       context: {
-        code: response.code,
-        details: response.data,
+        ...baseResponse.context,
+        ...(response.data || response.code ? { details: response.data || response.code } : {}),
       },
     };
   }

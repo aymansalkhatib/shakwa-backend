@@ -12,7 +12,7 @@ export interface ErrorHandlerStrategy {
   /**
    * Processes the error and returns a standardized error responses
    */
-  handle(error: Error, traceId: string): ErrorResponse;
+  handle(error: Error, requestId: string): ErrorResponse;
 }
 
 /**
@@ -21,23 +21,25 @@ export interface ErrorHandlerStrategy {
 export default abstract class BaseErrorHandler implements ErrorHandlerStrategy {
   abstract canHandle(error: Error): boolean;
 
-  abstract handle(error: Error, traceId: string): ErrorResponse;
+  abstract handle(error: Error, requestId: string): ErrorResponse;
 
   /**
    * Creates a base error responses structure
    */
   protected createBaseResponse(
-    status: 'error' | 'failure',
     statusCode: number,
+    errors: string,
     message: string | string[],
-    traceId: string,
+    requestId: string,
   ): ErrorResponse {
     return {
-      status,
       statusCode,
+      errors,
       message,
-      traceId,
-      timestamp: new Date().toISOString(),
+      context: {
+        requestId,
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 }

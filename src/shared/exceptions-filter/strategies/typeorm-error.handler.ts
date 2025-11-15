@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
-import BaseErrorHandler from './error-handler.strategy';
 import { ErrorResponse } from '../interfaces/error-response.interface';
+import BaseErrorHandler from './error-handler.strategy';
 
 /**
  * Handles TypeORM database errors including constraint violations
@@ -107,7 +107,7 @@ export class TypeOrmErrorHandler extends BaseErrorHandler {
     return error instanceof QueryFailedError;
   }
 
-  handle(error: QueryFailedError, traceId: string): ErrorResponse {
+  handle(error: QueryFailedError, requestId: string): ErrorResponse {
     const driverError = error.driverError as any;
     const errorCode = driverError?.code || driverError?.errno?.toString();
 
@@ -118,15 +118,18 @@ export class TypeOrmErrorHandler extends BaseErrorHandler {
       code: 'DATABASE_ERROR',
     };
 
+    const baseResponse = this.createBaseResponse(
+      errorInfo.status,
+      errorInfo.status >= 500 ? 'DATABASE_ERROR' : 'BAD_REQUEST',
+      errorInfo.message,
+      requestId,
+    );
+
     return {
-      ...this.createBaseResponse(
-        errorInfo.status >= 500 ? 'error' : 'failure',
-        errorInfo.status,
-        errorInfo.message,
-        traceId,
-      ),
+      ...baseResponse,
       context: {
-        code: errorInfo.code,
+        ...baseResponse.context,
+        details: errorInfo.code,
       },
     };
   }

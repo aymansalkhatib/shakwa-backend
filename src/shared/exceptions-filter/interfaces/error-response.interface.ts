@@ -2,42 +2,29 @@
  * Represents the standardized error responses structure
  */
 export interface ErrorResponse {
-  /** Indicates if this is a client error ('failure') or server error ('error') */
-  status: 'error' | 'failure';
-
   /** HTTP status code for the error */
   statusCode: number;
 
   /** Human-readable error message */
+  errors: string;
+
+  /** Human-readable error message */
   message: string | string[];
 
-  /** Unique identifier for error tracking */
-  traceId: string;
+  /** Optional additional error context */
+  context?: ErrorResponseContext;
+}
+
+export interface ErrorResponseContext {
+  /** Additional error details */
+  details?: Record<string, any> | string;
+
+  /** Stack trace */
+  stack?: string;
+
+  /** Request ID for error tracking */
+  requestId: string;
 
   /** Timestamp when the error occurred */
   timestamp: string;
-
-  /** Optional additional error context */
-  context?: {
-    /** Request-specific metadata */
-    request?: Record<string, any>;
-
-    /** Additional error details */
-    details?: Record<string, any> | string;
-
-    /** Error code for client-side error handling */
-    code?: string;
-  };
-
-  /** Stack trace (only included in development) */
-  stack?: string;
-}
-
-/**
- * Configuration options for error responses generation
- */
-export interface ErrorResponseOptions {
-  includeStack?: boolean;
-  includeRequest?: boolean;
-  includeContext?: boolean;
 }

@@ -22,16 +22,20 @@ export class JwtErrorHandler extends BaseErrorHandler {
   handle(error: Error, traceId: string): ErrorResponse {
     // Check if token is expired by error name
     const isExpired = error.name === 'TokenExpiredError';
+    const errorMessage = isExpired ? 'TOKEN_EXPIRED' : 'TOKEN_INVALID';
+
+    const baseResponse = this.createBaseResponse(
+      HttpStatus.UNAUTHORIZED,
+      errorMessage,
+      error.message ?? (isExpired ? 'Token has expired' : 'Invalid token signature'),
+      traceId,
+    );
 
     return {
-      ...this.createBaseResponse(
-        'failure',
-        HttpStatus.UNAUTHORIZED,
-        error.message ?? (isExpired ? 'Token has expired' : 'Invalid token signature'),
-        traceId,
-      ),
+      ...baseResponse,
       context: {
-        code: isExpired ? 'TOKEN_EXPIRED' : 'TOKEN_INVALID',
+        ...baseResponse.context,
+        details: errorMessage,
       },
     };
   }
