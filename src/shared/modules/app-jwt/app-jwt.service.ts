@@ -71,7 +71,7 @@ export class AppJwtService {
         }
       }
       throw new UnauthorizedException(
-        this.translateHelper.tr('auth.errors.invalid_or_expired_access_token'),
+        this.translateHelper.tr('auth.errors.invalid_or_expired_token'),
       );
     }
   }
@@ -94,7 +94,7 @@ export class AppJwtService {
       }) as DecodedAccessTokenPayload;
     } catch (error: any) {
       throw new UnauthorizedException(
-        this.translateHelper.tr('auth.errors.invalid_or_expired_access_token'),
+        this.translateHelper.tr('auth.errors.invalid_or_expired_token'),
       );
     }
   }
@@ -107,5 +107,33 @@ export class AppJwtService {
   decodeToken(token: string): DecodedAccessTokenPayload | null {
     const decoded = jwt.decode(token);
     return decoded as DecodedAccessTokenPayload | null;
+  }
+
+  /**
+   * Creates a security token for email verification and password reset
+   * Uses the same secret as access token but with shorter expiration
+   * @param payload Security token payload
+   * @returns Signed JWT security token
+   */
+  createSecurityToken(payload: Record<string, any>): string {
+    return jwt.sign(payload, this.accessSecret, {
+      expiresIn: 60 * 5, // 5 minutes
+    });
+  }
+
+  /**
+   * Verifies a security token
+   * @param token Security token to verify
+   * @returns Decoded token payload if valid
+   * @throws UnauthorizedException if token is invalid
+   */
+  verifySecurityToken(token: string): any {
+    try {
+      return jwt.verify(token, this.accessSecret);
+    } catch (error: any) {
+      throw new UnauthorizedException(
+        this.translateHelper.tr('auth.errors.invalid_or_expired_token'),
+      );
+    }
   }
 }

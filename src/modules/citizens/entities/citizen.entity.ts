@@ -11,7 +11,7 @@ import {
 @Unique("UNIQUE_PHONE",['phone'])
 @Entity('citizens', )
 export class CitizenEntity {
-  @PrimaryGeneratedColumn() 
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'varchar', length: 120 })
@@ -37,6 +37,9 @@ export class CitizenEntity {
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   lastLoginIp: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastLogoutAt: Date | null;
 
   @Column({ name: 'password_changed_at', type: 'timestamp', nullable: true })
   passwordChangedAt?: Date;

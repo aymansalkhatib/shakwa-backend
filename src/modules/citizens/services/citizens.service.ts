@@ -58,4 +58,24 @@ export class CitizensService {
   async deleteMyAccount(id: number): Promise<void> {
     await this.citizensRepository.delete(id);
   }
+
+  async findByEmail(email: string): Promise<CitizenEntity | null> {
+    return await this.citizensRepository.findByEmail(email);
+  }
+
+  async findByPhone(phone: string): Promise<CitizenEntity | null> {
+    return await this.citizensRepository.findByPhone(phone);
+  }
+
+  async updateLastLoginAt(citizen: CitizenEntity): Promise<CitizenEntity> {
+    return await this.citizensRepository.update(citizen, {
+      lastLoginAt: new Date(),
+    });
+  }
+
+  async updateLastLogoutAt(citizen: CitizenEntity): Promise<CitizenEntity> {
+    return await this.citizensRepository.update(citizen, {
+      lastLogoutAt: new Date(),
+    });
+  }
 }

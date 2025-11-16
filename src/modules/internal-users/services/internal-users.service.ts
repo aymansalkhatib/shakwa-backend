@@ -93,4 +93,20 @@ export class InternalUsersService {
     }
     await this.internalUsersRepository.delete(internalUser.id);
   }
+
+  async findByEmail(email: string): Promise<InternalUserEntity | null> {
+    return await this.internalUsersRepository.findByEmail(email);
+  }
+
+  async updateLastLoginAt(internalUser: InternalUserEntity): Promise<InternalUserEntity> {
+    internalUser.lastLoginAt = new Date();
+    return await this.internalUsersRepository.update(internalUser, {});
+  }
+
+  async updateLastLogoutAt(internalUser: InternalUserEntity): Promise<InternalUserEntity> {
+    internalUser.lastLogoutAt = new Date();
+    return await this.internalUsersRepository.update(internalUser, {});
+  }
+
+  
 }

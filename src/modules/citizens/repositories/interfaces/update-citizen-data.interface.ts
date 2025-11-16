@@ -9,6 +9,7 @@ export interface IUpdateCitizenData {
   fullName?: string;
   blockedAt?: Date | null;
   lastLoginAt?: Date | null;
+  lastLogoutAt?: Date | null;
   lastLoginIp?: string | null;
   passwordChangedAt?: Date;
 }

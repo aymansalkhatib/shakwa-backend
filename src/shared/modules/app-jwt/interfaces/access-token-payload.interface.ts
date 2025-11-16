@@ -6,8 +6,7 @@ import { BaseJwtPayload } from './base-jwt-payload.interface';
  */
 export interface AccessTokenPayload {
   userId: number;
-  username: string;
-  sessionNumber?: number;
+  role?: string;
 }
 
 /**

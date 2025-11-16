@@ -39,7 +39,7 @@ interface PipesValidationMustnotequalParams {
 const TranslationKeys = {
   'app.hello_world': 'app.hello_world',
   'auth.errors.invalid_credentials': 'auth.errors.invalid_credentials',
-  'auth.errors.invalid_or_expired_access_token': 'auth.errors.invalid_or_expired_access_token',
+  'auth.errors.invalid_or_expired_token': 'auth.errors.invalid_or_expired_token',
   'guards.errors.access_denied': 'guards.errors.access_denied',
   'guards.errors.access_token_required': 'guards.errors.access_token_required',
   'guards.errors.token_issued_before_login': 'guards.errors.token_issued_before_login',
@@ -71,7 +71,7 @@ type NoParams = undefined;
 export interface TranslationInterpolations {
   'app.hello_world': NoParams;
   'auth.errors.invalid_credentials': NoParams;
-  'auth.errors.invalid_or_expired_access_token': NoParams;
+  'auth.errors.invalid_or_expired_token': NoParams;
   'guards.errors.access_denied': GuardsErrorsAccessdeniedParams;
   'guards.errors.access_token_required': NoParams;
   'guards.errors.token_issued_before_login': NoParams;
