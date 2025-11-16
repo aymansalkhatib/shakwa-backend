@@ -3,10 +3,7 @@ import 'express';
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        id?: string;
-        roles?: string[];
-      };
+      user?: InternalUserEntity | CitizenEntity;
     }
   }
 }

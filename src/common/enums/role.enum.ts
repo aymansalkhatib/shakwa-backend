@@ -6,3 +6,8 @@ export enum Role {
   STAFF = 'staff',
   ADMIN = 'admin',
 }
+
+export enum InternalRole {
+  STAFF = Role.STAFF,
+  ADMIN = Role.ADMIN,
+}
