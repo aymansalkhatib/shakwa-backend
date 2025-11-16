@@ -11,7 +11,7 @@ import {
 @Unique("UNIQUE_PHONE",['phone'])
 @Entity('citizens', )
 export class CitizenEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn() 
   id: number;
 
   @Column({ type: 'varchar', length: 120 })
