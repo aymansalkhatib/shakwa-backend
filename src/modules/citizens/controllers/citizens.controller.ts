@@ -1,23 +1,10 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
+import { Body, Controller, Delete, HttpCode, HttpStatus, Patch, Post } from '@nestjs/common';
 import { SerializeResponse } from '../../../common/decorators/serialize-response.decorator';
-import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
-import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
-import { CitizenFilterDto } from '../dtos/query/citizen-filter.dto';
+import { CurrentUser } from '../../../common/guards/current-user.decorator';
 import { CreateCitizenDto } from '../dtos/request/create-citizen.dto';
 import { UpdateCitizenDto } from '../dtos/request/update-citizen.dto';
 import { CitizenResponseDto } from '../dtos/response/citizen-response.dto';
+import { CitizenEntity } from '../entities/citizen.entity';
 import { CitizensService } from '../services/citizens.service';
 
 @Controller('citizens')
@@ -30,36 +17,18 @@ export class CitizensController {
     return this.citizensService.create(createCitizenDto);
   }
 
-  @Get()
-  async findAll(
-    @Query() filterCitizenDto: CitizenFilterDto,
-  ): Promise<PaginationResponseDto<CitizenResponseDto>> {
-    const result = await this.citizensService.findAll(filterCitizenDto);
-    return {
-      data: plainToInstance(CitizenResponseDto, result.data),
-      pagination: result.pagination,
-    };
-  }
-
-  @Get(':id')
+  @Patch('me')
   @SerializeResponse(CitizenResponseDto)
-  findOne(@Param('id', PositiveIntPipe) id: number): Promise<CitizenResponseDto> {
-    return this.citizensService.findOne(id);
-  }
-
-  @Patch(':id')
-  @SerializeResponse(CitizenResponseDto)
-  async update(
-    @Param('id', PositiveIntPipe) id: number,
+  updateMyAccount(
+    @CurrentUser() citizen: CitizenEntity,
     @Body() updateCitizenDto: UpdateCitizenDto,
   ): Promise<CitizenResponseDto> {
-    const citizen = await this.citizensService.update(id, updateCitizenDto);
-    return citizen as CitizenResponseDto;
+    return this.citizensService.updateMyAccount(citizen, updateCitizenDto);
   }
 
-  @Delete(':id')
+  @Delete('me')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param('id', PositiveIntPipe) id: number): Promise<void> {
-    this.citizensService.delete(id);
+  async deleteMyAccount(@CurrentUser() citizen: CitizenEntity): Promise<void> {
+    await this.citizensService.deleteMyAccount(citizen.id);
   }
 }

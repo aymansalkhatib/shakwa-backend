@@ -49,13 +49,7 @@ export class CitizensRepository implements ICitizensRepository {
     });
   }
 
-  async update(id: number, data: IUpdateCitizenData): Promise<CitizenEntity | null> {
-    const citizen = await this.findOne(id);
-
-    if (!citizen) {
-      return null;
-    }
-
+  async update(citizen: CitizenEntity, data: IUpdateCitizenData): Promise<CitizenEntity | null> {
     const updatedCitizen = this.repository.merge(citizen, data);
     return await this.repository.save(updatedCitizen);
   }

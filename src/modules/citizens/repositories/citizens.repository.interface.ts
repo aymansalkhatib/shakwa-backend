@@ -32,9 +32,9 @@ export interface ICitizensRepository {
   findByPhone(phone: string): Promise<CitizenEntity | null>;
 
   /**
-   * Updates a citizen by ID
+   * Updates a citizen
    */
-  update(id: number, data: IUpdateCitizenData): Promise<CitizenEntity | null>;
+  update(citizen: CitizenEntity, data: IUpdateCitizenData): Promise<CitizenEntity>;
 
   /**
    * Deletes a citizen by ID
