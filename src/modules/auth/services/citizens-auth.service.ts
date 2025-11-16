@@ -12,7 +12,7 @@ import { ResetPasswordDto } from '../dtos/request/citizens/reset-password.dto';
 import { SendVerificationEmailDto } from '../dtos/request/citizens/send-verification-email.dto';
 import { VerifyEmailCodeDto } from '../dtos/request/citizens/verify-email-code.dto';
 import { VerifyResetPasswordDto } from '../dtos/request/citizens/verify-reset-password.dto';
-
+ 
 @Injectable()
 export class CitizensAuthService {
   constructor(

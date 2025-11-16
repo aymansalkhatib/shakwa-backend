@@ -1,3 +1,4 @@
+// File: src/shared/modules/app-jwt/app-jwt.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
@@ -12,52 +13,37 @@ import { AccessTokenPayload, DecodedAccessTokenPayload } from './interfaces';
 export class AppJwtService {
   private readonly accessSecret: string;
   private readonly accessExpiresInMs: number;
-  private readonly refreshSecret?: string;
-  private readonly refreshExpiresInMs?: number;
+  private readonly refreshSecret: string;
+  private readonly refreshExpiresInMs: number;
+  private readonly securitySecret: string;
+  private readonly securityExpiresInMs: number;
 
   constructor(
     private readonly configService: ConfigService<EnvironmentConfig>,
     private readonly translateHelper: TranslateHelper,
   ) {
-    this.accessSecret = this.configService.getOrThrow('JWT_ACCESS_SECRET');
+    this.accessSecret = this.configService.getOrThrow<string>('JWT_ACCESS_SECRET');
     this.accessExpiresInMs = this.configService.getOrThrow<number>('JWT_ACCESS_EXPIRES_IN_MS');
-    this.refreshSecret = this.configService.get('JWT_REFRESH_SECRET');
-    this.refreshExpiresInMs = this.configService.get<number>('JWT_REFRESH_EXPIRES_IN_MS');
+
+    this.refreshSecret = this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+    this.refreshExpiresInMs = this.configService.getOrThrow<number>('JWT_REFRESH_EXPIRES_IN_MS');
+
+    this.securitySecret = this.configService.getOrThrow<string>('JWT_SECURITY_SECRET');
+    this.securityExpiresInMs = this.configService.getOrThrow<number>('JWT_SECURITY_EXPIRES_IN_MS');
   }
 
-  /**
-   * Creates an access token for user authentication
-   * @param payload User information to include in token
-   * @returns Signed JWT access token
-   */
   createAccessToken(payload: AccessTokenPayload): string {
     return jwt.sign(payload, this.accessSecret, {
-      expiresIn: Math.floor(this.accessExpiresInMs / 1000), // Convert ms to seconds
+      expiresIn: Math.floor(this.accessExpiresInMs / 1000), // ms → s
     });
   }
 
-  /**
-   * Creates a refresh token for user authentication
-   * @param payload User information to include in token
-   * @returns Signed JWT refresh token
-   */
   createRefreshToken(payload: AccessTokenPayload): string {
-    if (!this.refreshSecret || !this.refreshExpiresInMs) {
-      throw new Error('Refresh token configuration is missing');
-    }
-
     return jwt.sign(payload, this.refreshSecret, {
-      expiresIn: Math.floor(this.refreshExpiresInMs / 1000), // Convert ms to seconds
+      expiresIn: Math.floor(this.refreshExpiresInMs / 1000), // ms → s
     });
   }
 
-  /**
-   * Verifies an access token's validity
-   * @param token Access token to verify
-   * @param ignoreExpiration Whether to ignore token expiration
-   * @returns Decoded token payload if valid
-   * @throws UnauthorizedException if token is invalid
-   */
   verifyAccessToken(token: string, ignoreExpiration = false): DecodedAccessTokenPayload {
     try {
       return jwt.verify(token, this.accessSecret, {
@@ -76,34 +62,18 @@ export class AppJwtService {
     }
   }
 
-  /**
-   * Verifies a refresh token's validity
-   * @param token Refresh token to verify
-   * @param ignoreExpiration Whether to ignore token expiration
-   * @returns Decoded token payload if valid
-   * @throws UnauthorizedException if token is invalid
-   */
   verifyRefreshToken(token: string, ignoreExpiration = false): DecodedAccessTokenPayload {
-    if (!this.refreshSecret) {
-      throw new Error('Refresh token configuration is missing');
-    }
-
     try {
       return jwt.verify(token, this.refreshSecret, {
         ignoreExpiration,
       }) as DecodedAccessTokenPayload;
-    } catch (error: any) {
+    } catch {
       throw new UnauthorizedException(
         this.translateHelper.tr('auth.errors.invalid_or_expired_token'),
       );
     }
   }
 
-  /**
-   * Decodes a token without verifying its signature
-   * @param token Token to decode
-   * @returns Decoded token payload or null if invalid
-   */
   decodeToken(token: string): DecodedAccessTokenPayload | null {
     const decoded = jwt.decode(token);
     return decoded as DecodedAccessTokenPayload | null;
@@ -111,26 +81,30 @@ export class AppJwtService {
 
   /**
    * Creates a security token for email verification and password reset
-   * Uses the same secret as access token but with shorter expiration
-   * @param payload Security token payload
-   * @returns Signed JWT security token
+   * Uses a dedicated security secret and expiration time for enhanced security.
    */
   createSecurityToken(payload: Record<string, any>): string {
-    return jwt.sign(payload, this.accessSecret, {
-      expiresIn: 60 * 5, // 5 minutes
+    return jwt.sign(payload, this.securitySecret, {
+      expiresIn: Math.floor(this.securityExpiresInMs / 1000), // ms → s
     });
   }
 
   /**
-   * Verifies a security token
-   * @param token Security token to verify
-   * @returns Decoded token payload if valid
-   * @throws UnauthorizedException if token is invalid
+   * Verifies a security token (email verification / password reset)
    */
-  verifySecurityToken(token: string): any {
+  verifySecurityToken(token: string, ignoreExpiration = false): any {
     try {
-      return jwt.verify(token, this.accessSecret);
+      return jwt.verify(token, this.securitySecret, {
+        ignoreExpiration,
+      });
     } catch (error: any) {
+      if (error.name === 'TokenExpiredError' && ignoreExpiration) {
+        const decoded = jwt.decode(token);
+        if (decoded) {
+          return decoded;
+        }
+      }
+
       throw new UnauthorizedException(
         this.translateHelper.tr('auth.errors.invalid_or_expired_token'),
       );

@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { booleanTransformer } from '../transformers/boolean.transformer';
 
 export const serverSchema = z.object({
   PORT: z
@@ -8,10 +7,6 @@ export const serverSchema = z.object({
     .pipe(z.number().positive().int()),
 
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-
-  LOG_REQUEST: z.union([z.boolean(), z.string().transform(booleanTransformer)]).default(false),
-
-  LOG_ERROR: z.union([z.boolean(), z.string().transform(booleanTransformer)]).default(true),
 
   APP_NAME: z
     .string()

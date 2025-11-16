@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AppJwtService } from '../../shared/modules/app-jwt/app-jwt.service';
 import { CitizensModule } from '../citizens/citizens.module';
 import { InternalUsersModule } from '../internal-users/internal-users.module';
 import { CitizensAuthController } from './controllers/citizens-auth.controller';
@@ -9,7 +10,7 @@ import { InternalUsersAuthService } from './services/internal-users-auth.service
 @Module({
   imports: [CitizensModule, InternalUsersModule],
   controllers: [CitizensAuthController, InternalUsersAuthController],
-  providers: [CitizensAuthService, InternalUsersAuthService],
+  providers: [CitizensAuthService, InternalUsersAuthService, AppJwtService],
   exports: [CitizensAuthService, InternalUsersAuthService],
 })
 export class AuthModule {}
