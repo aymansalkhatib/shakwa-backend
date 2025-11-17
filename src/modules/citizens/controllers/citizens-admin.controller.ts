@@ -1,15 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Protected } from '../../../common/decorators/protected.decorator';
 import { SerializeResponse } from '../../../common/decorators/serialize-response.decorator';
@@ -43,20 +32,6 @@ export class CitizensAdminController {
     return this.citizensAdminService.findOne(id);
   }
 
-  @Patch(':id')
-  @SerializeResponse(CitizenResponseDto)
-  update(
-    @Param('id', PositiveIntPipe) id: number,
-    @Body() updateCitizenDto: UpdateCitizenDto,
-  ): Promise<CitizenResponseDto> {
-    return this.citizensAdminService.update(id, updateCitizenDto);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param('id', PositiveIntPipe) id: number): Promise<void> {
-    await this.citizensAdminService.delete(id);
-  }
 
   @Post(':id/block')
   @SerializeResponse(CitizenResponseDto)

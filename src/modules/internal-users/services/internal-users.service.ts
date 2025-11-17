@@ -75,7 +75,7 @@ export class InternalUsersService {
       throw new NotFoundException('Internal user not found');
     }
 
-    if (internalUser.role !== InternalRole.ADMIN) {
+    if (internalUser.role === InternalRole.ADMIN) {
       throw new ForbiddenException('You are not allowed to update an ADMIN user');
     }
 
@@ -88,7 +88,7 @@ export class InternalUsersService {
       throw new NotFoundException('Internal user not found');
     }
 
-    if (internalUser.role !== InternalRole.ADMIN) {
+    if (internalUser.role === InternalRole.ADMIN) {
       throw new ForbiddenException('You are not allowed to delete an ADMIN user');
     }
     await this.internalUsersRepository.delete(internalUser.id);
@@ -98,15 +98,22 @@ export class InternalUsersService {
     return await this.internalUsersRepository.findByEmail(email);
   }
 
-  async updateLastLoginAt(internalUser: InternalUserEntity): Promise<InternalUserEntity> {
-    internalUser.lastLoginAt = new Date();
-    return await this.internalUsersRepository.update(internalUser, {});
+  async updateLastLoginAt(
+    internalUser: InternalUserEntity,
+    fcmToken: string,
+    lastLoginIp: string,
+  ): Promise<InternalUserEntity> {
+    return await this.internalUsersRepository.update(internalUser, {
+      lastLoginAt: new Date(),
+      fcmToken,
+      lastLoginIp,
+    });
   }
 
   async updateLastLogoutAt(internalUser: InternalUserEntity): Promise<InternalUserEntity> {
-    internalUser.lastLogoutAt = new Date();
-    return await this.internalUsersRepository.update(internalUser, {});
+    return await this.internalUsersRepository.update(internalUser, {
+      lastLogoutAt: new Date(),
+      fcmToken: null,
+    });
   }
-
-  
 }

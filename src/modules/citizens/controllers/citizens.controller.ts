@@ -1,20 +1,22 @@
-import { Body, Controller, Delete, HttpCode, HttpStatus, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch } from '@nestjs/common';
+import { Protected } from '../../../common/decorators/protected.decorator';
 import { SerializeResponse } from '../../../common/decorators/serialize-response.decorator';
+import { Role } from '../../../common/enums/role.enum';
 import { CurrentUser } from '../../../common/guards/current-user.decorator';
-import { CreateCitizenDto } from '../dtos/request/create-citizen.dto';
 import { UpdateCitizenDto } from '../dtos/request/update-citizen.dto';
 import { CitizenResponseDto } from '../dtos/response/citizen-response.dto';
 import { CitizenEntity } from '../entities/citizen.entity';
 import { CitizensService } from '../services/citizens.service';
 
 @Controller('citizens')
+@Protected(Role.CITIZEN)
 export class CitizensController {
   constructor(private readonly citizensService: CitizensService) {}
 
-  @Post()
+  @Get('me')
   @SerializeResponse(CitizenResponseDto)
-  create(@Body() createCitizenDto: CreateCitizenDto): Promise<CitizenResponseDto> {
-    return this.citizensService.create(createCitizenDto);
+  getMe(@CurrentUser() citizen: CitizenEntity): CitizenEntity {
+    return citizen;
   }
 
   @Patch('me')

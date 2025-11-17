@@ -43,6 +43,9 @@ export class InternalUserEntity {
   })
   password: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  fcmToken: string | null;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',
@@ -75,6 +78,13 @@ export class InternalUserEntity {
     name: 'last_logout_at',
   })
   lastLogoutAt: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  blockedAt: Date | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  lastLoginIp: string | null;
+  
 
   @BeforeInsert()
   @BeforeUpdate()

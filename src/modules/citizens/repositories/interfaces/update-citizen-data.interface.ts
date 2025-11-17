@@ -11,6 +11,5 @@ export interface IUpdateCitizenData {
   lastLoginAt?: Date;
   lastLogoutAt?: Date;
   lastLoginIp?: string;
-  passwordChangedAt?: Date;
   fcmToken?: string | null;
 }

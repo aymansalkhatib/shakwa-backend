@@ -46,7 +46,7 @@ export class InternalUsersController {
   }
 
   @Delete('me')
-  @Protected(Role.ADMIN, Role.STAFF)
+  @Protected(Role.STAFF)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteMyAccount(@CurrentUser() internalUser: InternalUserEntity): Promise<void> {
     await this.internalUsersService.deleteMyAccount(internalUser.id);
