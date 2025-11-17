@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Inject,
@@ -96,6 +97,14 @@ export class InternalUsersService {
 
   async findByEmail(email: string): Promise<InternalUserEntity | null> {
     return await this.internalUsersRepository.findByEmail(email);
+  }
+
+  async findByEmailOrFail(email: string): Promise<InternalUserEntity> {
+    const internalUser = await this.internalUsersRepository.findByEmail(email);
+    if (!internalUser) {
+      throw new BadRequestException('Email not found. Please contact administrator.');
+    }
+    return internalUser;
   }
 
   async updateLastLoginAt(

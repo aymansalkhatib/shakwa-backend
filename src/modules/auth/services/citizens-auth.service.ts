@@ -12,7 +12,7 @@ import { ResetPasswordDto } from '../dtos/request/citizens/reset-password.dto';
 import { SendVerificationEmailDto } from '../dtos/request/citizens/send-verification-email.dto';
 import { VerifyEmailCodeDto } from '../dtos/request/citizens/verify-email-code.dto';
 import { VerifyResetPasswordDto } from '../dtos/request/citizens/verify-reset-password.dto';
- 
+
 @Injectable()
 export class CitizensAuthService {
   constructor(
@@ -86,14 +86,16 @@ export class CitizensAuthService {
     };
   }
 
-  async login(loginDto: CitizenLoginDto) {
-    const citizen = await this.citizensService.findByEmail(loginDto.email);
+  async login(loginDto: CitizenLoginDto, ip: string) {
+    const { email, password, fcmToken } = loginDto;
+
+    const citizen = await this.citizensService.findByEmail(email);
 
     if (!citizen) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, citizen.password);
+    const isPasswordValid = await bcrypt.compare(password, citizen.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -104,7 +106,7 @@ export class CitizensAuthService {
     }
 
     // Update last login
-    await this.citizensService.updateLastLoginAt(citizen);
+    await this.citizensService.updateLastLoginAt(citizen, fcmToken, ip);
 
     const token = this.jwtService.createAccessToken({
       userId: citizen.id,

@@ -9,4 +9,8 @@ export class InternalUserLoginDto {
   @IsNotEmpty({ message: 'Password is required' })
   @Length(8, 128, { message: 'Password must be between 8 and 128 characters' })
   password: string;
+
+  @IsNotEmpty({ message: 'FCM token is required' })
+  @IsString({ message: 'FCM token must be a string' })
+  fcmToken: string;
 }

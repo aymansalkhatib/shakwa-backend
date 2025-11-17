@@ -1,4 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { CitizenLoginDto } from '../dtos/request/citizens/citizen-login.dto';
 import { CitizenRegisterDto } from '../dtos/request/citizens/citizen-register.dto';
 import { ForgotPasswordDto } from '../dtos/request/citizens/forgot-password.dto';
@@ -28,8 +29,9 @@ export class CitizensAuthController {
   }
 
   @Post('login')
-  async login(@Body() dto: CitizenLoginDto) {
-    return await this.citizensAuthService.login(dto);
+  async login(@Body() dto: CitizenLoginDto, @Req() req: Request) {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip;
+    return await this.citizensAuthService.login(dto, ip);
   }
 
   @Post('forgot-password')

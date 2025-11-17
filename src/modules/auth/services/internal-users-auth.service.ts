@@ -1,6 +1,9 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
+import { plainToInstance } from 'class-transformer';
 import { InternalRole } from '../../../common/enums/role.enum';
+import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
 import { RedisService } from '../../../shared/services/redis/redis.service';
 import { InternalUserResponseDto } from '../../internal-users/dtos/response/internal-user-response.dto';
@@ -16,10 +19,11 @@ export class InternalUsersAuthService {
     private readonly jwtService: AppJwtService,
     private readonly redisService: RedisService,
     private readonly internalUsersService: InternalUsersService,
+    private readonly configService: ConfigService<EnvironmentConfig>,
   ) {}
 
-  async login(loginDto: InternalUserLoginDto) {
-    const { email, password } = loginDto;
+  async login(loginDto: InternalUserLoginDto, ip: string) {
+    const { email, password, fcmToken } = loginDto;
     const internalUser = await this.internalUsersService.findByEmail(email);
 
     if (!internalUser) {
@@ -31,8 +35,8 @@ export class InternalUsersAuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Update last login - directly update the entity
-    await this.internalUsersService.updateLastLoginAt(internalUser);
+    // Update last login - directly update the entity with FCM token and IP
+    await this.internalUsersService.updateLastLoginAt(internalUser, fcmToken, ip);
 
     const token = this.jwtService.createAccessToken({
       userId: internalUser.id,
@@ -41,26 +45,17 @@ export class InternalUsersAuthService {
 
     return {
       token,
-      internalUser: Object.assign(new InternalUserResponseDto(internalUser), internalUser),
+      internalUser: plainToInstance(InternalUserResponseDto, internalUser),
     };
   }
 
   async handleForgotPasswordRequest(dto: InternalUserForgotPasswordDto) {
-    const internalUser = await this.internalUsersService.findByEmail(dto.email);
-    if (!internalUser) {
-      throw new BadRequestException('Email not found. Please contact administrator.');
-    }
+    const internalUser = await this.internalUsersService.findByEmailOrFail(dto.email);
     await this.sendPasswordResetCode(dto.email, internalUser.role);
-    return {
-      message: 'Password reset code has been sent to your email. Please check your inbox.',
-    };
   }
 
-  async verifyResetPassword(dto: InternalUserVerifyResetPasswordDto) {
-    const internalUser = await this.internalUsersService.findByEmail(dto.email);
-    if (!internalUser) {
-      throw new BadRequestException('Email not found. Please contact administrator.');
-    }
+  async verifyResetPassword(dto: InternalUserVerifyResetPasswordDto): Promise<{ token: string }> {
+    const internalUser = await this.internalUsersService.findByEmailOrFail(dto.email);
 
     await this.verifyPasswordResetCode(dto.email, dto.code, internalUser.role);
     await this.cacheValidatedResetToken(dto.email, dto.code, internalUser.role);
@@ -72,10 +67,7 @@ export class InternalUsersAuthService {
       type: 'password_reset',
     });
 
-    return {
-      token,
-      message: 'Reset code verified successfully. You can now reset your password.',
-    };
+    return { token };
   }
 
   async resetPassword(dto: InternalUserResetPasswordDto) {
@@ -88,10 +80,7 @@ export class InternalUsersAuthService {
     }
 
     // Find internal user by email from token
-    const internalUser = await this.internalUsersService.findByEmail(decodedToken.email);
-    if (!internalUser) {
-      throw new BadRequestException('Internal user not found.');
-    }
+    const internalUser = await this.internalUsersService.findByEmailOrFail(decodedToken.email);
 
     // Verify code in Redis matches token
     await this.validateResetPasswordToken(decodedToken.email, decodedToken.code, internalUser.role);
@@ -159,7 +148,11 @@ export class InternalUsersAuthService {
   private async generatePasswordResetCode(email: string, role: InternalRole): Promise<string> {
     const code = this.generateRandomCode();
     const key = this.getResetCodeKey(email, role);
-    await this.redisService.setString(key, code, 60 * 5); // 5 minutes
+    await this.redisService.setString(
+      key,
+      code,
+      this.configService.getOrThrow('JWT_SECURITY_EXPIRES_IN_MS'),
+    );
     return code;
   }
 
@@ -168,7 +161,6 @@ export class InternalUsersAuthService {
     const min = Math.pow(10, CODE_LENGTH - 1);
     const max = Math.pow(10, CODE_LENGTH) - 1;
     const code = Math.floor(min + Math.random() * (max - min + 1)).toString();
-    console.log(code);
     return code;
   }
 

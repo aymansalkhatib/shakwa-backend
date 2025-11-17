@@ -1,4 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { InternalUserForgotPasswordDto } from '../dtos/request/internal-users/forgot-password.dto';
 import { InternalUserLoginDto } from '../dtos/request/internal-users/internal-user-login.dto';
 import { InternalUserResetPasswordDto } from '../dtos/request/internal-users/reset-password.dto';
@@ -10,18 +11,26 @@ export class InternalUsersAuthController {
   constructor(private readonly internalUsersAuthService: InternalUsersAuthService) {}
 
   @Post('login')
-  async login(@Body() loginDto: InternalUserLoginDto) {
-    return await this.internalUsersAuthService.login(loginDto);
+  async login(@Body() loginDto: InternalUserLoginDto, @Req() req: Request) {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip;
+    return await this.internalUsersAuthService.login(loginDto, ip);
   }
 
   @Post('forgot-password')
   async forgotPassword(@Body() dto: InternalUserForgotPasswordDto) {
-    return await this.internalUsersAuthService.handleForgotPasswordRequest(dto);
+    await this.internalUsersAuthService.handleForgotPasswordRequest(dto);
+    return {
+      message: 'Password reset code has been sent to your email. Please check your inbox.',
+    };
   }
 
   @Post('verify-reset-code')
   async verifyResetPassword(@Body() dto: InternalUserVerifyResetPasswordDto) {
-    return this.internalUsersAuthService.verifyResetPassword(dto);
+    const result = await this.internalUsersAuthService.verifyResetPassword(dto);
+    return {
+      message: 'Reset code verified successfully. You can now reset your password.',
+      ...result,
+    };
   }
 
   @Post('reset-password')

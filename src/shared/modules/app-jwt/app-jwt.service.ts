@@ -4,7 +4,14 @@ import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { EnvironmentConfig } from '../app-config/env.schema';
 import { TranslateHelper } from '../app-i18n/translate.helper';
-import { AccessTokenPayload, DecodedAccessTokenPayload } from './interfaces';
+import {
+  AccessTokenPayload,
+  DecodedAccessTokenPayload,
+  DecodedRefreshTokenPayload,
+  DecodedSecurityTokenPayload,
+  RefreshTokenPayload,
+  SecurityTokenPayload,
+} from './interfaces';
 
 /**
  * Service for handling JWT operations including token creation, verification and management
@@ -38,7 +45,7 @@ export class AppJwtService {
     });
   }
 
-  createRefreshToken(payload: AccessTokenPayload): string {
+  createRefreshToken(payload: RefreshTokenPayload): string {
     return jwt.sign(payload, this.refreshSecret, {
       expiresIn: Math.floor(this.refreshExpiresInMs / 1000), // ms → s
     });
@@ -62,7 +69,7 @@ export class AppJwtService {
     }
   }
 
-  verifyRefreshToken(token: string, ignoreExpiration = false): DecodedAccessTokenPayload {
+  verifyRefreshToken(token: string, ignoreExpiration = false): DecodedRefreshTokenPayload {
     try {
       return jwt.verify(token, this.refreshSecret, {
         ignoreExpiration,
@@ -83,7 +90,7 @@ export class AppJwtService {
    * Creates a security token for email verification and password reset
    * Uses a dedicated security secret and expiration time for enhanced security.
    */
-  createSecurityToken(payload: Record<string, any>): string {
+  createSecurityToken(payload: SecurityTokenPayload): string {
     return jwt.sign(payload, this.securitySecret, {
       expiresIn: Math.floor(this.securityExpiresInMs / 1000), // ms → s
     });
@@ -92,16 +99,16 @@ export class AppJwtService {
   /**
    * Verifies a security token (email verification / password reset)
    */
-  verifySecurityToken(token: string, ignoreExpiration = false): any {
+  verifySecurityToken(token: string, ignoreExpiration = false): DecodedSecurityTokenPayload {
     try {
       return jwt.verify(token, this.securitySecret, {
         ignoreExpiration,
-      });
+      }) as DecodedSecurityTokenPayload;
     } catch (error: any) {
       if (error.name === 'TokenExpiredError' && ignoreExpiration) {
         const decoded = jwt.decode(token);
         if (decoded) {
-          return decoded;
+          return decoded as DecodedSecurityTokenPayload;
         }
       }
 
