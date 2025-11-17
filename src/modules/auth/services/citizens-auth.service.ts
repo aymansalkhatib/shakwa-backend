@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { Role } from '../../../common/enums/role.enum';
+import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
-import { RedisService } from '../../../shared/services/redis/redis.service';
 import { CitizenResponseDto } from '../../citizens/dtos/response/citizen-response.dto';
 import { CitizensService } from '../../citizens/services/citizens.service';
 import { CitizenLoginDto } from '../dtos/request/citizens/citizen-login.dto';
@@ -12,38 +13,52 @@ import { ResetPasswordDto } from '../dtos/request/citizens/reset-password.dto';
 import { SendVerificationEmailDto } from '../dtos/request/citizens/send-verification-email.dto';
 import { VerifyEmailCodeDto } from '../dtos/request/citizens/verify-email-code.dto';
 import { VerifyResetPasswordDto } from '../dtos/request/citizens/verify-reset-password.dto';
+import { AuthCodeKeyContext, AuthCodePurpose, AuthCodeService } from './auth-code.service';
 
 @Injectable()
 export class CitizensAuthService {
+  private readonly securityTokenTtlSeconds: number;
+
   constructor(
     private readonly citizensService: CitizensService,
     private readonly jwtService: AppJwtService,
-    private readonly redisService: RedisService,
-  ) {}
+    private readonly authCodeService: AuthCodeService,
+    private readonly configService: ConfigService<EnvironmentConfig>,
+  ) {
+    const ttlMs = this.configService.getOrThrow<number>('JWT_SECURITY_EXPIRES_IN_MS');
+    this.securityTokenTtlSeconds = Math.ceil(ttlMs / 1000);
+  }
 
   async sendVerificationEmail(dto: SendVerificationEmailDto) {
     await this.ensureEmailNotVerified(dto.email);
     await this.sendEmailVerificationCode(dto.email);
-    return { message: 'Verification code sent to your email' };
   }
 
   async verifyEmailCode(dto: VerifyEmailCodeDto) {
     await this.ensureEmailNotVerified(dto.email);
-    await this.verifyEmailVerificationCode(dto.email, dto.code);
-    await this.cacheVerifiedEmailToken(dto.email, dto.code);
+
+    await this.authCodeService.verifyCode({
+      ...this.citizenKey(dto.email, AuthCodePurpose.EMAIL_VERIFICATION_CODE),
+      code: dto.code,
+      errorMessage: 'Invalid verification code',
+    });
+
+    await this.authCodeService.cacheCode({
+      ...this.citizenKey(dto.email, AuthCodePurpose.EMAIL_VERIFICATION_TOKEN),
+      code: dto.code,
+      ttlSeconds: this.securityTokenTtlSeconds,
+    });
+
     const token = this.jwtService.createSecurityToken({
       code: dto.code,
       email: dto.email,
       type: 'email_verification',
     });
-    return {
-      token,
-      message:
-        'Email successfully verified. You have 5 minutes to register before you need to reverify.',
-    };
+
+    return { token };
   }
 
-  async register(registerDto: CitizenRegisterDto) {
+  async register(registerDto: CitizenRegisterDto): Promise<CitizenResponseDto> {
     // 1. Verify token and extract data
     const decodedToken = this.jwtService.verifySecurityToken(registerDto.token);
 
@@ -58,7 +73,11 @@ export class CitizensAuthService {
     }
 
     // 4. Verify code in Redis
-    await this.validateVerifiedEmailToken(registerDto.email, decodedToken.code);
+    await this.authCodeService.verifyCode({
+      ...this.citizenKey(registerDto.email, AuthCodePurpose.EMAIL_VERIFICATION_TOKEN),
+      code: decodedToken.code,
+      errorMessage: 'Invalid or expired verification code',
+    });
 
     // 5. Check email and phone uniqueness
     if (registerDto.email) {
@@ -79,11 +98,11 @@ export class CitizensAuthService {
     const citizen = await this.citizensService.create(registerDto);
 
     // 7. Clean up Redis verification data
-    await this.clearVerifiedEmailToken(registerDto.email);
+    await this.authCodeService.clearCode(
+      this.citizenKey(registerDto.email, AuthCodePurpose.EMAIL_VERIFICATION_TOKEN),
+    );
 
-    return {
-      message: 'Citizen registered successfully. You can now login to your account.',
-    };
+    return Object.assign(new CitizenResponseDto(), citizen);
   }
 
   async login(loginDto: CitizenLoginDto, ip: string) {
@@ -125,9 +144,6 @@ export class CitizensAuthService {
       throw new BadRequestException('Email not found. Please create an account first.');
     }
     await this.sendPasswordResetCode(citizen.email);
-    return {
-      message: 'Password reset code has been sent to your email. Please check your inbox.',
-    };
   }
 
   async verifyResetPassword(dto: VerifyResetPasswordDto) {
@@ -136,8 +152,16 @@ export class CitizensAuthService {
       throw new BadRequestException('Email not found. Please create an account first.');
     }
 
-    await this.verifyPasswordResetCode(dto.email, dto.code);
-    await this.cacheValidatedResetToken(dto.email, dto.code);
+    await this.authCodeService.verifyCode({
+      ...this.citizenKey(dto.email, AuthCodePurpose.PASSWORD_RESET_CODE),
+      code: dto.code,
+      errorMessage: 'Invalid reset code',
+    });
+    await this.authCodeService.cacheCode({
+      ...this.citizenKey(dto.email, AuthCodePurpose.PASSWORD_RESET_TOKEN),
+      code: dto.code,
+      ttlSeconds: this.securityTokenTtlSeconds,
+    });
 
     // Create security token for password reset
     const token = this.jwtService.createSecurityToken({
@@ -146,10 +170,7 @@ export class CitizensAuthService {
       type: 'password_reset',
     });
 
-    return {
-      token,
-      message: 'Reset code verified successfully. You can now reset your password.',
-    };
+    return { token };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
@@ -168,7 +189,11 @@ export class CitizensAuthService {
     }
 
     // Verify code in Redis matches token
-    await this.validateResetPasswordToken(decodedToken.email, decodedToken.code);
+    await this.authCodeService.verifyCode({
+      ...this.citizenKey(decodedToken.email, AuthCodePurpose.PASSWORD_RESET_TOKEN),
+      code: decodedToken.code,
+      errorMessage: 'Invalid or expired reset password code',
+    });
 
     // Update password
     await this.citizensService.updateMyAccount(citizen, {
@@ -176,9 +201,9 @@ export class CitizensAuthService {
     });
 
     // Clean up Redis reset data
-    await this.clearResetPasswordToken(decodedToken.email);
-
-    return { message: 'Your password has been successfully reset.' };
+    await this.authCodeService.clearCode(
+      this.citizenKey(decodedToken.email, AuthCodePurpose.PASSWORD_RESET_TOKEN),
+    );
   }
 
   // PRIVATE METHODS - Email Verification
@@ -191,114 +216,31 @@ export class CitizensAuthService {
   }
 
   private async sendEmailVerificationCode(email: string) {
-    const code = await this.generateEmailVerificationCode(email);
-    await this.clearVerifiedEmailToken(email);
-    // Email will be sent using EmailService from mail module
-    // For now, log the code (in development)
-    console.log(`Verification code for ${email}: ${code}`);
-  }
+    await this.authCodeService.clearCode(
+      this.citizenKey(email, AuthCodePurpose.EMAIL_VERIFICATION_TOKEN),
+    );
 
-  private async verifyEmailVerificationCode(email: string, code: string): Promise<void> {
-    const key = this.getVerificationCodeKey(email);
-    const cachedCode = await this.redisService.getString(key);
-    if (cachedCode !== code) {
-      throw new BadRequestException('Invalid verification code');
-    }
-    await this.redisService.delete(key);
-  }
+    const code = await this.authCodeService.generateCode({
+      ...this.citizenKey(email, AuthCodePurpose.EMAIL_VERIFICATION_CODE),
+      ttlSeconds: this.securityTokenTtlSeconds,
+    });
 
-  private async cacheVerifiedEmailToken(email: string, code: string): Promise<void> {
-    const key = this.getVerifiedEmailTokenKey(email);
-    await this.redisService.setString(key, code, 60 * 5); // 5 minutes
-  }
-
-  private async validateVerifiedEmailToken(email: string, code: string): Promise<void> {
-    const key = this.getVerifiedEmailTokenKey(email);
-    const cachedCode = await this.redisService.getString(key);
-    if (!cachedCode || cachedCode !== code) {
-      throw new BadRequestException('Invalid or expired verification code');
-    }
-  }
-
-  private async clearVerifiedEmailToken(email: string): Promise<void> {
-    const key = this.getVerifiedEmailTokenKey(email);
-    await this.redisService.delete(key);
+    await this.authCodeService.sendCodeViaEmail(email, code, 'Citizens Email Verification');
   }
 
   // PRIVATE METHODS - Password Reset
   private async sendPasswordResetCode(email: string) {
-    const code = await this.generatePasswordResetCode(email);
-    await this.clearResetPasswordToken(email);
-    // Email will be sent using EmailService from mail module
-    // For now, log the code (in development)
-    console.log(`Password reset code for ${email}: ${code}`);
+    const code = await this.authCodeService.generateCode({
+      ...this.citizenKey(email, AuthCodePurpose.PASSWORD_RESET_CODE),
+      ttlSeconds: this.securityTokenTtlSeconds,
+    });
+    await this.authCodeService.clearCode(
+      this.citizenKey(email, AuthCodePurpose.PASSWORD_RESET_TOKEN),
+    );
+    await this.authCodeService.sendCodeViaEmail(email, code, 'Citizens Password Reset');
   }
 
-  private async verifyPasswordResetCode(email: string, code: string): Promise<void> {
-    const key = this.getResetCodeKey(email);
-    const cachedCode = await this.redisService.getString(key);
-    if (cachedCode !== code) {
-      throw new BadRequestException('Invalid reset code');
-    }
-    await this.redisService.delete(key);
-  }
-
-  private async cacheValidatedResetToken(email: string, code: string): Promise<void> {
-    const key = this.getResetTokenKey(email);
-    await this.redisService.setString(key, code, 60 * 5); // 5 minutes
-  }
-
-  private async validateResetPasswordToken(email: string, code: string): Promise<void> {
-    const key = this.getResetTokenKey(email);
-    const cachedCode = await this.redisService.getString(key);
-    if (!cachedCode || cachedCode !== code) {
-      throw new BadRequestException('Invalid or expired reset password code');
-    }
-  }
-
-  private async clearResetPasswordToken(email: string): Promise<void> {
-    const key = this.getResetTokenKey(email);
-    await this.redisService.delete(key);
-  }
-
-  // PRIVATE METHODS - Code Generation
-  private async generateEmailVerificationCode(email: string): Promise<string> {
-    const code = this.generateRandomCode();
-    const key = this.getVerificationCodeKey(email);
-    await this.redisService.setString(key, code, 60 * 5); // 5 minutes
-    return code;
-  }
-
-  private async generatePasswordResetCode(email: string): Promise<string> {
-    const code = this.generateRandomCode();
-    const key = this.getResetCodeKey(email);
-    await this.redisService.setString(key, code, 60 * 5); // 5 minutes
-    return code;
-  }
-
-  private generateRandomCode(): string {
-    const CODE_LENGTH = 6;
-    const min = Math.pow(10, CODE_LENGTH - 1);
-    const max = Math.pow(10, CODE_LENGTH) - 1;
-    const code = Math.floor(min + Math.random() * (max - min + 1)).toString();
-    console.log(code);
-    return code;
-  }
-
-  // PRIVATE METHODS - Redis Keys
-  private getVerificationCodeKey(email: string): string {
-    return `${Role.CITIZEN}:verification:email:${email}`;
-  }
-
-  private getVerifiedEmailTokenKey(email: string): string {
-    return `${Role.CITIZEN}:verified:email:${email}`;
-  }
-
-  private getResetCodeKey(email: string): string {
-    return `${Role.CITIZEN}:restoration:email:${email}`;
-  }
-
-  private getResetTokenKey(email: string): string {
-    return `${Role.CITIZEN}:restored:email:${email}`;
+  private citizenKey(email: string, purpose: AuthCodePurpose): AuthCodeKeyContext {
+    return { role: Role.CITIZEN, email, purpose };
   }
 }

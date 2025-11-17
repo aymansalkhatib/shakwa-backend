@@ -15,17 +15,27 @@ export class CitizensAuthController {
 
   @Post('send-verification-email')
   async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
-    return await this.citizensAuthService.sendVerificationEmail(dto);
+    await this.citizensAuthService.sendVerificationEmail(dto);
+    return { message: 'Verification code sent to your email' };
   }
 
   @Post('verify-code')
   async verifyCode(@Body() dto: VerifyEmailCodeDto) {
-    return await this.citizensAuthService.verifyEmailCode(dto);
+    const result = await this.citizensAuthService.verifyEmailCode(dto);
+    return {
+      message:
+        'Email successfully verified. You have 5 minutes to register before you need to reverify.',
+      ...result,
+    };
   }
 
   @Post('register')
   async register(@Body() dto: CitizenRegisterDto) {
-    return await this.citizensAuthService.register(dto);
+    const citizen = await this.citizensAuthService.register(dto);
+    return {
+      message: 'Citizen registered successfully. You can now login to your account.',
+      citizen,
+    };
   }
 
   @Post('login')
@@ -36,16 +46,24 @@ export class CitizensAuthController {
 
   @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
-    return await this.citizensAuthService.handleForgotPasswordRequest(dto);
+    await this.citizensAuthService.handleForgotPasswordRequest(dto);
+    return {
+      message: 'Password reset code has been sent to your email. Please check your inbox.',
+    };
   }
 
   @Post('verify-reset-code')
   async verifyResetPassword(@Body() dto: VerifyResetPasswordDto) {
-    return this.citizensAuthService.verifyResetPassword(dto);
+    const result = await this.citizensAuthService.verifyResetPassword(dto);
+    return {
+      message: 'Reset code verified successfully. You can now reset your password.',
+      ...result,
+    };
   }
 
   @Post('reset-password')
   async resetPassword(@Body() dto: ResetPasswordDto) {
-    return await this.citizensAuthService.resetPassword(dto);
+    await this.citizensAuthService.resetPassword(dto);
+    return { message: 'Your password has been successfully reset.' };
   }
 }

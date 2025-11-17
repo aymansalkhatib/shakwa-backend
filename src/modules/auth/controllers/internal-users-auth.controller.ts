@@ -35,6 +35,7 @@ export class InternalUsersAuthController {
 
   @Post('reset-password')
   async resetPassword(@Body() dto: InternalUserResetPasswordDto) {
-    return await this.internalUsersAuthService.resetPassword(dto);
+    await this.internalUsersAuthService.resetPassword(dto);
+    return { message: 'Your password has been successfully reset.' };
   }
 }

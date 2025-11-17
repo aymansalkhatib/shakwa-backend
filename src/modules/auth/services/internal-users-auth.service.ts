@@ -5,22 +5,27 @@ import { plainToInstance } from 'class-transformer';
 import { InternalRole } from '../../../common/enums/role.enum';
 import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
-import { RedisService } from '../../../shared/services/redis/redis.service';
 import { InternalUserResponseDto } from '../../internal-users/dtos/response/internal-user-response.dto';
 import { InternalUsersService } from '../../internal-users/services/internal-users.service';
 import { InternalUserForgotPasswordDto } from '../dtos/request/internal-users/forgot-password.dto';
 import { InternalUserLoginDto } from '../dtos/request/internal-users/internal-user-login.dto';
 import { InternalUserResetPasswordDto } from '../dtos/request/internal-users/reset-password.dto';
 import { InternalUserVerifyResetPasswordDto } from '../dtos/request/internal-users/verify-reset-password.dto';
+import { AuthCodeKeyContext, AuthCodePurpose, AuthCodeService } from './auth-code.service';
 
 @Injectable()
 export class InternalUsersAuthService {
+  private readonly passwordResetTtlSeconds: number;
+
   constructor(
     private readonly jwtService: AppJwtService,
-    private readonly redisService: RedisService,
     private readonly internalUsersService: InternalUsersService,
     private readonly configService: ConfigService<EnvironmentConfig>,
-  ) {}
+    private readonly authCodeService: AuthCodeService,
+  ) {
+    const ttlMs = this.configService.getOrThrow<number>('JWT_SECURITY_EXPIRES_IN_MS');
+    this.passwordResetTtlSeconds = Math.ceil(ttlMs / 1000);
+  }
 
   async login(loginDto: InternalUserLoginDto, ip: string) {
     const { email, password, fcmToken } = loginDto;
@@ -57,8 +62,16 @@ export class InternalUsersAuthService {
   async verifyResetPassword(dto: InternalUserVerifyResetPasswordDto): Promise<{ token: string }> {
     const internalUser = await this.internalUsersService.findByEmailOrFail(dto.email);
 
-    await this.verifyPasswordResetCode(dto.email, dto.code, internalUser.role);
-    await this.cacheValidatedResetToken(dto.email, dto.code, internalUser.role);
+    await this.authCodeService.verifyCode({
+      ...this.buildContext(dto.email, internalUser.role, AuthCodePurpose.PASSWORD_RESET_CODE),
+      code: dto.code,
+      errorMessage: 'Invalid reset code',
+    });
+    await this.authCodeService.cacheCode({
+      ...this.buildContext(dto.email, internalUser.role, AuthCodePurpose.PASSWORD_RESET_TOKEN),
+      code: dto.code,
+      ttlSeconds: this.passwordResetTtlSeconds,
+    });
 
     // Create security token for password reset
     const token = this.jwtService.createSecurityToken({
@@ -83,7 +96,15 @@ export class InternalUsersAuthService {
     const internalUser = await this.internalUsersService.findByEmailOrFail(decodedToken.email);
 
     // Verify code in Redis matches token
-    await this.validateResetPasswordToken(decodedToken.email, decodedToken.code, internalUser.role);
+    await this.authCodeService.verifyCode({
+      ...this.buildContext(
+        decodedToken.email,
+        internalUser.role,
+        AuthCodePurpose.PASSWORD_RESET_TOKEN,
+      ),
+      code: decodedToken.code,
+      errorMessage: 'Invalid or expired reset password code',
+    });
 
     // Update password
     await this.internalUsersService.updateMyAccount(internalUser, {
@@ -91,85 +112,30 @@ export class InternalUsersAuthService {
     });
 
     // Clean up Redis reset data
-    await this.clearResetPasswordToken(decodedToken.email, internalUser.role);
-
-    return { message: 'Your password has been successfully reset.' };
+    await this.authCodeService.clearCode(
+      this.buildContext(
+        decodedToken.email,
+        internalUser.role,
+        AuthCodePurpose.PASSWORD_RESET_TOKEN,
+      ),
+    );
   }
 
   // PRIVATE METHODS - Password Reset
   private async sendPasswordResetCode(email: string, role: InternalRole) {
-    const code = await this.generatePasswordResetCode(email, role);
-    await this.clearResetPasswordToken(email, role);
-    // Email will be sent using EmailService from mail module
-    // For now, log the code (in development)
-    console.log(`Password reset code for ${email}: ${code}`);
-  }
-
-  private async verifyPasswordResetCode(
-    email: string,
-    code: string,
-    role: InternalRole,
-  ): Promise<void> {
-    const key = this.getResetCodeKey(email, role);
-    const cachedCode = await this.redisService.getString(key);
-    if (cachedCode !== code) {
-      throw new BadRequestException('Invalid reset code');
-    }
-    await this.redisService.delete(key);
-  }
-
-  private async cacheValidatedResetToken(
-    email: string,
-    code: string,
-    role: InternalRole,
-  ): Promise<void> {
-    const key = this.getResetTokenKey(email, role);
-    await this.redisService.setString(key, code, 60 * 5); // 5 minutes
-  }
-
-  private async validateResetPasswordToken(
-    email: string,
-    code: string,
-    role: InternalRole,
-  ): Promise<void> {
-    const key = this.getResetTokenKey(email, role);
-    const cachedCode = await this.redisService.getString(key);
-    if (!cachedCode || cachedCode !== code) {
-      throw new BadRequestException('Invalid or expired reset password code');
-    }
-  }
-
-  private async clearResetPasswordToken(email: string, role: InternalRole): Promise<void> {
-    const key = this.getResetTokenKey(email, role);
-    await this.redisService.delete(key);
-  }
-
-  // PRIVATE METHODS - Code Generation
-  private async generatePasswordResetCode(email: string, role: InternalRole): Promise<string> {
-    const code = this.generateRandomCode();
-    const key = this.getResetCodeKey(email, role);
-    await this.redisService.setString(
-      key,
-      code,
-      this.configService.getOrThrow('JWT_SECURITY_EXPIRES_IN_MS'),
+    await this.authCodeService.clearCode(
+      this.buildContext(email, role, AuthCodePurpose.PASSWORD_RESET_TOKEN),
     );
-    return code;
+
+    const code = await this.authCodeService.generateCode({
+      ...this.buildContext(email, role, AuthCodePurpose.PASSWORD_RESET_CODE),
+      ttlSeconds: this.passwordResetTtlSeconds,
+    });
+
+    await this.authCodeService.sendCodeViaEmail(email, code, 'Internal Password Reset');
   }
 
-  private generateRandomCode(): string {
-    const CODE_LENGTH = 6;
-    const min = Math.pow(10, CODE_LENGTH - 1);
-    const max = Math.pow(10, CODE_LENGTH) - 1;
-    const code = Math.floor(min + Math.random() * (max - min + 1)).toString();
-    return code;
-  }
-
-  // PRIVATE METHODS - Redis Keys
-  private getResetCodeKey(email: string, role: InternalRole): string {
-    return `${role}:restoration:email:${email}`;
-  }
-
-  private getResetTokenKey(email: string, role: InternalRole): string {
-    return `${role}:restored:email:${email}`;
+  private buildContext(email: string, role: any, purpose: AuthCodePurpose): AuthCodeKeyContext {
+    return { role, email, purpose };
   }
 }
