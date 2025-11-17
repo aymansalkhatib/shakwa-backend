@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { CITIZENS_REPOSITORY_TOKEN } from '../constants/citizens.tokens';
 import { CitizenFilterDto } from '../dtos/query/citizen-filter.dto';
@@ -62,14 +68,10 @@ export class CitizensAdminService {
   }
 
   async blockCitizen(id: number): Promise<CitizenEntity> {
-    const citizen = await this.citizensRepository.findOne(id);
-
-    if (!citizen) {
-      throw new NotFoundException('Citizen not found');
-    }
+    const citizen = await this.findOne(id);
 
     if (citizen.blockedAt) {
-      throw new BadRequestException('Citizen is already blocked');
+      throw new ConflictException('Citizen is already blocked');
     }
 
     const updatedCitizen = await this.citizensRepository.update(citizen, {
@@ -80,14 +82,10 @@ export class CitizensAdminService {
   }
 
   async unblockCitizen(id: number): Promise<CitizenEntity> {
-    const citizen = await this.citizensRepository.findOne(id);
-
-    if (!citizen) {
-      throw new NotFoundException('Citizen not found');
-    }
+    const citizen = await this.findOne(id);
 
     if (!citizen.blockedAt) {
-      throw new BadRequestException('Citizen is not blocked');
+      throw new ConflictException('Citizen is not blocked');
     }
 
     const updatedCitizen = await this.citizensRepository.update(citizen, {

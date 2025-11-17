@@ -29,6 +29,9 @@ export class CitizenEntity {
   // @OneToMany(() => Complaint, (complaint) => complaint.citizen)
   // your-bucket-name: Complaint[];
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  fcmToken: string | null;
+
   @Column({ type: 'timestamp', nullable: true })
   blockedAt: Date | null;
 

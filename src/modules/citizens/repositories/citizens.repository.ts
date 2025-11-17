@@ -29,10 +29,7 @@ export class CitizensRepository implements ICitizensRepository {
     this.applyFilters(queryBuilder, filter);
 
     // Use paginate service
-    return await paginate(queryBuilder, {
-      page: filter.page,
-      limit: filter.limit,
-    });
+    return await paginate(queryBuilder, filter);
   }
 
   async findOne(id: number): Promise<CitizenEntity | null> {
@@ -44,9 +41,7 @@ export class CitizensRepository implements ICitizensRepository {
   }
 
   async findByPhone(phone: string): Promise<CitizenEntity | null> {
-    return await this.repository.findOne({
-      where: { phone },
-    });
+    return await this.repository.findOne({ where: { phone } });
   }
 
   async update(citizen: CitizenEntity, data: IUpdateCitizenData): Promise<CitizenEntity | null> {

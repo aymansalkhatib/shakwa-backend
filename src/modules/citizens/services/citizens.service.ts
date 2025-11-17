@@ -67,15 +67,17 @@ export class CitizensService {
     return await this.citizensRepository.findByPhone(phone);
   }
 
-  async updateLastLoginAt(citizen: CitizenEntity): Promise<CitizenEntity> {
+  async updateLastLoginAt(citizen: CitizenEntity, fcmToken: string): Promise<CitizenEntity> {
     return await this.citizensRepository.update(citizen, {
       lastLoginAt: new Date(),
+      fcmToken,
     });
   }
 
   async updateLastLogoutAt(citizen: CitizenEntity): Promise<CitizenEntity> {
     return await this.citizensRepository.update(citizen, {
       lastLogoutAt: new Date(),
+      fcmToken: null,
     });
   }
 }

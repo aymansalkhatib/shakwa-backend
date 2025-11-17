@@ -9,8 +9,8 @@ export class CreateCitizenDto {
 
   @IsOptional()
   @IsString({ message: 'Phone must be a string' })
-  @SyriaPhone()
   @MaxLength(20, { message: 'Phone must not exceed 20 characters' })
+  @SyriaPhone()
   phone?: string | null;
 
   @IsNotEmpty({ message: 'Password is required' })
