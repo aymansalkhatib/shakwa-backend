@@ -104,6 +104,7 @@ export class InternalUsersAuthService {
       ),
       code: decodedToken.code,
       errorMessage: 'Invalid or expired reset password code',
+      consume: false,
     });
 
     // Update password

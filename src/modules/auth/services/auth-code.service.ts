@@ -22,6 +22,7 @@ interface GenerateCodeParams extends AuthCodeKeyContext {
 interface VerifyCodeParams extends AuthCodeKeyContext {
   code: string;
   errorMessage: string;
+  consume?: boolean;
 }
 
 interface CacheCodeParams extends AuthCodeKeyContext {
@@ -52,7 +53,11 @@ export class AuthCodeService {
       throw new BadRequestException(params.errorMessage);
     }
 
-    await this.redisService.delete(key);
+    const shouldConsume = params.consume ?? true;
+
+    if (shouldConsume) {
+      await this.redisService.delete(key);
+    }
   }
 
   async cacheCode(params: CacheCodeParams): Promise<void> {
@@ -72,9 +77,10 @@ export class AuthCodeService {
   }
 
   private generateRandomCode(): string {
-    const { CODE_LENGTH } = AuthCodeService;
-    const min = 10 ** (CODE_LENGTH - 1);
-    const max = 10 ** CODE_LENGTH - 1;
-    return String(Math.floor(Math.random() * (max - min + 1)) + min);
-  }
+  const { CODE_LENGTH } = AuthCodeService;
+  const min = 10 ** (CODE_LENGTH - 1);
+  const max = 10 ** CODE_LENGTH - 1;
+  return String(Math.floor(Math.random() * (max - min + 1)) + min);
+}
+
 }

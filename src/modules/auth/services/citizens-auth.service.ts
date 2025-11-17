@@ -77,6 +77,7 @@ export class CitizensAuthService {
       ...this.citizenKey(registerDto.email, AuthCodePurpose.EMAIL_VERIFICATION_TOKEN),
       code: decodedToken.code,
       errorMessage: 'Invalid or expired verification code',
+      consume: false,
     });
 
     // 5. Check email and phone uniqueness
@@ -193,6 +194,7 @@ export class CitizensAuthService {
       ...this.citizenKey(decodedToken.email, AuthCodePurpose.PASSWORD_RESET_TOKEN),
       code: decodedToken.code,
       errorMessage: 'Invalid or expired reset password code',
+      consume: false,
     });
 
     // Update password
