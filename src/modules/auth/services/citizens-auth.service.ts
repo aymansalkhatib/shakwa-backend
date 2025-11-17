@@ -4,7 +4,6 @@ import * as bcrypt from 'bcryptjs';
 import { Role } from '../../../common/enums/role.enum';
 import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
-import { CitizenResponseDto } from '../../citizens/dtos/response/citizen-response.dto';
 import { CitizensService } from '../../citizens/services/citizens.service';
 import { CitizenLoginDto } from '../dtos/request/citizens/citizen-login.dto';
 import { CitizenRegisterDto } from '../dtos/request/citizens/citizen-register.dto';
@@ -58,7 +57,7 @@ export class CitizensAuthService {
     return { token };
   }
 
-  async register(registerDto: CitizenRegisterDto): Promise<CitizenResponseDto> {
+  async register(registerDto: CitizenRegisterDto): Promise<void> {
     // 1. Verify token and extract data
     const decodedToken = this.jwtService.verifySecurityToken(registerDto.token);
 
@@ -102,8 +101,6 @@ export class CitizensAuthService {
     await this.authCodeService.clearCode(
       this.genKey(registerDto.email, AuthCodePurpose.EMAIL_VERIFICATION_TOKEN),
     );
-
-    return citizen;
   }
 
   async login(loginDto: CitizenLoginDto, ip: string) {
@@ -155,7 +152,7 @@ export class CitizensAuthService {
       code: dto.code,
       errorMessage: 'Invalid reset code',
     });
-    
+
     await this.authCodeService.cacheCode({
       ...this.genKey(dto.email, AuthCodePurpose.PASSWORD_RESET_TOKEN),
       code: dto.code,
@@ -230,9 +227,7 @@ export class CitizensAuthService {
 
   // PRIVATE METHODS - Password Reset
   private async sendPasswordResetCode(email: string) {
-    await this.authCodeService.clearCode(
-      this.genKey(email, AuthCodePurpose.PASSWORD_RESET_TOKEN),
-    );
+    await this.authCodeService.clearCode(this.genKey(email, AuthCodePurpose.PASSWORD_RESET_TOKEN));
 
     const code = await this.authCodeService.generateCode({
       ...this.genKey(email, AuthCodePurpose.PASSWORD_RESET_CODE),

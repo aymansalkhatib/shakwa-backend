@@ -7,9 +7,10 @@ import { InternalUsersAuthController } from './controllers/internal-users-auth.c
 import { AuthCodeService } from './services/auth-code.service';
 import { CitizensAuthService } from './services/citizens-auth.service';
 import { InternalUsersAuthService } from './services/internal-users-auth.service';
+import { RedisModule } from '../../shared/services/redis';
 
 @Module({
-  imports: [CitizensModule, InternalUsersModule],
+  imports: [CitizensModule, InternalUsersModule,RedisModule],
   controllers: [CitizensAuthController, InternalUsersAuthController],
   providers: [CitizensAuthService, InternalUsersAuthService, AppJwtService, AuthCodeService],
   exports: [CitizensAuthService, InternalUsersAuthService],

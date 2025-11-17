@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 import { ParseQueryMiddleware } from './common/middlewares/parse-query.middleware';
+import { AuthModule } from './modules/auth/auth.module';
 import { CitizensModule } from './modules/citizens/citizens.module';
 import { ErrorHandlerFactory } from './shared/exceptions-filter/error-handler.factory';
 import { GlobalExceptionFilter } from './shared/exceptions-filter/global-exception.filter';
@@ -25,6 +26,7 @@ import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.mod
     AppJwtModule,
     AppStorageModule.register({ provider: 'local' }),
     CitizensModule,
+    AuthModule,
   ],
 
   controllers: [AppController],

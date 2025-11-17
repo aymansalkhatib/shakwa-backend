@@ -35,12 +35,16 @@ export class AuthCodeService {
   private static readonly CODE_LENGTH = 6;
   private readonly logger = new Logger(AuthCodeService.name);
 
-  constructor(private readonly redisService: RedisService){}
+  constructor(private readonly redisService: RedisService) {}
 
   async generateCode(params: GenerateCodeParams): Promise<string> {
     const code = this.generateRandomCode();
 
     await this.cacheCode({ ...params, code });
+
+    console.warn(
+      `Generated code "${code}" for email "${params.email}", role "${params.role}", purpose "${params.purpose}"`,
+    );
 
     return code;
   }

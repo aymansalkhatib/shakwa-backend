@@ -16,7 +16,6 @@ export class CitizensAuthController {
   @Post('send-verification-email')
   async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
     await this.citizensAuthService.sendVerificationEmail(dto);
-    return { message: 'Verification code sent to your email' };
   }
 
   @Post('verify-code')
@@ -31,10 +30,9 @@ export class CitizensAuthController {
 
   @Post('register')
   async register(@Body() dto: CitizenRegisterDto) {
-    const citizen = await this.citizensAuthService.register(dto);
+    await this.citizensAuthService.register(dto);
     return {
       message: 'Citizen registered successfully. You can now login to your account.',
-      citizen,
     };
   }
 
