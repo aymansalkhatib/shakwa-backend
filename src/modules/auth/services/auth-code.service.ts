@@ -35,7 +35,7 @@ export class AuthCodeService {
   private static readonly CODE_LENGTH = 6;
   private readonly logger = new Logger(AuthCodeService.name);
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(private readonly redisService: RedisService){}
 
   async generateCode(params: GenerateCodeParams): Promise<string> {
     const code = this.generateRandomCode();
@@ -46,7 +46,7 @@ export class AuthCodeService {
   }
 
   async verifyCode(params: VerifyCodeParams): Promise<void> {
-    const key = this.composeKey(params);
+    const key = this.genKey(params);
     const cachedCode = await this.redisService.getString(key);
 
     if (!cachedCode || cachedCode !== params.code) {
@@ -61,26 +61,25 @@ export class AuthCodeService {
   }
 
   async cacheCode(params: CacheCodeParams): Promise<void> {
-    await this.redisService.setString(this.composeKey(params), params.code, params.ttlSeconds);
+    await this.redisService.setString(this.genKey(params), params.code, params.ttlSeconds);
   }
 
   async clearCode(context: AuthCodeKeyContext): Promise<void> {
-    await this.redisService.delete(this.composeKey(context));
+    await this.redisService.delete(this.genKey(context));
   }
 
   async sendCodeViaEmail(email: string, code: string, context: string): Promise<void> {
     this.logger.log(`[${context}] Sending auth code "${code}" to ${email}`);
   }
 
-  private composeKey({ role, purpose, email }: AuthCodeKeyContext): string {
-    return `${role}:${purpose}:email:${email.toLowerCase()}`;
+  private genKey({ role, purpose, email }: AuthCodeKeyContext): string {
+    return `${role}:${purpose}:${email.toLowerCase()}`;
   }
 
   private generateRandomCode(): string {
-  const { CODE_LENGTH } = AuthCodeService;
-  const min = 10 ** (CODE_LENGTH - 1);
-  const max = 10 ** CODE_LENGTH - 1;
-  return String(Math.floor(Math.random() * (max - min + 1)) + min);
-}
-
+    const { CODE_LENGTH } = AuthCodeService;
+    const min = 10 ** (CODE_LENGTH - 1);
+    const max = 10 ** CODE_LENGTH - 1;
+    return String(Math.floor(Math.random() * (max - min + 1)) + min);
+  }
 }
