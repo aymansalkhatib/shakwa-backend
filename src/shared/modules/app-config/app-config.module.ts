@@ -8,8 +8,8 @@ import { EnvironmentValidator } from './env.validator';
     NestConfigModule.forRoot({
       isGlobal: true,
       validate: EnvironmentValidator.validate,
-      cache: true, // ✅ Cache environment variables for better performance
-      expandVariables: true, // ✅ Allow variable expansion
+      cache: true, // Cache environment variables for better performance
+      expandVariables: true, // Allow variable expansion
       envFilePath: [
         'env/' + ENV_FILES.DEFAULT,
         'env/' + (ENV_FILES.getEnvFile(process.env.NODE_ENV) || ENV_FILES.DEVELOPMENT),
