@@ -23,8 +23,9 @@ export class InternalUsersAuthService {
     private readonly configService: ConfigService<EnvironmentConfig>,
     private readonly authCodeService: AuthCodeService,
   ) {
-    const ttlMs = this.configService.getOrThrow<number>('JWT_SECURITY_EXPIRES_IN_MS');
-    this.passwordResetTtlSeconds = Math.ceil(ttlMs / 1000);
+    this.passwordResetTtlSeconds = this.configService.getOrThrow<number>(
+      'JWT_SECURITY_EXPIRES_IN_S',
+    );
   }
 
   async login(loginDto: InternalUserLoginDto, ip: string) {
@@ -50,25 +51,30 @@ export class InternalUsersAuthService {
 
     return {
       token,
-      internalUser: plainToInstance(InternalUserResponseDto, internalUser),
+      user: plainToInstance(InternalUserResponseDto, internalUser),
     };
   }
 
   async handleForgotPasswordRequest(dto: InternalUserForgotPasswordDto) {
-    const internalUser = await this.internalUsersService.findByEmailOrFail(dto.email);
+    const internalUser = await this.internalUsersService.findByEmail(dto.email);
+    if (!internalUser) {
+      throw new BadRequestException('No account found with this email address.');
+    }
     await this.sendPasswordResetCode(dto.email, internalUser.role);
   }
 
   async verifyResetPassword(dto: InternalUserVerifyResetPasswordDto): Promise<{ token: string }> {
-    const internalUser = await this.internalUsersService.findByEmailOrFail(dto.email);
-
+    const internalUser = await this.internalUsersService.findByEmail(dto.email);
+    if (!internalUser) {
+      throw new BadRequestException('No account found with this email address.');
+    }
     await this.authCodeService.verifyCode({
-      ...this.buildContext(dto.email, internalUser.role, AuthCodePurpose.PASSWORD_RESET_CODE),
+      ...this.genKey(dto.email, internalUser.role, AuthCodePurpose.PASSWORD_RESET_CODE),
       code: dto.code,
       errorMessage: 'Invalid reset code',
     });
     await this.authCodeService.cacheCode({
-      ...this.buildContext(dto.email, internalUser.role, AuthCodePurpose.PASSWORD_RESET_TOKEN),
+      ...this.genKey(dto.email, internalUser.role, AuthCodePurpose.PASSWORD_RESET_TOKEN),
       code: dto.code,
       ttlSeconds: this.passwordResetTtlSeconds,
     });
@@ -97,11 +103,7 @@ export class InternalUsersAuthService {
 
     // Verify code in Redis matches token
     await this.authCodeService.verifyCode({
-      ...this.buildContext(
-        decodedToken.email,
-        internalUser.role,
-        AuthCodePurpose.PASSWORD_RESET_TOKEN,
-      ),
+      ...this.genKey(decodedToken.email, internalUser.role, AuthCodePurpose.PASSWORD_RESET_TOKEN),
       code: decodedToken.code,
       errorMessage: 'Invalid or expired reset password code',
       consume: false,
@@ -114,29 +116,25 @@ export class InternalUsersAuthService {
 
     // Clean up Redis reset data
     await this.authCodeService.clearCode(
-      this.buildContext(
-        decodedToken.email,
-        internalUser.role,
-        AuthCodePurpose.PASSWORD_RESET_TOKEN,
-      ),
+      this.genKey(decodedToken.email, internalUser.role, AuthCodePurpose.PASSWORD_RESET_TOKEN),
     );
   }
 
   // PRIVATE METHODS - Password Reset
   private async sendPasswordResetCode(email: string, role: InternalRole) {
     await this.authCodeService.clearCode(
-      this.buildContext(email, role, AuthCodePurpose.PASSWORD_RESET_TOKEN),
+      this.genKey(email, role, AuthCodePurpose.PASSWORD_RESET_TOKEN),
     );
 
     const code = await this.authCodeService.generateCode({
-      ...this.buildContext(email, role, AuthCodePurpose.PASSWORD_RESET_CODE),
+      ...this.genKey(email, role, AuthCodePurpose.PASSWORD_RESET_CODE),
       ttlSeconds: this.passwordResetTtlSeconds,
     });
 
     await this.authCodeService.sendCodeViaEmail(email, code, 'Internal Password Reset');
   }
 
-  private buildContext(email: string, role: any, purpose: AuthCodePurpose): AuthCodeKeyContext {
+  private genKey(email: string, role: any, purpose: AuthCodePurpose): AuthCodeKeyContext {
     return { role, email, purpose };
   }
 }

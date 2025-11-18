@@ -24,8 +24,9 @@ export class CitizensAuthService {
     private readonly authCodeService: AuthCodeService,
     private readonly configService: ConfigService<EnvironmentConfig>,
   ) {
-    const ttlMs = this.configService.getOrThrow<number>('JWT_SECURITY_EXPIRES_IN_MS');
-    this.securityTokenTtlSeconds = Math.ceil(ttlMs / 1000);
+    this.securityTokenTtlSeconds = this.configService.getOrThrow<number>(
+      'JWT_SECURITY_EXPIRES_IN_S',
+    );
   }
 
   async sendVerificationEmail(dto: SendVerificationEmailDto) {
@@ -95,7 +96,7 @@ export class CitizensAuthService {
     }
 
     // 6. Create citizen
-    const citizen = await this.citizensService.create(registerDto);
+    await this.citizensService.create(registerDto);
 
     // 7. Clean up Redis verification data
     await this.authCodeService.clearCode(

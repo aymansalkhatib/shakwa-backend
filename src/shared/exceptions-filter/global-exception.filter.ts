@@ -43,6 +43,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       // Send responses
       response.status(errorResponse.statusCode).json(errorResponse);
+
+      console.error(exception);
+      //
     } catch (error: any) {
       this.logError(
         {
@@ -70,6 +73,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           ...(developerMode && { stack: error?.stack }),
         },
       };
+
+      console.error(error);
 
       response.status(500).json(fallbackResponse);
     }

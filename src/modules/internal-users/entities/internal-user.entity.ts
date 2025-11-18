@@ -39,7 +39,6 @@ export class InternalUserEntity {
   @Column({
     type: 'varchar',
     length: 255,
-    select: false,
   })
   password: string;
 
@@ -84,7 +83,6 @@ export class InternalUserEntity {
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   lastLoginIp: string | null;
-  
 
   @BeforeInsert()
   @BeforeUpdate()

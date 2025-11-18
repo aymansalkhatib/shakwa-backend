@@ -19,35 +19,35 @@ import {
 @Injectable()
 export class AppJwtService {
   private readonly accessSecret: string;
-  private readonly accessExpiresInMs: number;
+  private readonly accessExpiresInS: number;
   private readonly refreshSecret: string;
-  private readonly refreshExpiresInMs: number;
+  private readonly refreshExpiresInS: number;
   private readonly securitySecret: string;
-  private readonly securityExpiresInMs: number;
+  private readonly securityExpiresInS: number;
 
   constructor(
     private readonly configService: ConfigService<EnvironmentConfig>,
     private readonly translateHelper: TranslateHelper,
   ) {
     this.accessSecret = this.configService.getOrThrow<string>('JWT_ACCESS_SECRET');
-    this.accessExpiresInMs = this.configService.getOrThrow<number>('JWT_ACCESS_EXPIRES_IN_MS');
+    this.accessExpiresInS = this.configService.getOrThrow<number>('JWT_ACCESS_EXPIRES_IN_S');
 
     this.refreshSecret = this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
-    this.refreshExpiresInMs = this.configService.getOrThrow<number>('JWT_REFRESH_EXPIRES_IN_MS');
+    this.refreshExpiresInS = this.configService.getOrThrow<number>('JWT_REFRESH_EXPIRES_IN_S');
 
     this.securitySecret = this.configService.getOrThrow<string>('JWT_SECURITY_SECRET');
-    this.securityExpiresInMs = this.configService.getOrThrow<number>('JWT_SECURITY_EXPIRES_IN_MS');
+    this.securityExpiresInS = this.configService.getOrThrow<number>('JWT_SECURITY_EXPIRES_IN_S');
   }
 
   createAccessToken(payload: AccessTokenPayload): string {
     return jwt.sign(payload, this.accessSecret, {
-      expiresIn: Math.floor(this.accessExpiresInMs / 1000), // ms → s
+      expiresIn: Math.floor(this.accessExpiresInS),
     });
   }
 
   createRefreshToken(payload: RefreshTokenPayload): string {
     return jwt.sign(payload, this.refreshSecret, {
-      expiresIn: Math.floor(this.refreshExpiresInMs / 1000), // ms → s
+      expiresIn: Math.floor(this.refreshExpiresInS),
     });
   }
 
@@ -92,7 +92,7 @@ export class AppJwtService {
    */
   createSecurityToken(payload: SecurityTokenPayload): string {
     return jwt.sign(payload, this.securitySecret, {
-      expiresIn: Math.floor(this.securityExpiresInMs / 1000), // ms → s
+      expiresIn: Math.floor(this.securityExpiresInS),
     });
   }
 

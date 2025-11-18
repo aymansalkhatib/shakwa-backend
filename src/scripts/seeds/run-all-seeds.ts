@@ -3,11 +3,11 @@ import { NestFactory } from '@nestjs/core';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../../app.module';
 import { EnvironmentConfig } from '../../shared/modules/app-config/env.schema';
-import { seedEmployees } from './seed-employees';
+import { seedUsers } from './seed-users';
 
 async function bootstrap() {
   const args = process.argv.slice(2);
-  const runEmployees = args.includes('employees');
+  const runEmployees = args.includes('users');
   const runAll = args.includes('all');
 
   const app = await NestFactory.create(AppModule);
@@ -20,11 +20,11 @@ async function bootstrap() {
     await queryRunner.startTransaction();
 
     if (runEmployees) {
-      await seedEmployees(queryRunner);
+      await seedUsers(queryRunner, configService);
       console.log('✅ Employees seeded');
     }
     if (runAll) {
-      await seedEmployees(queryRunner);
+      await seedUsers(queryRunner, configService);
       console.log('✅ All seeders ran');
     }
 
