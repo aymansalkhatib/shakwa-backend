@@ -6,7 +6,6 @@ import { IsInt, IsNotEmpty, Min, ValidationOptions } from 'class-validator';
 
 export function PositiveIntegerId({
   nullable = false,
-  message,
 }: { nullable?: boolean; message?: ValidationOptions['message'] } = {}) {
   return applyDecorators(
     Transform(({ obj, key }) => {

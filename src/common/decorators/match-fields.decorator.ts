@@ -30,10 +30,10 @@ export class MatchFieldsConstraint implements ValidatorConstraintInterface {
 }
 
 export function MatchFields(fields: string[], validationOptions?: ValidationOptions) {
-  return function (object: Object) {
+  return function (constructor: any) {
     registerDecorator({
       name: 'MatchFields',
-      target: object.constructor,
+      target: constructor,
       propertyName: undefined!,
       options: validationOptions,
       constraints: [fields, validationOptions],

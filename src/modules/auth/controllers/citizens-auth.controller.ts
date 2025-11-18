@@ -16,6 +16,9 @@ export class CitizensAuthController {
   @Post('send-verification-email')
   async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
     await this.citizensAuthService.sendVerificationEmail(dto);
+    return {
+      message: 'Verification email has been sent successfully.',
+    };
   }
 
   @Post('verify-code')
