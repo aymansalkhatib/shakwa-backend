@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="supported-color-schemes" content="light dark" />
+  <title>Verify your email · Shakwa</title>
+  <style>
+    /* Global reset */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      color: #111827;
+      line-height: 1.5;
+    }
+
+    .wrapper {
+      width: 100%;
+      padding: 32px 16px;
+      box-sizing: border-box;
+    }
+
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      padding: 20px 28px;
+      background: linear-gradient(135deg, #020617 0%, #111827 35%, #1d4ed8 100%);
+      color: #f9fafb;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .app-name {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .header-tagline {
+      margin-top: 6px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
+    /* Content */
+    .content {
+      padding: 24px 28px 28px;
+      text-align: left;
+    }
+
+    .title {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      margin: 0 0 20px 0;
+      font-size: 14px;
+      color: #4b5563;
+    }
+
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .email-box {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background-color: #f9fafb;
+      font-size: 13px;
+      color: #111827;
+      word-break: break-all;
+    }
+
+    .code-wrapper {
+      margin-top: 22px;
+      text-align: center;
+    }
+
+    .code-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .code-box {
+      display: inline-block;
+      padding: 12px 20px;
+      border-radius: 999px;
+      background-color: #111827;
+      color: #f9fafb;
+      font-size: 26px;
+      letter-spacing: 0.35em;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    .note {
+      margin-top: 22px;
+      font-size: 12px;
+      color: #4b5563;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 14px 22px 18px;
+      border-top: 1px solid #e5e7eb;
+      background-color: #f9fafb;
+      font-size: 11px;
+      color: #6b7280;
+      text-align: left;
+    }
+
+    .footer-strong {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .footer-meta {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    /* Dark mode (where supported) */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #020617;
+        color: #e5e7eb;
+      }
+
+      .container {
+        background-color: #020617;
+        border-color: #1f2937;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.7);
+      }
+
+      .content {
+        color: #e5e7eb;
+      }
+
+      .title {
+        color: #f9fafb;
+      }
+
+      .subtitle,
+      .note {
+        color: #9ca3af;
+      }
+
+      .email-box {
+        background-color: #020617;
+        border-color: #1f2937;
+        color: #e5e7eb;
+      }
+
+      .code-box {
+        background-color: #f9fafb;
+        color: #020617;
+      }
+
+      .hint {
+        color: #9ca3af;
+      }
+
+      .footer {
+        background-color: #020617;
+        border-color: #1f2937;
+      }
+
+      .footer-strong {
+        color: #e5e7eb;
+      }
+
+      .footer-meta {
+        color: #6b7280;
+      }
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      .container {
+        border-radius: 10px;
+      }
+
+      .content {
+        padding: 20px 18px 22px;
+      }
+
+      .header {
+        padding: 18px 18px;
+      }
+
+      .title {
+        font-size: 18px;
+      }
+
+      .code-box {
+        font-size: 22px;
+        letter-spacing: 0.28em;
+        padding: 10px 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <div class="app-name">SHAKWA</div>
+        <div class="header-tagline">Secure your-bucket-name & case management</div>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <h1 class="title">Verify your email address</h1>
+        <p class="subtitle">
+          To secure your Shakwa account, please confirm that this email address belongs to you.
+        </p>
+
+        <!-- Email being verified -->
+        <div>
+          <div class="section-label">Email to verify</div>
+          <div class="email-box">{{email}}</div>
+        </div>
+
+        <!-- Verification code -->
+        <div class="code-wrapper">
+          <div class="code-label">Your verification code</div>
+          <div class="code-box">{{code}}</div>
+          <p class="hint">
+            This code is valid for a limited time. Do not share it with anyone.
+            Our team will never ask you for this code.
+          </p>
+        </div>
+
+        <!-- Note -->
+        <p class="note">
+          If you did not request this verification, you can safely ignore this email.
+          Your Shakwa account will remain unchanged.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div>
+          <span class="footer-strong">Shakwa Support</span>
+          <span> · Digital your-bucket-name & case management platform</span>
+        </div>
+        <div class="footer-meta">
+          This is an automated message. Please do not reply directly to this email.
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

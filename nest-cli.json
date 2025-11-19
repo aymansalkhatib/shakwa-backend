@@ -10,7 +10,7 @@
         "watchAssets": true
       },
       {
-        "include": "services/mail/templates/**/*.hbs",
+        "include": "shared/services/mail/templates/**/*",
         "watchAssets": true
       }
     ]

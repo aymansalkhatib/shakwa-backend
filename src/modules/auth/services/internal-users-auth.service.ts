@@ -131,7 +131,11 @@ export class InternalUsersAuthService {
       ttlSeconds: this.passwordResetTtlSeconds,
     });
 
-    await this.authCodeService.sendCodeViaEmail(email, code, 'Internal Password Reset');
+    await this.authCodeService.sendCodeViaEmail({
+      code,
+      to: email,
+      subject: 'Internal Password Reset',
+    });
   }
 
   private genKey(email: string, role: any, purpose: AuthCodePurpose): AuthCodeKeyContext {

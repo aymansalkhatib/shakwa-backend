@@ -19,8 +19,8 @@ export class CitizensAuthController {
   constructor(private readonly citizensAuthService: CitizensAuthService) {}
 
   @Post('send-verification-email')
-  @UseGuards(CustomRateLimitGuard)
-  @CustomRateLimit({ key: RateLimitKey.EMAIL_VERIFICATION })
+  // @UseGuards(CustomRateLimitGuard)
+  // @CustomRateLimit({ key: RateLimitKey.EMAIL_VERIFICATION })
   async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
     await this.citizensAuthService.sendVerificationEmail(dto);
     return {

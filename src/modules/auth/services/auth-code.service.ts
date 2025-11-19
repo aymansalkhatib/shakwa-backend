@@ -1,5 +1,7 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Role } from '../../../common/enums/role.enum';
+import { MailService } from '../../../shared/services/mail';
+import { SendVerificationCodeOptions } from '../../../shared/services/mail/interfaces/send-verification-code.interface';
 import { RedisService } from '../../../shared/services/redis/redis.service';
 
 export enum AuthCodePurpose {
@@ -33,9 +35,11 @@ interface CacheCodeParams extends AuthCodeKeyContext {
 @Injectable()
 export class AuthCodeService {
   private static readonly CODE_LENGTH = 6;
-  private readonly logger = new Logger(AuthCodeService.name);
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly mailService: MailService,
+  ) {}
 
   async generateCode(params: GenerateCodeParams): Promise<string> {
     const code = this.generateRandomCode();
@@ -72,8 +76,11 @@ export class AuthCodeService {
     await this.redisService.delete(this.genKey(context));
   }
 
-  async sendCodeViaEmail(email: string, code: string, context: string): Promise<void> {
-    this.logger.log(`[${context}] Sending auth code "${code}" to ${email}`);
+  async sendCodeViaEmail(data: SendVerificationCodeOptions): Promise<void> {
+    const result = await this.mailService.sendVerificationCode(data);
+    if (!result) {
+      throw new BadRequestException('Failed to send verification code email');
+    }
   }
 
   private genKey({ role, purpose, email }: AuthCodeKeyContext): string {
