@@ -16,4 +16,3 @@ export class InternalUserFilterDto extends PaginationQueryDto {
   @IsEnum(InternalRole, { message: 'Role must be a valid InternalRole' })
   role?: InternalRole;
 }
-

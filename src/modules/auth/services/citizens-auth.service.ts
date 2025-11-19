@@ -14,7 +14,10 @@ import { ResetPasswordDto } from '../dtos/request/citizens/reset-password.dto';
 import { SendVerificationEmailDto } from '../dtos/request/citizens/send-verification-email.dto';
 import { VerifyEmailCodeDto } from '../dtos/request/citizens/verify-email-code.dto';
 import { VerifyResetPasswordDto } from '../dtos/request/citizens/verify-reset-password.dto';
-import { AuthCodeKeyContext, AuthCodePurpose, AuthCodeService } from './auth-code.service';
+import { AuthCodePurpose } from '../enums/auth-code-purpose.enum';
+import { IAuthCodeKeyContext } from '../interfaces/auth-code-key-context.interface';
+import { ILoginAttemptOptions } from '../interfaces/login-attempt-options.interface';
+import { AuthCodeService } from './auth-code.service';
 import { LoginAttemptService } from './login-attempt.service';
 
 @Injectable()
@@ -118,11 +121,13 @@ export class CitizensAuthService {
     }
 
     // Set up login attempt options for this citizen by email
-    const loginAttemptOptions = {
+    const loginAttemptOptions: ILoginAttemptOptions = {
       key: `citizen:login:${email.toLowerCase()}`,
       maxAttempts: 5,
       blockSeconds: 2 * 60 * 60, // 2h
       windowSeconds: 3 * 60 * 60, // 3h
+      ipAddress: ip,
+      email: email,
     };
 
     await this.loginAttemptService.checkBlocked(loginAttemptOptions);
@@ -266,7 +271,7 @@ export class CitizensAuthService {
     });
   }
 
-  private genKey(email: string, purpose: AuthCodePurpose): AuthCodeKeyContext {
+  private genKey(email: string, purpose: AuthCodePurpose): IAuthCodeKeyContext {
     return { role: Role.CITIZEN, email, purpose };
   }
 }

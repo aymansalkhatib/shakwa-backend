@@ -7,10 +7,7 @@ import { extractFileExtension, extractFileNameWithoutExtension } from './file-he
  * @param overrideExtension - Optional extension to use instead of the one from originalName (e.g., 'webp').
  * @returns A safe and unique file name (e.g., 'photo-20250409-102355891.jpg').
  */
-export function createUniqueFileName(
-  originalName: string,
-  overrideExtension?: string,
-): string {
+export function createUniqueFileName(originalName: string, overrideExtension?: string): string {
   const originalExt = extractFileExtension(originalName);
   let nameWithoutExt = extractFileNameWithoutExtension(originalName);
 

@@ -48,13 +48,11 @@ This backend focuses on:
 The backend covers the main requirements of a **centralized your-bucket-name platform**:
 
 1. **User Registration & Login with OTP** 🔐
-
    - Citizens register using a mobile number or email.
    - An OTP (One-Time Password) is sent for verification before activating the account.
    - Only verified accounts can submit your-bucket-name or access their data.
 
 2. **Submit Complaint** 📝
-
    - Structured complaint form including:
      - Complaint type/category
      - Target authority/agency
@@ -64,21 +62,18 @@ The backend covers the main requirements of a **centralized your-bucket-name pla
    - Each complaint gets a unique reference number for tracking.
 
 3. **Track Complaint Status** 📊
-
    - Citizens can track the lifecycle of their your-bucket-name:
      `NEW` → `IN_PROGRESS` → `COMPLETED` or `REJECTED`
    - Near real-time status updates.
    - Optional notifications when status changes or more information is required.
 
 4. **Authority Complaint Management (Dashboard)** 🏢
-
    - Government agency staff can:
      - View your-bucket-name assigned to their agency only.
      - Filter & search by status, type, date range, citizen, etc.
      - Update status, add internal notes, request more information from the citizen.
 
 5. **Admin Panel** 🛡️
-
    - System administrator can:
      - View all your-bucket-name across all agencies.
      - Manage users (citizens, staff, admins) and roles.
@@ -102,33 +97,27 @@ The backend covers the main requirements of a **centralized your-bucket-name pla
 Key non-functional aspects supported by the backend:
 
 1. **Concurrency Control & Conflict Prevention** ⚙️
-
    - Prevents multiple staff members from editing the same complaint simultaneously.
    - Optional “lock” mechanism when a complaint is opened in edit mode, released on completion or timeout.
 
 2. **Complaint Versioning & History** 🕓
-
    - Every important change (status, notes, attachments, etc.) is recorded in a history trail.
    - Enables full traceability: who did what, and when.
 
 3. **Usability & UX Support** 🧩
-
    - Clean, predictable REST APIs.
    - Designed to support step-by-step flows and clear error messages for both mobile and web clients.
 
 4. **Device & Platform Compatibility** 📱💻
-
    - Backend is platform-agnostic and can serve:
      - Mobile apps (e.g. Flutter)
      - Web dashboards (React, Angular, Vue, etc.)
 
 5. **Monitoring & Tracing** 📈
-
    - Centralized logging for requests, errors, and key actions.
    - Correlation IDs for tracing flows across multiple services or requests.
 
 6. **Performance & Scalability** 🚀
-
    - Efficient queries and indexing strategies.
    - Redis for caching and distributed locks where needed.
    - Can be scaled horizontally behind a reverse proxy/load balancer.
@@ -153,13 +142,11 @@ The backend follows a **layered architecture** for clarity and testability:
 ### Layers
 
 1. **Controllers**
-
    - Define REST endpoints.
    - Accept/validate input (DTOs + validation).
    - Delegate to services.
 
 2. **Services / Use Cases**
-
    - Implement business rules:
      - Registration, login, OTP verification
      - Complaint submission and status workflow
@@ -167,7 +154,6 @@ The backend follows a **layered architecture** for clarity and testability:
    - Coordinate multiple repositories and external services.
 
 3. **Repositories**
-
    - Encapsulate all database operations.
    - Allow swapping the ORM/DB layer with minimal impact on the rest of the code.
 
@@ -427,7 +413,6 @@ This provides a complete timeline for each complaint.
 Main security features:
 
 - **Authentication & Authorization**
-
   - OTP verification for new accounts.
   - JWT for authenticated requests.
   - RBAC:
@@ -436,17 +421,14 @@ Main security features:
     - Admin: full system.
 
 - **Input Validation**
-
   - DTOs + validation pipes to sanitize and validate input.
   - Prevents malformed data and basic injection attempts.
 
 - **Rate Limiting & Brute-Force Protection**
-
   - Rate limits for login/OTP-related endpoints.
   - Optional temporary lockouts after repeated failures.
 
 - **Sensitive Data Handling**
-
   - Passwords hashed with strong algorithms (e.g. bcrypt).
   - Secrets stored only in environment variables or secure vaults.
   - Uploaded files validated and stored under controlled directories.
@@ -460,14 +442,12 @@ Main security features:
 ## 📡 Logging, Monitoring & Tracing
 
 - **Structured Logging**
-
   - Logs contain:
     - Method, URL, status code, response time
     - User ID (if available)
   - Errors include stack traces (in non-production, or to secure log sinks).
 
 - **Tracing / Correlation IDs**
-
   - Each request receives a correlation ID (e.g. via middleware).
   - Helps link multiple logs belonging to the same logical operation.
 
@@ -484,12 +464,10 @@ Main security features:
 Recommended strategy:
 
 - **Unit Tests**
-
   - Test services, utilities, guards independently.
   - Use mocks for repositories and external services.
 
 - **Integration / e2e Tests**
-
   - Cover main flows:
     - Register → verify OTP → login
     - Submit complaint → track status

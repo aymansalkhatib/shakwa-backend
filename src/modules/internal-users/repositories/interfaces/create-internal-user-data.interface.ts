@@ -10,4 +10,3 @@ export interface ICreateInternalUserData {
   password: string;
   role: InternalRole;
 }
-

@@ -53,6 +53,7 @@ export class CitizensAuthController {
   @Post('forgot-password')
   @PasswordResetRateLimit()
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.citizensAuthService.handleForgotPasswordRequest(dto);
     return {
       message: 'Password reset code has been sent to your email. Please check your inbox.',
     };

@@ -1,18 +1,18 @@
 {
-    "validation": {
-        "positive_integer_required": "ID must be a positive integer",
-        "array_required": "Must be an array",
-        "id_not_empty": "Each ID must not be empty",
-        "id_integer": "Each ID must be an integer",
-        "id_positive": "Each ID must be a positive integer greater than 0",
-        "is_less_than_or_equal": "{property} must be less than or equal to {relatedProperty}",
-        "only_one_of_fields": "You can provide at most one of the following fields: {fields}",
-        "exactly_one_of_fields": "You must provide exactly one of the following fields: {fields}",
-        "multiple_validation_errors": "Multiple validation errors: {errors}",
-        "min_max_validation_failed": "Min/Max validation failed",
-        "max_greater_than_or_equal_min": "{maxField} ({maxValue}) must be greater than or equal to {minField} ({minValue})",
-        "invalid_syria_phone": "Invalid Syria phone number format for {property}. Use: 09XXXXXXXX or +9639XXXXXXXX",
-        "invalid_boolean_value": "Invalid boolean value for {key}. Only true, false, 1, 0 are allowed.",
-        "must_not_equal": "{property} must not be equal to {relatedProperty}"
-    }
+  "validation": {
+    "positive_integer_required": "ID must be a positive integer",
+    "array_required": "Must be an array",
+    "id_not_empty": "Each ID must not be empty",
+    "id_integer": "Each ID must be an integer",
+    "id_positive": "Each ID must be a positive integer greater than 0",
+    "is_less_than_or_equal": "{property} must be less than or equal to {relatedProperty}",
+    "only_one_of_fields": "You can provide at most one of the following fields: {fields}",
+    "exactly_one_of_fields": "You must provide exactly one of the following fields: {fields}",
+    "multiple_validation_errors": "Multiple validation errors: {errors}",
+    "min_max_validation_failed": "Min/Max validation failed",
+    "max_greater_than_or_equal_min": "{maxField} ({maxValue}) must be greater than or equal to {minField} ({minValue})",
+    "invalid_syria_phone": "Invalid Syria phone number format for {property}. Use: 09XXXXXXXX or +9639XXXXXXXX",
+    "invalid_boolean_value": "Invalid boolean value for {key}. Only true, false, 1, 0 are allowed.",
+    "must_not_equal": "{property} must not be equal to {relatedProperty}"
+  }
 }

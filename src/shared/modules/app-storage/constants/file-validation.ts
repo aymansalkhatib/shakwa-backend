@@ -23,11 +23,7 @@ export const FILE_SIZE_LIMITS: Record<SupportedFileType, FileSizeUnit> = {
 /**
  * Predefined allowed file types grouped by usage context.
  */
-const IMAGE_FILE_TYPES: NonEmptyArray<SupportedFileType> = [
-  'png',
-  'jpg',
-  'jpeg',
-];
+const IMAGE_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['png', 'jpg', 'jpeg'];
 const VIDEO_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['mp4'];
 const AUDIO_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['ogg'];
 const DOCUMENT_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['txt'];
@@ -35,10 +31,7 @@ const DOCUMENT_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['txt'];
 /**
  * Maps field names to allowed file types to enforce field-specific file restrictions.
  */
-export const FIELD_FILE_TYPE_CONSTRAINTS: Record<
-  string,
-  NonEmptyArray<SupportedFileType>
-> = {
+export const FIELD_FILE_TYPE_CONSTRAINTS: Record<string, NonEmptyArray<SupportedFileType>> = {
   image: IMAGE_FILE_TYPES,
   images: IMAGE_FILE_TYPES,
   videos: VIDEO_FILE_TYPES,

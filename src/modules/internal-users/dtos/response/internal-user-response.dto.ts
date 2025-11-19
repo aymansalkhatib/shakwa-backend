@@ -35,4 +35,3 @@ export class InternalUserResponseDto {
     return Object.assign(this, internalUser);
   }
 }
-

@@ -20,8 +20,7 @@ export class FileValidationSignatureValidator extends FileValidator {
       magicNumber?: string;
       fieldType?: string;
     } = {
-      mimeType:
-        'Invalid file type provided. Allowed types are: ' + allowedTypes.join(', '),
+      mimeType: 'Invalid file type provided. Allowed types are: ' + allowedTypes.join(', '),
       magicNumber: 'File signature does not match the expected format.',
       fieldType: 'File type not allowed for the specified field.',
     },
@@ -101,9 +100,7 @@ export class FileValidationSignatureValidator extends FileValidator {
    * @private
    */
   private validateFieldSpecificFileTypes(files: any): boolean {
-    const isValid = validateFileUpload<
-      Record<string, NonEmptyArray<SupportedFileType>>
-    >(
+    const isValid = validateFileUpload<Record<string, NonEmptyArray<SupportedFileType>>>(
       files,
       this.validateFieldFileTypeAgainstConstraints.bind(this),
       FIELD_FILE_TYPE_CONSTRAINTS,
@@ -172,15 +169,11 @@ export class FileValidationSignatureValidator extends FileValidator {
    * @private
    */
   private isMagicNumberValidForFile(file: Express.Multer.File): boolean {
-    const detectedSignatures = magicBytes(file.buffer).map(
-      (detectedFile) => detectedFile.mime,
-    );
+    const detectedSignatures = magicBytes(file.buffer).map((detectedFile) => detectedFile.mime);
 
     if (!detectedSignatures.length) return false;
 
-    const detectedSubtypes = detectedSignatures.map(
-      (signature) => signature.split('/')[1],
-    );
+    const detectedSubtypes = detectedSignatures.map((signature) => signature.split('/')[1]);
 
     const fileSubtype = file.mimetype.split('/')[1];
 

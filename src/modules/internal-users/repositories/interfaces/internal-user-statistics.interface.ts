@@ -8,4 +8,3 @@ export interface IInternalUserStatistics {
   totalInternalUsers: number;
   internalUsersByRole: Record<InternalRole, number>;
 }
-

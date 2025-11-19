@@ -19,4 +19,3 @@ import { InternalUsersService } from './services/internal-users.service';
   exports: [InternalUsersService, INTERNAL_USERS_REPOSITORY_TOKEN],
 })
 export class InternalUsersModule {}
-

@@ -25,12 +25,7 @@ export class CustomFileParsingPipe extends ParseFilePipe {
     @Inject(STORAGE_CONSTANTS.FILE_VALIDATION_CONFIG)
     readonly options: FileValidationOptions,
   ) {
-    const {
-      globalMaxFileSize,
-      allowedFileTypes,
-      isFileRequired,
-      perTypeSizeLimits,
-    } = options;
+    const { globalMaxFileSize, allowedFileTypes, isFileRequired, perTypeSizeLimits } = options;
 
     const validators: FileValidator[] = [
       // Validates the global maximum file size

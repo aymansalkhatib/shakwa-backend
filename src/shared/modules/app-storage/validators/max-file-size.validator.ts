@@ -46,10 +46,7 @@ export class MaxFileSizeValidator extends FileValidator {
    */
   isValid(files: FileUpload): boolean {
     // Function to check if an individual file's size is within the allowed limit
-    function isFileSizeWithinLimit(
-      file: Express.Multer.File,
-      config: { maxSize: number },
-    ) {
+    function isFileSizeWithinLimit(file: Express.Multer.File, config: { maxSize: number }) {
       return file.size <= config.maxSize;
     }
 

@@ -11,7 +11,9 @@ import { InternalUserForgotPasswordDto } from '../dtos/request/internal-users/fo
 import { InternalUserLoginDto } from '../dtos/request/internal-users/internal-user-login.dto';
 import { InternalUserResetPasswordDto } from '../dtos/request/internal-users/reset-password.dto';
 import { InternalUserVerifyResetPasswordDto } from '../dtos/request/internal-users/verify-reset-password.dto';
-import { AuthCodeKeyContext, AuthCodePurpose, AuthCodeService } from './auth-code.service';
+import { AuthCodePurpose } from '../enums/auth-code-purpose.enum';
+import { IAuthCodeKeyContext } from '../interfaces/auth-code-key-context.interface';
+import { AuthCodeService } from './auth-code.service';
 import { LoginAttemptService } from './login-attempt.service';
 
 @Injectable()
@@ -44,6 +46,8 @@ export class InternalUsersAuthService {
       maxAttempts: 5,
       blockSeconds: 2 * 60 * 60, // 2h
       windowSeconds: 3 * 60 * 60, // 3h
+      ipAddress: ip,
+      email: email,
     };
 
     await this.loginAttemptService.checkBlocked(loginAttemptOptions);
@@ -154,7 +158,7 @@ export class InternalUsersAuthService {
     });
   }
 
-  private genKey(email: string, role: any, purpose: AuthCodePurpose): AuthCodeKeyContext {
+  private genKey(email: string, role: any, purpose: AuthCodePurpose): IAuthCodeKeyContext {
     return { role, email, purpose };
   }
 }

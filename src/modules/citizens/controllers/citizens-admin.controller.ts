@@ -32,7 +32,6 @@ export class CitizensAdminController {
     return this.citizensAdminService.findOne(id);
   }
 
-
   @Post(':id/block')
   @SerializeResponse(CitizenResponseDto)
   blockCitizen(@Param('id', PositiveIntPipe) id: number): Promise<CitizenResponseDto> {

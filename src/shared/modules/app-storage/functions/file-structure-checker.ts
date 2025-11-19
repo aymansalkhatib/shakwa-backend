@@ -95,8 +95,7 @@ export function validateFileUpload<T>(
   options: T = null,
 ): boolean {
   // Wrap validator with options
-  const validatorWithOptions = (file: Express.Multer.File) =>
-    validator(file, options);
+  const validatorWithOptions = (file: Express.Multer.File) => validator(file, options);
 
   // Handle validation depending on the structure
   if (isSingleFile(files)) {

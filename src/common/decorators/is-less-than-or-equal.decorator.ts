@@ -1,4 +1,3 @@
-
 import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator';
 import { TranslateHelper } from '../../shared/modules/app-i18n/translate.helper';
 

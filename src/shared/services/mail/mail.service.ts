@@ -4,6 +4,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { CreateEmailOptions, Resend } from 'resend';
 import { EnvironmentConfig } from '../../modules/app-config';
+import { SendLoginLockedOptions } from './interfaces/send-login-locked-options';
 import { SendVerificationCodeOptions } from './interfaces/send-verification-code.interface';
 
 type MailTemplateData = Record<string, any>;
@@ -25,6 +26,23 @@ export class MailService {
     const html = await this.renderTemplate('verify-code', {
       code: data.code,
       email: data.to,
+    });
+
+    return this.sendMail({
+      to: data.to,
+      from: `Shakwa<${this.from}>`,
+      subject: data.subject,
+      html,
+    });
+  }
+
+  async sendLoginLockedNotification(data: SendLoginLockedOptions): Promise<boolean> {
+    const html = await this.renderTemplate('login-locked', {
+      email: data.to,
+      lockDuration: data.lockDuration || 'Unknown',
+      lockedUntil: data.lockedUntil || 'Unknown',
+      failedAttempts: data.failedAttempts ?? 'Unknown',
+      ipAddress: data.ipAddress || 'Unknown',
     });
 
     return this.sendMail({

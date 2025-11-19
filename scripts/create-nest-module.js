@@ -56,10 +56,7 @@ class NestJSModuleGenerator {
     }
 
     // Standard pluralization rules
-    if (
-      lowerWord.endsWith('y') &&
-      !'aeiou'.includes(lowerWord[lowerWord.length - 2])
-    ) {
+    if (lowerWord.endsWith('y') && !'aeiou'.includes(lowerWord[lowerWord.length - 2])) {
       return word.slice(0, -1) + 'ies';
     }
     if (
@@ -77,10 +74,7 @@ class NestJSModuleGenerator {
     if (lowerWord.endsWith('fe')) {
       return word.slice(0, -2) + 'ves';
     }
-    if (
-      lowerWord.endsWith('o') &&
-      !'aeiou'.includes(lowerWord[lowerWord.length - 2])
-    ) {
+    if (lowerWord.endsWith('o') && !'aeiou'.includes(lowerWord[lowerWord.length - 2])) {
       return word + 'es';
     }
 
@@ -129,10 +123,7 @@ class NestJSModuleGenerator {
     ) {
       return word.slice(0, -2);
     }
-    if (
-      lowerWord.endsWith('oes') &&
-      !'aeiou'.includes(lowerWord[lowerWord.length - 4])
-    ) {
+    if (lowerWord.endsWith('oes') && !'aeiou'.includes(lowerWord[lowerWord.length - 4])) {
       return word.slice(0, -2);
     }
     if (lowerWord.endsWith('s') && !lowerWord.endsWith('ss')) {
@@ -156,10 +147,7 @@ class NestJSModuleGenerator {
       'geese',
     ];
 
-    if (
-      alwaysPlural.includes(lowerWord) ||
-      irregularPlurals.includes(lowerWord)
-    ) {
+    if (alwaysPlural.includes(lowerWord) || irregularPlurals.includes(lowerWord)) {
       return true;
     }
 
@@ -179,9 +167,7 @@ class NestJSModuleGenerator {
   // Prompt user for input
   async promptUser(question, defaultValue = '') {
     return new Promise((resolve) => {
-      const prompt = defaultValue
-        ? `${question} (${defaultValue}): `
-        : `${question}: `;
+      const prompt = defaultValue ? `${question} (${defaultValue}): ` : `${question}: `;
       this.rl.question(prompt, (answer) => {
         resolve(answer.trim() || defaultValue);
       });
@@ -192,14 +178,10 @@ class NestJSModuleGenerator {
   async createDirectory(dirPath, force = false) {
     if (fs.existsSync(dirPath)) {
       if (force) {
-        console.log(
-          `⚠️  Directory '${dirPath}' already exists. Overwriting due to --force flag.`,
-        );
+        console.log(`⚠️  Directory '${dirPath}' already exists. Overwriting due to --force flag.`);
         fs.rmSync(dirPath, { recursive: true, force: true });
       } else {
-        throw new Error(
-          `Directory '${dirPath}' already exists. Use --force to overwrite.`,
-        );
+        throw new Error(`Directory '${dirPath}' already exists. Use --force to overwrite.`);
       }
     }
 
@@ -435,19 +417,14 @@ export class \${FeatureName}Module {}`,
         'Enter singular name (optional, will be auto-generated if empty)',
       );
 
-      const forceInput = await this.promptUser(
-        'Force overwrite existing files? (y/N)',
-        'n',
-      );
-      const force =
-        forceInput.toLowerCase() === 'y' || forceInput.toLowerCase() === 'yes';
+      const forceInput = await this.promptUser('Force overwrite existing files? (y/N)', 'n');
+      const force = forceInput.toLowerCase() === 'y' || forceInput.toLowerCase() === 'yes';
 
       const basePath = await this.promptUser('Base path', 'src/modules');
 
       // Process names
       const featureNameNormalized = this.toKebabCase(featureName.toLowerCase());
-      const singularName =
-        singularInput || this.singularize(featureNameNormalized);
+      const singularName = singularInput || this.singularize(featureNameNormalized);
       const fileName = this.toKebabCase(singularName);
 
       // Generate all name variations
@@ -482,63 +459,31 @@ export class \${FeatureName}Module {}`,
       const templates = this.getTemplates();
       const files = [
         {
-          path: path.join(
-            modulePath,
-            'dtos',
-            'request',
-            `create-${names.fileName}.dto.ts`,
-          ),
+          path: path.join(modulePath, 'dtos', 'request', `create-${names.fileName}.dto.ts`),
           template: templates.CreateDto,
         },
         {
-          path: path.join(
-            modulePath,
-            'dtos',
-            'request',
-            `update-${names.fileName}.dto.ts`,
-          ),
+          path: path.join(modulePath, 'dtos', 'request', `update-${names.fileName}.dto.ts`),
           template: templates.UpdateDto,
         },
         {
-          path: path.join(
-            modulePath,
-            'dtos',
-            'response',
-            `${names.fileName}-response.dto.ts`,
-          ),
+          path: path.join(modulePath, 'dtos', 'response', `${names.fileName}-response.dto.ts`),
           template: templates.ResponseDto,
         },
         {
-          path: path.join(
-            modulePath,
-            'dtos',
-            'query',
-            `${names.fileName}-filter.dto.ts`,
-          ),
+          path: path.join(modulePath, 'dtos', 'query', `${names.fileName}-filter.dto.ts`),
           template: templates.FilterDto,
         },
         {
-          path: path.join(
-            modulePath,
-            'entities',
-            `${names.fileName}.entity.ts`,
-          ),
+          path: path.join(modulePath, 'entities', `${names.fileName}.entity.ts`),
           template: templates.Entity,
         },
         {
-          path: path.join(
-            modulePath,
-            'controllers',
-            `${names.featureName}.controller.ts`,
-          ),
+          path: path.join(modulePath, 'controllers', `${names.featureName}.controller.ts`),
           template: templates.Controller,
         },
         {
-          path: path.join(
-            modulePath,
-            'services',
-            `${names.featureName}.service.ts`,
-          ),
+          path: path.join(modulePath, 'services', `${names.featureName}.service.ts`),
           template: templates.Service,
         },
         {
@@ -570,17 +515,13 @@ export * from './query/${names.fileName}-filter.dto';`;
       console.log(`✅ Created: ${dtosIndexPath}`);
 
       // Success message
-      console.log(
-        `\n🎉 SUCCESS! NestJS module '${names.FeatureName}' created successfully!`,
-      );
+      console.log(`\n🎉 SUCCESS! NestJS module '${names.FeatureName}' created successfully!`);
       console.log(`📍 Location: ${modulePath}`);
       console.log(`\n📝 Next Steps:`);
       console.log(`   1. Add the module to your app.module.ts imports`);
       console.log(`   2. Configure your database connection for the entity`);
       console.log(`   3. Update the DTO validation rules as needed`);
-      console.log(
-        `   4. Implement any additional business logic in the service`,
-      );
+      console.log(`   4. Implement any additional business logic in the service`);
       console.log(`\n💡 Import Example:`);
       console.log(
         `   import { ${names.FeatureName}Module } from './modules/${names.featureName}/${names.featureName}.module';`,

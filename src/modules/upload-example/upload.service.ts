@@ -34,9 +34,7 @@ export class UploadServiceExample {
    * @returns SingleFileUploadResponseDto with file information.
    * @throws BadRequestException if no file is uploaded.
    */
-  uploadSingleFile(
-    file: Express.Multer.File,
-  ): SingleFileUploadResponseDto {
+  uploadSingleFile(file: Express.Multer.File): SingleFileUploadResponseDto {
     if (!file) {
       throw new BadRequestException('No file uploaded.');
     }
@@ -54,9 +52,7 @@ export class UploadServiceExample {
    * @returns MultipleFilesUploadResponseDto with files information.
    * @throws BadRequestException if no files are uploaded.
    */
-  uploadMultipleFiles(
-    files: Express.Multer.File[],
-  ): MultipleFilesUploadResponseDto {
+  uploadMultipleFiles(files: Express.Multer.File[]): MultipleFilesUploadResponseDto {
     if (!files || files.length === 0) {
       throw new BadRequestException('No files uploaded.');
     }
@@ -79,9 +75,7 @@ export class UploadServiceExample {
    * @returns AnyFilesUploadResponseDto with files grouped by field name.
    * @throws BadRequestException if no files are uploaded.
    */
-  uploadAnyFiles(
-    files: Express.Multer.File[],
-  ): AnyFilesUploadResponseDto {
+  uploadAnyFiles(files: Express.Multer.File[]): AnyFilesUploadResponseDto {
     if (!files || files.length === 0) {
       throw new BadRequestException('No files uploaded.');
     }

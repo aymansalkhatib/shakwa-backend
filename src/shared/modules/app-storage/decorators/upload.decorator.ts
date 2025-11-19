@@ -22,10 +22,7 @@ export function SingleFileUpload(fieldName: string = 'file') {
   );
 }
 
-export function MultipleFilesUpload(
-  fieldName: string = 'files',
-  maxCount: number = 2,
-) {
+export function MultipleFilesUpload(fieldName: string = 'files', maxCount: number = 2) {
   return applyDecorators(
     UseInterceptors(
       FilesInterceptor(fieldName, maxCount, {
@@ -50,8 +47,6 @@ export function MultipleFieldFilesUpload(fields: MulterField[]) {
   );
 }
 
-export function AnyFilesUpload(
-  localOptions: MulterOptions = { limits: { files: 5 } },
-) {
+export function AnyFilesUpload(localOptions: MulterOptions = { limits: { files: 5 } }) {
   return applyDecorators(UseInterceptors(AnyFilesInterceptor(localOptions)));
 }

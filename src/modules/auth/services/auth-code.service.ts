@@ -1,36 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Role } from '../../../common/enums/role.enum';
 import { MailService } from '../../../shared/services/mail';
 import { SendVerificationCodeOptions } from '../../../shared/services/mail/interfaces/send-verification-code.interface';
 import { RedisService } from '../../../shared/services/redis/redis.service';
-
-export enum AuthCodePurpose {
-  EMAIL_VERIFICATION_CODE = 'email_verification_code',
-  EMAIL_VERIFICATION_TOKEN = 'email_verification_token',
-  PASSWORD_RESET_CODE = 'password_reset_code',
-  PASSWORD_RESET_TOKEN = 'password_reset_token',
-}
-
-export interface AuthCodeKeyContext {
-  role: Role;
-  email: string;
-  purpose: AuthCodePurpose;
-}
-
-interface GenerateCodeParams extends AuthCodeKeyContext {
-  ttlSeconds: number;
-}
-
-interface VerifyCodeParams extends AuthCodeKeyContext {
-  code: string;
-  errorMessage: string;
-  consume?: boolean;
-}
-
-interface CacheCodeParams extends AuthCodeKeyContext {
-  code: string;
-  ttlSeconds: number;
-}
+import { IAuthCodeKeyContext } from '../interfaces/auth-code-key-context.interface';
+import { ICacheCodeParams } from '../interfaces/cache-code-params.interface';
+import { IGenerateCodeParams } from '../interfaces/generate-code-params.interface';
+import { IVerifyCodeParams } from '../interfaces/verify-code-params.interface';
 
 @Injectable()
 export class AuthCodeService {
@@ -41,7 +16,7 @@ export class AuthCodeService {
     private readonly mailService: MailService,
   ) {}
 
-  async generateCode(params: GenerateCodeParams): Promise<string> {
+  async generateCode(params: IGenerateCodeParams): Promise<string> {
     const code = this.generateRandomCode();
 
     await this.cacheCode({ ...params, code });
@@ -53,7 +28,7 @@ export class AuthCodeService {
     return code;
   }
 
-  async verifyCode(params: VerifyCodeParams): Promise<void> {
+  async verifyCode(params: IVerifyCodeParams): Promise<void> {
     const key = this.genKey(params);
     const cachedCode = await this.redisService.getString(key);
 
@@ -68,11 +43,11 @@ export class AuthCodeService {
     }
   }
 
-  async cacheCode(params: CacheCodeParams): Promise<void> {
+  async cacheCode(params: ICacheCodeParams): Promise<void> {
     await this.redisService.setString(this.genKey(params), params.code, params.ttlSeconds);
   }
 
-  async clearCode(context: AuthCodeKeyContext): Promise<void> {
+  async clearCode(context: IAuthCodeKeyContext): Promise<void> {
     await this.redisService.delete(this.genKey(context));
   }
 
@@ -83,7 +58,7 @@ export class AuthCodeService {
     }
   }
 
-  private genKey({ role, purpose, email }: AuthCodeKeyContext): string {
+  private genKey({ role, purpose, email }: IAuthCodeKeyContext): string {
     return `${role}:${purpose}:${email.toLowerCase()}`;
   }
 

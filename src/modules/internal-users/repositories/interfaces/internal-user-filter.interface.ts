@@ -10,4 +10,3 @@ export interface IInternalUserFilter extends IPaginationOptions {
   email?: string;
   role?: InternalRole;
 }
-

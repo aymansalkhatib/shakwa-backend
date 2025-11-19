@@ -1,18 +1,18 @@
 {
-    "validation": {
-        "positive_integer_required": "يجب أن يكون المعرف رقمًا صحيحًا موجبًا",
-        "array_required": "يجب أن تكون القيمة مصفوفة",
-        "id_not_empty": "يجب ألا يكون كل معرف فارغًا",
-        "id_integer": "يجب أن يكون كل معرف رقمًا صحيحًا",
-        "id_positive": "يجب أن يكون كل معرف رقمًا صحيحًا موجبًا أكبر من 0",
-        "is_less_than_or_equal": "يجب أن يكون {property} أقل من أو يساوي {relatedProperty}",
-        "only_one_of_fields": "يمكنك تقديم حقل واحد فقط كحد أقصى من الحقول التالية: {fields}",
-        "exactly_one_of_fields": "يجب عليك تقديم حقل واحد فقط من الحقول التالية: {fields}",
-        "multiple_validation_errors": "أخطاء تحقق متعددة: {errors}",
-        "min_max_validation_failed": "فشل التحقق من الحد الأدنى/الأقصى",
-        "max_greater_than_or_equal_min": "{maxField} ({maxValue}) يجب أن يكون أكبر من أو يساوي {minField} ({minValue})",
-        "invalid_syria_phone": "تنسيق رقم الهاتف السوري غير صحيح لـ {property}. استخدم: 09XXXXXXXX أو +9639XXXXXXXX",
-        "invalid_boolean_value": "قيمة منطقية غير صالحة لـ {key}. فقط true، false، 1، 0 مسموح بها.",
-        "must_not_equal": "{property} يجب ألا يكون مساويًا لـ {relatedProperty}"
-    }
+  "validation": {
+    "positive_integer_required": "يجب أن يكون المعرف رقمًا صحيحًا موجبًا",
+    "array_required": "يجب أن تكون القيمة مصفوفة",
+    "id_not_empty": "يجب ألا يكون كل معرف فارغًا",
+    "id_integer": "يجب أن يكون كل معرف رقمًا صحيحًا",
+    "id_positive": "يجب أن يكون كل معرف رقمًا صحيحًا موجبًا أكبر من 0",
+    "is_less_than_or_equal": "يجب أن يكون {property} أقل من أو يساوي {relatedProperty}",
+    "only_one_of_fields": "يمكنك تقديم حقل واحد فقط كحد أقصى من الحقول التالية: {fields}",
+    "exactly_one_of_fields": "يجب عليك تقديم حقل واحد فقط من الحقول التالية: {fields}",
+    "multiple_validation_errors": "أخطاء تحقق متعددة: {errors}",
+    "min_max_validation_failed": "فشل التحقق من الحد الأدنى/الأقصى",
+    "max_greater_than_or_equal_min": "{maxField} ({maxValue}) يجب أن يكون أكبر من أو يساوي {minField} ({minValue})",
+    "invalid_syria_phone": "تنسيق رقم الهاتف السوري غير صحيح لـ {property}. استخدم: 09XXXXXXXX أو +9639XXXXXXXX",
+    "invalid_boolean_value": "قيمة منطقية غير صالحة لـ {key}. فقط true، false، 1، 0 مسموح بها.",
+    "must_not_equal": "{property} يجب ألا يكون مساويًا لـ {relatedProperty}"
+  }
 }

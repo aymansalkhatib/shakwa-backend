@@ -1,24 +1,17 @@
-// File: login-attempt.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { MailService } from '../../../shared/services/mail';
 import { RedisService } from '../../../shared/services/redis';
-
-export interface LoginAttemptOptions {
-  key: string;
-  maxAttempts: number;
-  blockSeconds: number;
-  windowSeconds: number;
-}
-
-type FailState = {
-  count: number;
-  blockedUntil?: number;
-};
+import { IFailState } from '../interfaces/fail-state.interface';
+import { ILoginAttemptOptions } from '../interfaces/login-attempt-options.interface';
 
 @Injectable()
 export class LoginAttemptService {
-  constructor(private readonly redis: RedisService) {}
+  constructor(
+    private readonly redis: RedisService,
+    private readonly mailService: MailService,
+  ) {}
 
-  async checkBlocked(options: LoginAttemptOptions): Promise<void> {
+  async checkBlocked(options: ILoginAttemptOptions): Promise<void> {
     const { key } = options;
 
     const now = Math.floor(Date.now() / 1000);
@@ -26,7 +19,7 @@ export class LoginAttemptService {
 
     if (!raw) return;
 
-    let state: FailState;
+    let state: IFailState;
 
     try {
       state = JSON.parse(raw);
@@ -39,13 +32,13 @@ export class LoginAttemptService {
     }
   }
 
-  async registerFailure(options: LoginAttemptOptions): Promise<void> {
-    const { key, maxAttempts, blockSeconds, windowSeconds } = options;
+  async registerFailure(options: ILoginAttemptOptions): Promise<void> {
+    const { key, maxAttempts, blockSeconds, windowSeconds, email } = options;
 
     const now = Math.floor(Date.now() / 1000);
 
     const raw = await this.redis.getString(key);
-    let state: FailState = { count: 0 };
+    let state: IFailState = { count: 0 };
 
     try {
       if (raw) state = JSON.parse(raw);
@@ -61,11 +54,18 @@ export class LoginAttemptService {
 
     if (state.count >= maxAttempts) {
       const blockedUntil = now + blockSeconds;
-      const newState: FailState = { count: 0, blockedUntil };
+      const newState: IFailState = { count: 0, blockedUntil };
 
       await this.redis.setString(key, JSON.stringify(newState), blockSeconds);
-
-      throw new UnauthorizedException(`Too many attempts. Try again later.`);
+      await this.mailService.sendLoginLockedNotification({
+        failedAttempts: state.count,
+        ipAddress: options.ipAddress ?? 'Unknown',
+        lockDuration: `${(blockSeconds / 3600).toFixed(2)} hours`,
+        lockedUntil: new Date((now + blockSeconds) * 1000).toLocaleString(),
+        subject: 'Sign-in Temporarily Locked',
+        to: email,
+      });
+      throw new UnauthorizedException(`Too many attempts. Try again later.1`);
     }
 
     await this.redis.setString(key, JSON.stringify(state), windowSeconds);

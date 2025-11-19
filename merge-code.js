@@ -1,5 +1,5 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Recursively get all files in a directory
@@ -28,16 +28,16 @@ function getAllFiles(dir) {
  * @param {string} folderPath - The source folder
  * @param {string} outputPath - Path to save merged output
  */
-function mergeFilesToOutput(folderPath, outputPath = "merged_output.txt") {
+function mergeFilesToOutput(folderPath, outputPath = 'merged_output.txt') {
   const allFiles = getAllFiles(folderPath);
-  const writeStream = fs.createWriteStream(outputPath, { flags: "w" });
+  const writeStream = fs.createWriteStream(outputPath, { flags: 'w' });
 
   allFiles.forEach((file) => {
-    const content = fs.readFileSync(file, "utf-8");
+    const content = fs.readFileSync(file, 'utf-8');
 
     writeStream.write(`\n--- ${file} ---\n`);
     writeStream.write(content);
-    writeStream.write("\n");
+    writeStream.write('\n');
   });
 
   writeStream.end();
@@ -47,9 +47,7 @@ function mergeFilesToOutput(folderPath, outputPath = "merged_output.txt") {
 // --- Run ---
 const targetFolder = process.argv[2]; // Get folder path from CLI argument
 if (!targetFolder) {
-  console.error(
-    "❌ Please provide a folder path.\nUsage: node merge-files.js ./your-folder"
-  );
+  console.error('❌ Please provide a folder path.\nUsage: node merge-files.js ./your-folder');
   process.exit(1);
 }
 

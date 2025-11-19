@@ -35,9 +35,9 @@ function mergeFilesToOutput(folderPath, outputPath = 'merged_output.txt') {
   allFiles.forEach((file) => {
     const content = fs.readFileSync(file, 'utf-8');
     // if (file.includes('entity')) {
-      writeStream.write(`\n--- ${file} ---\n`);
-      writeStream.write(content);
-      writeStream.write('\n');
+    writeStream.write(`\n--- ${file} ---\n`);
+    writeStream.write(content);
+    writeStream.write('\n');
     // }
   });
 
