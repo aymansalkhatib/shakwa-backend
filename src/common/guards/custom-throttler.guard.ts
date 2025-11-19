@@ -24,14 +24,6 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
     const ip = rawIp.startsWith('::ffff:') ? rawIp.substring(7) : rawIp;
 
-    const user: any = (req as any).user;
-
-    const userId = user?.id ?? user?.userId ?? user?.sub;
-
-    if (userId) {
-      return `${ip}:user:${userId}`;
-    }
-
     return ip;
   }
 

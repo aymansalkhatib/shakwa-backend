@@ -26,7 +26,7 @@ import { RedisModule } from './shared/services/redis';
     AppThrottlerModule,
     AppJwtModule,
     AppStorageModule.register({ provider: 'local' }),
-    RedisModule,//TODO: remove 
+    RedisModule,
     CitizensModule,
     AuthModule,
   ],
