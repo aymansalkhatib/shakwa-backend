@@ -15,6 +15,7 @@ import { AppLoggerModule, LoggingMiddleware } from './shared/modules/app-logger'
 import { AppStorageModule } from './shared/modules/app-storage/app-storage.module';
 import { AppThrottlerModule } from './shared/modules/app-throttler/app-throttler.module';
 import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.module';
+import { RedisModule } from './shared/services/redis';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.mod
     AppThrottlerModule,
     AppJwtModule,
     AppStorageModule.register({ provider: 'local' }),
+    RedisModule,//TODO: remove 
     CitizensModule,
     AuthModule,
   ],

@@ -1,3 +1,4 @@
+// File: custom-rate-limit.service.ts
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 
@@ -5,7 +6,17 @@ import { RedisService } from '../redis/redis.service';
  * Rate limit state stored in Redis
  */
 type RateLimitState = {
+  /**
+   * List of attempt timestamps (in seconds) within the last 24 hours
+   */
   timestamps: number[];
+
+  /**
+   * Global lock timestamp (in seconds since epoch).
+   * No attempts are allowed while now < blockedUntil,
+   * even if timestamps array shrinks when old entries expire.
+   */
+  blockedUntil?: number;
 };
 
 /**
@@ -39,7 +50,7 @@ export class CustomRateLimitService {
   private readonly maxRetentionSeconds = 24 * 60 * 60;
 
   /**
-   * TTL for Redis key (25 hours to ensure cleanup)
+   * TTL for Redis key (25 hours to ensure the full 24h window is respected)
    */
   private readonly redisTtlSeconds = 25 * 60 * 60;
 
@@ -57,30 +68,26 @@ export class CustomRateLimitService {
 
     // Get current state from Redis
     const raw = await this.redisService.getString(key);
-    const state: RateLimitState = raw ? JSON.parse(raw) : { timestamps: [] };
+    let state: RateLimitState;
 
-    // Clean up timestamps older than 24 hours
+    try {
+      state = raw ? (JSON.parse(raw) as RateLimitState) : { timestamps: [] };
+    } catch {
+      // In case of corrupted state, reset it
+      state = { timestamps: [] };
+    }
+
+    // Clean up timestamps older than 24 hours (statistical window only)
     state.timestamps = state.timestamps.filter((ts) => now - ts < this.maxRetentionSeconds);
 
-    // Calculate attempt count (number of previous attempts)
-    const attemptCount = state.timestamps.length;
-
-    // Get delay for current attempt count
-    const delay = this.delays[Math.min(attemptCount, this.delays.length - 1)];
-
-    // Get last attempt timestamp (or 0 if no previous attempts)
-    const lastAttempt = state.timestamps[state.timestamps.length - 1] || 0;
-
-    // Calculate when next attempt is allowed
-    const nextAllowedTime = lastAttempt + delay;
-
-    // Check if current time is before next allowed time
-    if (now < nextAllowedTime) {
-      const waitSeconds = nextAllowedTime - now;
+    // If there is a global lock, enforce it first
+    if (state.blockedUntil && now < state.blockedUntil) {
+      const waitSeconds = state.blockedUntil - now;
 
       this.logger.warn(
-        `Rate limit exceeded for key: ${key}. Attempt #${attemptCount + 1}. Wait ${waitSeconds}s before retrying.`,
+        `Rate limit (global lock) exceeded for key: ${key}. Wait ${waitSeconds}s before retrying.`,
       );
+
       throw new HttpException(
         {
           statusCode: HttpStatus.TOO_MANY_REQUESTS,
@@ -92,8 +99,21 @@ export class CustomRateLimitService {
       );
     }
 
-    // Add current timestamp to state
+    // Calculate attempt count (number of previous attempts within 24h window)
+    const attemptCount = state.timestamps.length;
+
+    // Get delay for the "next" attempt based on previous attempts count
+    const delay = this.delays[Math.min(attemptCount, this.delays.length - 1)];
+
+    // At this point, we allow this attempt (no active global lock)
+    // Record current attempt
     state.timestamps.push(now);
+
+    // Compute new blockedUntil (do not shorten an existing lock)
+    const newBlockedUntil = now + delay;
+    if (!state.blockedUntil || newBlockedUntil > state.blockedUntil) {
+      state.blockedUntil = newBlockedUntil;
+    }
 
     // Store updated state in Redis with TTL
     await this.redisService.setString(key, JSON.stringify(state), this.redisTtlSeconds);

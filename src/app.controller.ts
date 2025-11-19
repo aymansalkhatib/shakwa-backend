@@ -9,4 +9,9 @@ export class AppController {
   async getHello() {
     return this.appService.getHello();
   }
+
+  @Get('redis/flush')
+  async cleanRedis() {
+    return this.appService.cleanRedis();
+  }
 }
