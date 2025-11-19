@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
+import { plainToInstance } from 'class-transformer';
 import { Role } from '../../../common/enums/role.enum';
 import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
+import { CitizenResponseDto } from '../../citizens/dtos';
 import { CitizensService } from '../../citizens/services/citizens.service';
 import { CitizenLoginDto } from '../dtos/request/citizens/citizen-login.dto';
 import { CitizenRegisterDto } from '../dtos/request/citizens/citizen-register.dto';
@@ -13,6 +15,7 @@ import { SendVerificationEmailDto } from '../dtos/request/citizens/send-verifica
 import { VerifyEmailCodeDto } from '../dtos/request/citizens/verify-email-code.dto';
 import { VerifyResetPasswordDto } from '../dtos/request/citizens/verify-reset-password.dto';
 import { AuthCodeKeyContext, AuthCodePurpose, AuthCodeService } from './auth-code.service';
+import { LoginAttemptService } from './login-attempt.service';
 
 @Injectable()
 export class CitizensAuthService {
@@ -23,6 +26,7 @@ export class CitizensAuthService {
     private readonly jwtService: AppJwtService,
     private readonly authCodeService: AuthCodeService,
     private readonly configService: ConfigService<EnvironmentConfig>,
+    private readonly loginAttemptService: LoginAttemptService,
   ) {
     this.securityTokenTtlSeconds = this.configService.getOrThrow<number>(
       'JWT_SECURITY_EXPIRES_IN_S',
@@ -113,8 +117,19 @@ export class CitizensAuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    // Set up login attempt options for this citizen by email
+    const loginAttemptOptions = {
+      key: `citizen:login:${email.toLowerCase()}`,
+      maxAttempts: 5,
+      blockSeconds: 2 * 60 * 60, // 2h
+      windowSeconds: 3 * 60 * 60, // 3h
+    };
+
+    await this.loginAttemptService.checkBlocked(loginAttemptOptions);
+
     const isPasswordValid = await bcrypt.compare(password, citizen.password);
     if (!isPasswordValid) {
+      await this.loginAttemptService.registerFailure(loginAttemptOptions);
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -131,7 +146,12 @@ export class CitizensAuthService {
       role: Role.CITIZEN,
     });
 
-    return { token, citizen };
+    await this.loginAttemptService.resetFailures(loginAttemptOptions.key);
+
+    return {
+      token,
+      user: plainToInstance(CitizenResponseDto, citizen),
+    };
   }
 
   async handleForgotPasswordRequest(dto: ForgotPasswordDto) {

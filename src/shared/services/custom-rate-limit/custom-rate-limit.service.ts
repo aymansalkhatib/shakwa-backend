@@ -1,5 +1,5 @@
 // File: custom-rate-limit.service.ts
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 
 /**
@@ -26,8 +26,6 @@ type RateLimitState = {
  */
 @Injectable()
 export class CustomRateLimitService {
-  private readonly logger = new Logger(CustomRateLimitService.name);
-
   /**
    * Delays in seconds for each attempt count
    * [0, 30s, 5m, 15m, 30m, 1h, 2h, 8h, 24h]
@@ -84,10 +82,6 @@ export class CustomRateLimitService {
     if (state.blockedUntil && now < state.blockedUntil) {
       const waitSeconds = state.blockedUntil - now;
 
-      this.logger.warn(
-        `Rate limit (global lock) exceeded for key: ${key}. Wait ${waitSeconds}s before retrying.`,
-      );
-
       throw new HttpException(
         {
           statusCode: HttpStatus.TOO_MANY_REQUESTS,
@@ -124,6 +118,5 @@ export class CustomRateLimitService {
    */
   async resetRateLimit(key: string): Promise<void> {
     await this.redisService.delete(key);
-    this.logger.log(`Rate limit reset for key: ${key}`);
   }
 }

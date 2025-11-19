@@ -12,6 +12,7 @@ import { InternalUserLoginDto } from '../dtos/request/internal-users/internal-us
 import { InternalUserResetPasswordDto } from '../dtos/request/internal-users/reset-password.dto';
 import { InternalUserVerifyResetPasswordDto } from '../dtos/request/internal-users/verify-reset-password.dto';
 import { AuthCodeKeyContext, AuthCodePurpose, AuthCodeService } from './auth-code.service';
+import { LoginAttemptService } from './login-attempt.service';
 
 @Injectable()
 export class InternalUsersAuthService {
@@ -22,6 +23,7 @@ export class InternalUsersAuthService {
     private readonly internalUsersService: InternalUsersService,
     private readonly configService: ConfigService<EnvironmentConfig>,
     private readonly authCodeService: AuthCodeService,
+    private readonly loginAttemptService: LoginAttemptService,
   ) {
     this.passwordResetTtlSeconds = this.configService.getOrThrow<number>(
       'JWT_SECURITY_EXPIRES_IN_S',
@@ -36,8 +38,20 @@ export class InternalUsersAuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    // Set up login attempt options for this citizen by email
+    const loginAttemptOptions = {
+      key: `internalUser:login:${email.toLowerCase()}`,
+      maxAttempts: 5,
+      blockSeconds: 2 * 60 * 60, // 2h
+      windowSeconds: 3 * 60 * 60, // 3h
+    };
+
+    await this.loginAttemptService.checkBlocked(loginAttemptOptions);
+
     const isPasswordValid = await bcrypt.compare(password, internalUser.password);
     if (!isPasswordValid) {
+      await this.loginAttemptService.registerFailure(loginAttemptOptions);
+
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -48,6 +62,8 @@ export class InternalUsersAuthService {
       userId: internalUser.id,
       role: internalUser.role,
     });
+
+    await this.loginAttemptService.resetFailures(loginAttemptOptions.key);
 
     return {
       token,

@@ -10,11 +10,18 @@ import { InternalUsersAuthController } from './controllers/internal-users-auth.c
 import { AuthCodeService } from './services/auth-code.service';
 import { CitizensAuthService } from './services/citizens-auth.service';
 import { InternalUsersAuthService } from './services/internal-users-auth.service';
+import { LoginAttemptService } from './services/login-attempt.service';
 
 @Module({
   imports: [CitizensModule, InternalUsersModule, RedisModule, CustomRateLimitModule, MailModule],
   controllers: [CitizensAuthController, InternalUsersAuthController],
-  providers: [CitizensAuthService, InternalUsersAuthService, AppJwtService, AuthCodeService],
+  providers: [
+    CitizensAuthService,
+    InternalUsersAuthService,
+    AppJwtService,
+    AuthCodeService,
+    LoginAttemptService,
+  ],
   exports: [CitizensAuthService, InternalUsersAuthService],
 })
 export class AuthModule {}
