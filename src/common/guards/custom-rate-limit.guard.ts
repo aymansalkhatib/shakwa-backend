@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, HttpException, Injectable, Logger } from '@nestjs/common';
+import { CanActivate, ExecutionContext, HttpException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { CustomRateLimitService } from '../../shared/services/custom-rate-limit/custom-rate-limit.service';
@@ -14,8 +14,6 @@ import {
  */
 @Injectable()
 export class CustomRateLimitGuard implements CanActivate {
-  private readonly logger = new Logger(CustomRateLimitGuard.name);
-
   constructor(
     private readonly rateLimitService: CustomRateLimitService,
     private readonly reflector: Reflector,
@@ -41,7 +39,6 @@ export class CustomRateLimitGuard implements CanActivate {
 
     // If neither identifier is available, log warning and allow
     if (!email && !ipAddress) {
-      this.logger.warn(`Rate limit check skipped: No email or IP address found for key ${key}`);
       return true;
     }
 
@@ -70,10 +67,6 @@ export class CustomRateLimitGuard implements CanActivate {
         throw error;
       }
 
-      // Log unexpected errors and allow the request (fail open)
-      this.logger.error(
-        `Unexpected error during rate limit check: ${error instanceof Error ? error.message : String(error)}`,
-      );
       return true;
     }
   }

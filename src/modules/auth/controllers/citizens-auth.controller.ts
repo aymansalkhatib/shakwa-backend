@@ -1,10 +1,9 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import {
-  CustomRateLimit,
-  RateLimitKey,
+  EmailVerificationRateLimit,
+  PasswordResetRateLimit,
 } from '../../../common/decorators/custom-rate-limit.decorator';
-import { CustomRateLimitGuard } from '../../../common/guards/custom-rate-limit.guard';
 import { CitizenLoginDto } from '../dtos/request/citizens/citizen-login.dto';
 import { CitizenRegisterDto } from '../dtos/request/citizens/citizen-register.dto';
 import { ForgotPasswordDto } from '../dtos/request/citizens/forgot-password.dto';
@@ -19,8 +18,7 @@ export class CitizensAuthController {
   constructor(private readonly citizensAuthService: CitizensAuthService) {}
 
   @Post('send-verification-email')
-  // @UseGuards(CustomRateLimitGuard)
-  // @CustomRateLimit({ key: RateLimitKey.EMAIL_VERIFICATION })
+  @EmailVerificationRateLimit()
   async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
     await this.citizensAuthService.sendVerificationEmail(dto);
     return {
@@ -53,8 +51,7 @@ export class CitizensAuthController {
   }
 
   @Post('forgot-password')
-  @UseGuards(CustomRateLimitGuard)
-  @CustomRateLimit({ key: RateLimitKey.PASSWORD_RESET })
+  @PasswordResetRateLimit()
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     await this.citizensAuthService.handleForgotPasswordRequest(dto);
     return {

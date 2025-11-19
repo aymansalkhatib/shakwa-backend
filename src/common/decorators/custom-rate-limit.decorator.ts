@@ -1,4 +1,6 @@
-import { SetMetadata } from '@nestjs/common';
+// File: custom-rate-limit.decorator.ts
+import { SetMetadata, UseGuards, applyDecorators } from '@nestjs/common';
+import { CustomRateLimitGuard } from '../guards/custom-rate-limit.guard';
 
 export const CUSTOM_RATE_LIMIT_METADATA_KEY = 'custom_rate_limit';
 
@@ -24,20 +26,37 @@ export interface RateLimitOptions {
 }
 
 /**
- * Decorator to apply custom rate limiting to a route handler
- * Rate limiting is applied to both IP address and email address (OR logic)
- * Uses exponential backoff algorithm: each attempt increases the delay
- *
- * @example
- * ```typescript
- * @Post('send-verification-email')
- * @CustomRateLimit({
- *   key: RateLimitKey.EMAIL_VERIFICATION
- * })
- * async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
- *   // ...
- * }
- * ```
+ * Decorator to attach custom rate limit metadata to a route handler.
+ * Only sets metadata; the actual enforcement is handled by CustomRateLimitGuard.
  */
 export const CustomRateLimit = (options: RateLimitOptions): MethodDecorator =>
   SetMetadata(CUSTOM_RATE_LIMIT_METADATA_KEY, options);
+
+/**
+ * Combines:
+ * - UseGuards(CustomRateLimitGuard)
+ * - CustomRateLimit({ key })
+ *
+ * Usage:
+ * @RateLimited(RateLimitKey.EMAIL_VERIFICATION)
+ */
+export const RateLimited = (key: RateLimitKey): MethodDecorator =>
+  applyDecorators(UseGuards(CustomRateLimitGuard), CustomRateLimit({ key }));
+
+/**
+ * Shortcut decorator for email verification rate limiting.
+ *
+ * Usage:
+ * @EmailVerificationRateLimit()
+ */
+export const EmailVerificationRateLimit = (): MethodDecorator =>
+  RateLimited(RateLimitKey.EMAIL_VERIFICATION);
+
+/**
+ * Shortcut decorator for password reset rate limiting.
+ *
+ * Usage:
+ * @PasswordResetRateLimit()
+ */
+export const PasswordResetRateLimit = (): MethodDecorator =>
+  RateLimited(RateLimitKey.PASSWORD_RESET);

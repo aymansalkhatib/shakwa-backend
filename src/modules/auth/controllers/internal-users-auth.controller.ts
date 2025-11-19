@@ -1,10 +1,6 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
-import {
-  CustomRateLimit,
-  RateLimitKey,
-} from '../../../common/decorators/custom-rate-limit.decorator';
-import { CustomRateLimitGuard } from '../../../common/guards/custom-rate-limit.guard';
+import { PasswordResetRateLimit } from '../../../common/decorators/custom-rate-limit.decorator';
 import { InternalUserForgotPasswordDto } from '../dtos/request/internal-users/forgot-password.dto';
 import { InternalUserLoginDto } from '../dtos/request/internal-users/internal-user-login.dto';
 import { InternalUserResetPasswordDto } from '../dtos/request/internal-users/reset-password.dto';
@@ -22,8 +18,7 @@ export class InternalUsersAuthController {
   }
 
   @Post('forgot-password')
-  @UseGuards(CustomRateLimitGuard)
-  @CustomRateLimit({ key: RateLimitKey.PASSWORD_RESET })
+  @PasswordResetRateLimit()
   async forgotPassword(@Body() dto: InternalUserForgotPasswordDto) {
     await this.internalUsersAuthService.handleForgotPasswordRequest(dto);
     return {
