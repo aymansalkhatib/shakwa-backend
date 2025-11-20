@@ -6,7 +6,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Role } from '../../../common/enums/role.enum';
+import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
+import { ComplaintAuthority } from '../enums/complaint-authority.enum';
+import { ComplaintCategory } from '../enums/complaint-category.enum';
 import { ComplaintStatus } from '../enums/complaint-status.enum';
 import { ComplaintEntity } from './complaint.entity';
 
@@ -15,47 +17,63 @@ export class ComplaintHistoryEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ComplaintEntity, { nullable: false })
-  @JoinColumn({ name: 'complaint_id' })
-  complaint: ComplaintEntity;
-
   @Column({ name: 'complaint_id' })
   complaintId: number;
 
+  @Column({ type: 'varchar', length: 200 })
+  title: string;
+
+  @Column({ type: 'text' })
+  description: string;
+
   @Column({
-    name: 'from_status',
     type: 'enum',
     enum: ComplaintStatus,
     enumName: 'complaint_status_enum',
-    nullable: true,
+    default: ComplaintStatus.NEW,
   })
-  fromStatus: ComplaintStatus | null;
+  status: ComplaintStatus;
 
   @Column({
-    name: 'to_status',
     type: 'enum',
-    enum: ComplaintStatus,
-    enumName: 'complaint_status_enum',
-    nullable: true,
+    enum: ComplaintCategory,
+    enumName: 'complaint_category_enum',
+    default: ComplaintCategory.GENERAL_SERVICE,
   })
-  toStatus: ComplaintStatus | null;
+  category: ComplaintCategory;
 
   @Column({
-    name: 'changed_by_role',
+    type: 'enum',
+    enum: ComplaintAuthority,
+    enumName: 'complaint_authority_enum',
+  })
+  authority: ComplaintAuthority;
+
+  @Column({
+    name: 'location',
     type: 'varchar',
-    length: 50,
+    length: 255,
+    nullable: true,
   })
-  changedByRole: Role;
+  location: string | null;
 
-  @Column({ name: 'changed_by_citizen_id', nullable: true })
-  changedByCitizenId: number | null;
-
-  @Column({ name: 'changed_by_internal_user_id', nullable: true })
-  changedByInternalUserId: number | null;
+  @Column('text', { array: true, default: '{}' })
+  attachments: string[];
 
   @Column({ type: 'text', nullable: true })
   note: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
+
+  @ManyToOne(() => ComplaintEntity, { nullable: false })
+  @JoinColumn({ name: 'complaint_id' })
+  complaint: ComplaintEntity;
+
+  @Column({ name: 'internal_user_id', type: 'int', nullable: true })
+  internalUserId: number | null;
+
+  @ManyToOne(() => InternalUserEntity, { nullable: true })
+  @JoinColumn({ name: 'internal_user_id' })
+  internalUser: InternalUserEntity;
 }
