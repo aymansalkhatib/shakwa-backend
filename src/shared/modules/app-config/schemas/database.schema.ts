@@ -14,6 +14,8 @@ export const databaseSchema = z.object({
   POSTGRES_PASSWORD: z.string().min(1, 'POSTGRES_PASSWORD is required'),
 
   POSTGRES_DATABASE: z.string().min(1, 'POSTGRES_DATABASE is required'),
+
+  REDIS_URL: z.string().min(1, 'REDIS_URL is required').url('REDIS_URL must be a valid URL'),
 });
 
 export type DatabaseConfig = z.infer<typeof databaseSchema>;
