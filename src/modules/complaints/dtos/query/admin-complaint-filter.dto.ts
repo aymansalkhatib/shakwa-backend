@@ -1,12 +1,7 @@
-// File: src/modules/your-bucket-name/dtos/query/admin-complaint-filter.dto.ts
-
 import { IsEnum, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { PaginationQueryDto } from '../../../../common/pagination/dto/pagination-query.dto';
-import { ComplaintAuthority, ComplaintCategory, ComplaintStatus } from '../../your-bucket-name/enums';
+import { ComplaintAuthority, ComplaintCategory, ComplaintStatus } from '../../enums';
 
-/**
- * فلترة شكاوى الأدمن (يرى الجميع).
- */
 export class AdminComplaintFilterDto extends PaginationQueryDto {
   @IsOptional()
   @IsString({ message: 'Search must be a string' })
