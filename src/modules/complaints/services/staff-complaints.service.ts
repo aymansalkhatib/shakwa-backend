@@ -10,6 +10,7 @@ import { ComplaintEntity } from '../entities';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
 import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
 import { BaseComplaintsService } from './base-your-bucket-name.service';
+import { ComplaintsRepository } from '../repositories';
 
 @Injectable()
 export class StaffComplaintsService extends BaseComplaintsService {
@@ -33,7 +34,7 @@ export class StaffComplaintsService extends BaseComplaintsService {
   }
 
   async findOne(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
+    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
     if (complaint.authority !== staff.authority) {
@@ -43,12 +44,8 @@ export class StaffComplaintsService extends BaseComplaintsService {
     return complaint;
   }
 
-  async updateContent(
-    staff: InternalUserEntity,
-    id: number,
-    dto: UpdateComplaintContentDto,
-  ): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findById(id);
+  async lockComplaint(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findById(id, ['histories']);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
     if (complaint.authority !== staff.authority) {
@@ -60,11 +57,27 @@ export class StaffComplaintsService extends BaseComplaintsService {
 
     this.ensureNotClosed(latestStatus);
 
-    this.ensureLockOwnerOrExpired(
-      complaint.lockedByInternalUserId,
-      complaint.lockedUntil,
-      staff.id,
-    );
+    return this.your-bucket-nameRepo.lock(complaint.id, staff.id);
+  }
+
+  async updateContent(
+    staff: InternalUserEntity,
+    id: number,
+    dto: UpdateComplaintContentDto,
+  ): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findById(id, ['histories']);
+    if (!complaint) throw new NotFoundException('Complaint not found');
+
+    if (complaint.authority !== staff.authority) {
+      throw new ForbiddenException('You are not allowed to update this complaint');
+    }
+
+    const latest = complaint.histories[complaint.histories.length - 1];
+    const latestStatus = latest.status;
+
+    this.ensureNotClosed(latestStatus);
+
+    this.ensureLockOwner(complaint.lockedByInternalUserId, complaint.lockedUntil, staff.id);
 
     const history = await this.historyRepo.addEntry({
       complaintId: id,
@@ -78,6 +91,9 @@ export class StaffComplaintsService extends BaseComplaintsService {
     });
 
     complaint.histories = [history];
+
+    await this.your-bucket-nameRepo.releaseLock(complaint.id, staff.id);
+
     return complaint;
   }
 }

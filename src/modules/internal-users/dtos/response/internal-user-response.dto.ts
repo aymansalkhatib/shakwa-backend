@@ -1,6 +1,7 @@
 import { Exclude, Expose } from 'class-transformer';
 import { InternalRole } from '../../../../common/enums/role.enum';
 import { InternalUserEntity } from '../../entities/internal-user.entity';
+import { ComplaintAuthority } from '@app/modules/your-bucket-name';
 
 @Exclude()
 export class InternalUserResponseDto {
@@ -15,6 +16,9 @@ export class InternalUserResponseDto {
 
   @Expose()
   email: string;
+
+  @Expose()
+  authority: ComplaintAuthority;
 
   @Expose()
   createdAt: Date;

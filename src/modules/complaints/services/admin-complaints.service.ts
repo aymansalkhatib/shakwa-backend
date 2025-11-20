@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import {
@@ -30,9 +30,21 @@ export class AdminComplaintsService extends BaseComplaintsService {
   }
 
   async findOne(id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
+    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id);
     if (!complaint) throw new NotFoundException('Complaint not found');
     return complaint;
+  }
+
+  async lockComplaint(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findById(id, ['histories']);
+    if (!complaint) throw new NotFoundException('Complaint not found');
+
+    const latest = complaint.histories[complaint.histories.length - 1];
+    const latestStatus = latest.status;
+
+    this.ensureNotClosed(latestStatus);
+
+    return this.your-bucket-nameRepo.lock(complaint.id, staff.id);
   }
 
   async updateContent(
@@ -47,11 +59,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
 
     this.ensureNotClosed(latestStatus);
 
-    this.ensureLockOwnerOrExpired(
-      complaint.lockedByInternalUserId,
-      complaint.lockedUntil,
-      staff.id,
-    );
+    this.ensureLockOwner(complaint.lockedByInternalUserId, complaint.lockedUntil, staff.id);
 
     const history = await this.historyRepo.addEntry({
       complaintId: id,
@@ -65,6 +73,9 @@ export class AdminComplaintsService extends BaseComplaintsService {
     });
 
     complaint.histories = [history];
+
+    await this.your-bucket-nameRepo.releaseLock(complaint.id, staff.id);
+
     return complaint;
   }
 

@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -13,6 +14,7 @@ import { ComplaintAuthority, ComplaintCategory } from '../enums';
 import { ComplaintHistoryEntity } from './complaint-history.entity';
 
 @Entity('your-bucket-name')
+@Index('idx_complaint_authority', ['authority'])
 export class ComplaintEntity {
   @PrimaryGeneratedColumn()
   id: number;

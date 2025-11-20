@@ -27,6 +27,7 @@ export class InternalUserEntity {
     type: 'enum',
     enum: ComplaintAuthority,
     enumName: 'complaint_authority_enum',
+    nullable: true,
   })
   authority: ComplaintAuthority;
 

@@ -1,5 +1,7 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { ComplaintStatus } from '../enums';
+import { ComplaintEntity } from '../entities';
+import { InternalUserEntity } from '@app/modules/internal-users/entities/internal-user.entity';
 
 export abstract class BaseComplaintsService {
   protected constructor() {}
@@ -24,23 +26,31 @@ export abstract class BaseComplaintsService {
     return Date.now() < lockedUntil.getTime();
   }
 
-  protected ensureLockAvailable(
-    lockedById: number | null,
-    lockedAt: Date | null,
-    currentStaffId: number,
-  ) {
-    if (lockedById && lockedById !== currentStaffId && this.isLockActive(lockedAt)) {
-      throw new ConflictException('Complaint is locked by another staff member.');
+  protected ensureLockAvailable(complaint: ComplaintEntity, internalUser: InternalUserEntity) {
+    if (!complaint.lockedByInternalUserId) return true;
+
+    if (
+      complaint.lockedByInternalUserId === internalUser.id &&
+      this.isLockActive(complaint.lockedUntil)
+    ) {
+      throw new BadRequestException('You already are locking this complaint.');
     }
+
+    throw new BadRequestException('This complaint is locked by another staff member.');
   }
 
-  protected ensureLockOwnerOrExpired(
+  protected ensureLockOwner(
     lockedById: number | null,
-    lockedAt: Date | null,
+    lockedUntil: Date | null,
     currentStaffId: number,
   ) {
-    if (lockedById && lockedById !== currentStaffId && this.isLockActive(lockedAt)) {
+    if (!lockedById)
+      throw new BadRequestException('You should lock the complaint before upadting it.');
+
+    if (lockedById && lockedById !== currentStaffId && this.isLockActive(lockedUntil))
       throw new ConflictException('Complaint is locked by another staff member.');
-    }
+
+    if (lockedById && lockedById === currentStaffId && !this.isLockActive(lockedUntil))
+      throw new BadRequestException('Your lock was expired, please lock the complaint again.');
   }
 }
