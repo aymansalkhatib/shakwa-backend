@@ -26,4 +26,6 @@ export interface IComplaintsRepository {
   lock(complaintId: number, internalUserId: number): Promise<ComplaintEntity>;
 
   releaseLock(complaintId: number, internalUserId: number): Promise<ComplaintEntity>;
+
+  withManager(manager: EntityManager): IComplaintsRepository;
 }

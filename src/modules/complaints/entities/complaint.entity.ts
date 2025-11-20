@@ -1,4 +1,3 @@
-// File: src/modules/your-bucket-name/entities/complaint.entity.ts
 import {
   Column,
   CreateDateColumn,

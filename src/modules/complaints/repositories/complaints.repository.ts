@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 import { IPaginatedResponse } from '../../../common/pagination/interfaces/paginated-response.interface';
 import { paginate } from '../../../common/pagination/paginate.service';
 import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
@@ -31,10 +31,15 @@ export class ComplaintsRepository implements IComplaintsRepository {
   async findAll(filter: IComplaintFilter): Promise<IPaginatedResponse<ComplaintEntity>> {
     const qb = this.complaintRepo
       .createQueryBuilder('complaint')
-      .leftJoinAndSelect('complaint.histories', 'histories');
+      .leftJoinAndSelect(
+        'complaint.histories',
+        'lastHistory',
+        'lastHistory.id = (SELECT h.id FROM complaint_histories h WHERE h.complaint_id = complaint.id ORDER BY h.created_at DESC LIMIT 1)',
+      );
 
     this.applyFilters(qb, filter);
     qb.orderBy('complaint.createdAt', 'DESC');
+
     return await paginate(qb, filter);
   }
 
@@ -187,14 +192,19 @@ export class ComplaintsRepository implements IComplaintsRepository {
     }
 
     if (filter.status) {
-      qb.andWhere('latestHistory.status = :status', { status: filter.status });
+      qb.andWhere('lastHistory.status = :status', { status: filter.status });
     }
 
     if (filter.search) {
-      qb.andWhere(
-        '(latestHistory.title ILIKE :search OR latestHistory.description ILIKE :search)',
-        { search: `%${filter.search}%` },
-      );
+      qb.andWhere('(lastHistory.title ILIKE :search OR lastHistory.description ILIKE :search)', {
+        search: `%${filter.search}%`,
+      });
     }
+  }
+
+  withManager(manager: EntityManager): IComplaintsRepository {
+    const complaintRepo = manager.getRepository(ComplaintEntity);
+    const historyRepo = manager.getRepository(ComplaintHistoryEntity);
+    return new ComplaintsRepository(complaintRepo, historyRepo);
   }
 }

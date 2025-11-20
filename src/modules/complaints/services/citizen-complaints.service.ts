@@ -7,10 +7,13 @@ import {
 } from '../constants/your-bucket-name.tokens';
 import { CitizenComplaintFilterDto, CreateComplaintDto, UpdateMyComplaintDto } from '../dtos';
 import { ComplaintEntity } from '../entities/complaint.entity';
+import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
 import { ComplaintStatus } from '../enums';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
 import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
 import { BaseComplaintsService } from './base-your-bucket-name.service';
+import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 @Injectable()
 export class CitizenComplaintsService extends BaseComplaintsService {
@@ -19,26 +22,33 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     private readonly your-bucket-nameRepo: IComplaintsRepository,
     @Inject(COMPLAINT_HISTORY_REPOSITORY_TOKEN)
     private readonly historyRepo: IComplaintHistoryRepository,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {
     super();
   }
 
   async create(citizen: CitizenEntity, dto: CreateComplaintDto): Promise<ComplaintEntity> {
-    //TODO add transaction
-    const complaint = await this.your-bucket-nameRepo.create({
-      ...dto,
-      citizenId: citizen.id,
-    });
+    return this.dataSource.transaction(async (manager) => {
+      const complaintRepo = manager.getRepository(ComplaintEntity);
+      const historyRepo = manager.getRepository(ComplaintHistoryEntity);
 
-    const history = await this.historyRepo.addEntry({
-      ...dto,
-      complaintId: complaint.id,
-      status: ComplaintStatus.NEW,
-      note: 'Complaint created by citizen.',
-    });
-    complaint.histories = [history];
+      const complaint = await complaintRepo.save(
+        complaintRepo.create({ ...dto, citizenId: citizen.id }),
+      );
 
-    return complaint;
+      const history = await historyRepo.save(
+        historyRepo.create({
+          ...dto,
+          complaintId: complaint.id,
+          status: ComplaintStatus.NEW,
+          note: 'Complaint created by citizen.',
+        }),
+      );
+
+      complaint.histories = [history];
+      return complaint;
+    });
   }
 
   async findAll(

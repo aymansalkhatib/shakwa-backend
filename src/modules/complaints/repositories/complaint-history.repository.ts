@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
 import { IComplaintHistoryRepository } from './complaint-history.repository.interface';
 import { ICreateComplaintHistoryData } from './interfaces';
@@ -15,5 +15,9 @@ export class ComplaintHistoryRepository implements IComplaintHistoryRepository {
   async addEntry(data: ICreateComplaintHistoryData): Promise<ComplaintHistoryEntity> {
     const entry = this.historyRepo.create(data);
     return await this.historyRepo.save(entry);
+  }
+  withManager(manager: EntityManager): IComplaintHistoryRepository {
+    const repo = manager.getRepository(ComplaintHistoryEntity);
+    return new ComplaintHistoryRepository(repo);
   }
 }
