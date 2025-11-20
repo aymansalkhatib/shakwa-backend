@@ -16,4 +16,5 @@ export const RedisProvider: Provider = {
 
     return client;
   },
+  inject: [ConfigService],
 };
