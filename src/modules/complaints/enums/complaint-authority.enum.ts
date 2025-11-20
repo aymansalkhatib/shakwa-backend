@@ -1,5 +1,3 @@
-// File: src/modules/your-bucket-name/enums/complaint-authority.enum.ts
-
 /**
  * Government authorities that can receive your-bucket-name.
  * These values are stored as strings for flexibility.

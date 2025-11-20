@@ -1,9 +1,6 @@
-// File: src/modules/your-bucket-name/repositories/interfaces/complaint-filter.interface.ts
-
 import { IPaginationOptions } from '../../../../common/pagination/interfaces';
 import { ComplaintAuthority } from '../../enums/complaint-authority.enum';
 import { ComplaintCategory } from '../../enums/complaint-category.enum';
-import { ComplaintPriority } from '../../enums/complaint-priority.enum';
 import { ComplaintStatus } from '../../enums/complaint-status.enum';
 
 /**
@@ -13,7 +10,6 @@ export interface IComplaintFilter extends IPaginationOptions {
   search?: string;
   status?: ComplaintStatus;
   authority?: ComplaintAuthority;
-  priority?: ComplaintPriority;
   category?: ComplaintCategory;
   citizenId?: number;
   /**
