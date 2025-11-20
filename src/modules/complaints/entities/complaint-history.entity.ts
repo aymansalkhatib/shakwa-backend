@@ -17,6 +17,9 @@ export class ComplaintHistoryEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ name: 'internal_user_id', type: 'int', nullable: true })
+  internalUserId: number | null;
+
   @Column({ name: 'complaint_id' })
   complaintId: number;
 
@@ -69,9 +72,6 @@ export class ComplaintHistoryEntity {
   @ManyToOne(() => ComplaintEntity, { nullable: false })
   @JoinColumn({ name: 'complaint_id' })
   complaint: ComplaintEntity;
-
-  @Column({ name: 'internal_user_id', type: 'int', nullable: true })
-  internalUserId: number | null;
 
   @ManyToOne(() => InternalUserEntity, { nullable: true })
   @JoinColumn({ name: 'internal_user_id' })
