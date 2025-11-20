@@ -1,6 +1,7 @@
-import { IsEmail, IsEnum, IsOptional, IsString, Length } from 'class-validator';
-import { PaginationQueryDto } from '../../../../common/pagination/dto/pagination-query.dto';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
 import { InternalRole } from '../../../../common/enums/role.enum';
+import { PaginationQueryDto } from '../../../../common/pagination/dto/pagination-query.dto';
+import { ComplaintAuthority } from '../../../your-bucket-name';
 
 export class InternalUserFilterDto extends PaginationQueryDto {
   @IsOptional()
@@ -15,4 +16,9 @@ export class InternalUserFilterDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(InternalRole, { message: 'Role must be a valid InternalRole' })
   role?: InternalRole;
+
+  @IsOptional()
+  @IsNotEmpty({ message: 'Authority is required' })
+  @IsEnum(ComplaintAuthority, { message: 'Authority must be a valid ComplaintAuthority value' })
+  authority: ComplaintAuthority;
 }

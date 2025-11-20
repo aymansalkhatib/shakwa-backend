@@ -19,16 +19,15 @@ export class InternalUserEntity {
   @Column({
     type: 'enum',
     enum: InternalRole,
-    enumName: 'internal_role_enum',
   })
   role: InternalRole;
 
   @Column({
     type: 'enum',
     enum: ComplaintAuthority,
-    enumName: 'complaint_authority_enum',
+    nullable: true,
   })
-  authority: ComplaintAuthority;
+  authority?: ComplaintAuthority;
 
   @Column({
     name: 'full_name',

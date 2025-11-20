@@ -116,10 +116,6 @@ export class CitizensAuthService {
 
     const citizen = await this.citizensService.findByEmail(email);
 
-    if (!citizen) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
     // Set up login attempt options for this citizen by email
     const loginAttemptOptions: ILoginAttemptOptions = {
       key: `citizen:login:${email.toLowerCase()}`,
@@ -131,6 +127,11 @@ export class CitizensAuthService {
     };
 
     await this.loginAttemptService.checkBlocked(loginAttemptOptions);
+
+    if (!citizen) {
+      await this.loginAttemptService.registerFailure(loginAttemptOptions);
+      throw new UnauthorizedException('Invalid email or password');
+    }
 
     const isPasswordValid = await bcrypt.compare(password, citizen.password);
     if (!isPasswordValid) {

@@ -40,7 +40,7 @@ async function bootstrap() {
 
 bootstrap()
   .then(() => {
-    console.log('✨ Seeder finished successfully');
+    console.log('✨ Seeder finished');
     process.exit(0);
   })
   .catch((error) => {

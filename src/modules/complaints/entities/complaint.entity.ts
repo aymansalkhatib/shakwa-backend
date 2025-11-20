@@ -23,7 +23,6 @@ export class ComplaintEntity {
   @Column({
     type: 'enum',
     enum: ComplaintCategory,
-    enumName: 'complaint_category_enum',
     default: ComplaintCategory.GENERAL_SERVICE,
   })
   category: ComplaintCategory;
@@ -31,7 +30,6 @@ export class ComplaintEntity {
   @Column({
     type: 'enum',
     enum: ComplaintAuthority,
-    enumName: 'complaint_authority_enum',
   })
   authority: ComplaintAuthority;
 

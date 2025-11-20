@@ -4,6 +4,7 @@ import { Repository, SelectQueryBuilder } from 'typeorm';
 import { InternalRole } from '../../../common/enums/role.enum';
 import { IPaginatedResponse } from '../../../common/pagination/interfaces/paginated-response.interface';
 import { paginate } from '../../../common/pagination/paginate.service';
+import { ComplaintAuthority } from '../../your-bucket-name';
 import { InternalUserEntity } from '../entities/internal-user.entity';
 import { ICreateInternalUserData } from './interfaces/create-internal-user-data.interface';
 import { IInternalUserFilter } from './interfaces/internal-user-filter.interface';
@@ -71,14 +72,27 @@ export class InternalUsersRepository implements IInternalUsersRepository {
       .groupBy('internalUser.role')
       .getRawMany<{ role: string; count: string }>();
 
+    const authorityStats = await qb
+      .select('internalUser.authority', 'authority')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('internalUser.authority')
+      .getRawMany<{ authority: string; count: string }>();
+
     const internalUsersByRole = {} as Record<InternalRole, number>;
+    const internalUsersByAuthority = {} as Record<ComplaintAuthority, number>;
+
     roleStats.forEach((stat) => {
       internalUsersByRole[stat.role as InternalRole] = Number(stat.count) || 0;
+    });
+
+    authorityStats.forEach((stat) => {
+      internalUsersByAuthority[stat.authority as ComplaintAuthority] = Number(stat.count) || 0;
     });
 
     return {
       totalInternalUsers,
       internalUsersByRole,
+      internalUsersByAuthority,
     };
   }
 
@@ -104,6 +118,10 @@ export class InternalUsersRepository implements IInternalUsersRepository {
     // Role filter
     if (filter.role) {
       queryBuilder.andWhere('internalUser.role = :role', { role: filter.role });
+    }
+
+    if (filter.authority) {
+      queryBuilder.andWhere('internalUser.authority = :authority', { authority: filter.authority });
     }
 
     // Order by creation date (newest first)

@@ -30,7 +30,6 @@ export class ComplaintHistoryEntity {
   @Column({
     type: 'enum',
     enum: ComplaintStatus,
-    enumName: 'complaint_status_enum',
     default: ComplaintStatus.NEW,
   })
   status: ComplaintStatus;

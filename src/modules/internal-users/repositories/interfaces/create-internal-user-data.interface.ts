@@ -1,4 +1,5 @@
 import { InternalRole } from '../../../../common/enums/role.enum';
+import { ComplaintAuthority } from '../../../your-bucket-name';
 
 /**
  * Interface for creating a new internal user
@@ -9,4 +10,5 @@ export interface ICreateInternalUserData {
   email: string;
   password: string;
   role: InternalRole;
+  authority: ComplaintAuthority;
 }

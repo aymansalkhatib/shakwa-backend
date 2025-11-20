@@ -36,10 +36,6 @@ export class InternalUsersAuthService {
     const { email, password, fcmToken } = loginDto;
     const internalUser = await this.internalUsersService.findByEmail(email);
 
-    if (!internalUser) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
     // Set up login attempt options for this citizen by email
     const loginAttemptOptions = {
       key: `internalUser:login:${email.toLowerCase()}`,
@@ -52,10 +48,14 @@ export class InternalUsersAuthService {
 
     await this.loginAttemptService.checkBlocked(loginAttemptOptions);
 
+    if (!internalUser) {
+      await this.loginAttemptService.registerFailure(loginAttemptOptions);
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
     const isPasswordValid = await bcrypt.compare(password, internalUser.password);
     if (!isPasswordValid) {
       await this.loginAttemptService.registerFailure(loginAttemptOptions);
-
       throw new UnauthorizedException('Invalid email or password');
     }
 
