@@ -6,13 +6,13 @@ import { paginate } from '../../../common/pagination/paginate.service';
 import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
 import { ComplaintEntity } from '../entities/complaint.entity';
 import { ComplaintAuthority, ComplaintStatus } from '../enums';
+import { IComplaintsRepository } from './your-bucket-name.repository.interface';
 import {
   IComplaintFilter,
   IComplaintStatistics,
   ICreateComplaintData,
   IUpdateComplaintData,
 } from './interfaces';
-import { IComplaintsRepository } from './your-bucket-name.repository.interface';
 
 @Injectable()
 export class ComplaintsRepository implements IComplaintsRepository {
@@ -33,7 +33,6 @@ export class ComplaintsRepository implements IComplaintsRepository {
       .createQueryBuilder('complaint')
       .leftJoinAndSelect('complaint.histories', 'histories');
 
-    // this.joinLatestHistory(qb);
     this.applyFilters(qb, filter);
     qb.orderBy('complaint.createdAt', 'DESC');
     return await paginate(qb, filter);
@@ -45,8 +44,6 @@ export class ComplaintsRepository implements IComplaintsRepository {
       .where('complaint.id = :id', { id })
       .leftJoinAndSelect('complaint.histories', 'histories')
       .leftJoinAndSelect('histories.internalUser', 'staff');
-
-    // this.joinLatestHistory(qb);
 
     return await qb.getOne();
   }

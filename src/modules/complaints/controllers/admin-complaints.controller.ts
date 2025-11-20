@@ -1,5 +1,3 @@
-// File: src/modules/your-bucket-name/controllers/admin-your-bucket-name.controller.ts
-
 import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Protected } from '../../../common/decorators/protected.decorator';

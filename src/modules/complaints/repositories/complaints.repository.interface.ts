@@ -1,3 +1,4 @@
+import { EntityManager } from 'typeorm';
 import { IPaginatedResponse } from '../../../common/pagination/interfaces/paginated-response.interface';
 import { ComplaintEntity } from '../entities/complaint.entity';
 import {

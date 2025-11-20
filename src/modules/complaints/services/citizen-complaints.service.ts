@@ -24,7 +24,7 @@ export class CitizenComplaintsService extends BaseComplaintsService {
   }
 
   async create(citizen: CitizenEntity, dto: CreateComplaintDto): Promise<ComplaintEntity> {
-    //TODO ADD TRS
+    //TODO add transaction
     const complaint = await this.your-bucket-nameRepo.create({
       ...dto,
       citizenId: citizen.id,
