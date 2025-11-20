@@ -1,6 +1,6 @@
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
-import { ComplaintAuthority, ComplaintCategory, ComplaintStatus } from '../..';
 import { PaginationQueryDto } from '../../../../common/pagination/dto/pagination-query.dto';
+import { ComplaintAuthority, ComplaintCategory, ComplaintStatus } from '../../enums';
 
 export class CitizenComplaintFilterDto extends PaginationQueryDto {
   @IsOptional()

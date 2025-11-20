@@ -38,8 +38,8 @@ export class ComplaintEntity {
   @Column({ name: 'locked_by_internal_user_id', type: 'int', nullable: true })
   lockedByInternalUserId: number | null;
 
-  @Column({ name: 'locked_at', type: 'timestamptz', nullable: true })
-  lockedAt: Date | null;
+  @Column({ name: 'locked_until', type: 'timestamptz', nullable: true })
+  lockedUntil: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

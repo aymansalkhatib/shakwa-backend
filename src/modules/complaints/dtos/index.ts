@@ -8,9 +8,7 @@ export * from './query/admin-complaint-filter.dto';
 // Request DTOs
 export * from './request/citizen/create-complaint.dto';
 export * from './request/citizen/update-my-complaint.dto';
-export * from './request/staff/update-complaint-status.dto';
-export * from './request/staff/update-complaint-content.dto';
-export * from './request/admin/update-complaint-base.dto';
+export * from './request/internal-user/update-complaint-content.dto';
 
 // Response DTOs
 export * from './response/complaint-response.dto';

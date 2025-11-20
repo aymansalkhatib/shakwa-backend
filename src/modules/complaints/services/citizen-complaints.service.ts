@@ -9,21 +9,22 @@ import { CitizenComplaintFilterDto, CreateComplaintDto, UpdateMyComplaintDto } f
 import { ComplaintEntity } from '../entities/complaint.entity';
 import { ComplaintStatus } from '../enums';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
-import {
-  ComplaintWithLatestHistory,
-  IComplaintsRepository,
-} from '../repositories/your-bucket-name.repository.interface';
+import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
+import { BaseComplaintsService } from './base-your-bucket-name.service';
 
 @Injectable()
-export class CitizenComplaintsService {
+export class CitizenComplaintsService extends BaseComplaintsService {
   constructor(
     @Inject(COMPLAINTS_REPOSITORY_TOKEN)
     private readonly your-bucket-nameRepo: IComplaintsRepository,
     @Inject(COMPLAINT_HISTORY_REPOSITORY_TOKEN)
     private readonly historyRepo: IComplaintHistoryRepository,
-  ) {}
+  ) {
+    super();
+  }
 
   async create(citizen: CitizenEntity, dto: CreateComplaintDto): Promise<ComplaintEntity> {
+    //TODO ADD TRS
     const complaint = await this.your-bucket-nameRepo.create({
       ...dto,
       citizenId: citizen.id,
@@ -50,8 +51,8 @@ export class CitizenComplaintsService {
     });
   }
 
-  async findOne(citizen: CitizenEntity, id: number): Promise<ComplaintWithLatestHistory> {
-    const complaint = await this.your-bucket-nameRepo.findById(id);
+  async findOne(citizen: CitizenEntity, id: number): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
     if (!complaint || complaint.citizenId !== citizen.id) {
       throw new NotFoundException('Complaint not found');
     }
@@ -62,12 +63,13 @@ export class CitizenComplaintsService {
     citizen: CitizenEntity,
     id: number,
     dto: UpdateMyComplaintDto,
-  ): Promise<ComplaintWithLatestHistory> {
+  ): Promise<ComplaintEntity> {
     const complaint = await this.findOne(citizen, id);
-    const latest = complaint.latestHistory;
+    const latest = complaint.histories[complaint.histories.length - 1];
     const latestStatus = latest.status;
 
-    if (complaint.lockedByInternalUserId) {
+    const now = new Date();
+    if (complaint.lockedUntil && complaint.lockedUntil > now) {
       throw new BadRequestException(
         'This complaint is currently being processed and cannot be edited.',
       );
@@ -77,9 +79,7 @@ export class CitizenComplaintsService {
       throw new BadRequestException('Complaint has no history to update.');
     }
 
-    if (this.isTerminalStatus(latestStatus)) {
-      throw new BadRequestException('You cannot edit a terminal complaint.');
-    }
+    this.ensureNotClosed(latestStatus);
 
     const history = await this.historyRepo.addEntry({
       complaintId: complaint.id,
@@ -94,14 +94,5 @@ export class CitizenComplaintsService {
 
     complaint.histories = [history];
     return complaint;
-  }
-
-  private isTerminalStatus(status: ComplaintStatus): boolean {
-    return (
-      status === ComplaintStatus.RESOLVED ||
-      status === ComplaintStatus.REJECTED ||
-      status === ComplaintStatus.CANCELLED ||
-      status === ComplaintStatus.CLOSED
-    );
   }
 }

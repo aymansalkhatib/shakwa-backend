@@ -1,5 +1,5 @@
-import { Exclude, Expose } from 'class-transformer';
-import { ComplaintAuthority, ComplaintCategory, ComplaintStatus } from '../..';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { ComplaintAuthority, ComplaintCategory, ComplaintHistoryResponseDto } from '../..';
 
 @Exclude()
 export class ComplaintResponseDto {
@@ -19,27 +19,12 @@ export class ComplaintResponseDto {
   lockedByInternalUserId: number | null;
 
   @Expose()
-  lockedAt: Date | null;
+  lockedUntil: Date | null;
 
   @Expose()
   createdAt: Date;
 
-  // Snapshot fields from latest history
   @Expose()
-  title: string;
-
-  @Expose()
-  description: string;
-
-  @Expose()
-  status: ComplaintStatus;
-
-  @Expose()
-  location: string | null;
-
-  @Expose()
-  attachments: string[];
-
-  @Expose()
-  lastHistoryAt: Date;
+  @Type(() => ComplaintHistoryResponseDto)
+  histories: ComplaintHistoryResponseDto[];
 }

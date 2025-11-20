@@ -1,5 +1,3 @@
-// File: src/modules/your-bucket-name/controllers/citizen-your-bucket-name.controller.ts
-
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Protected } from '../../../common/decorators/protected.decorator';
@@ -11,9 +9,9 @@ import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
 import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import {
   CitizenComplaintFilterDto,
+  ComplaintResponseDto,
   CreateComplaintDto,
   UpdateMyComplaintDto,
-  ComplaintResponseDto,
 } from '../dtos';
 import { CitizenComplaintsService } from '../services/citizen-your-bucket-name.service';
 
@@ -22,9 +20,6 @@ import { CitizenComplaintsService } from '../services/citizen-your-bucket-name.s
 export class CitizenComplaintsController {
   constructor(private readonly citizenComplaintsService: CitizenComplaintsService) {}
 
-  /**
-   * إنشاء شكوى جديدة من المواطن.
-   */
   @Post()
   @SerializeResponse(ComplaintResponseDto)
   create(
@@ -34,9 +29,6 @@ export class CitizenComplaintsController {
     return this.citizenComplaintsService.create(citizen, dto);
   }
 
-  /**
-   * استعراض شكاوى المواطن مع Pagination.
-   */
   @Get()
   async findAll(
     @CurrentUser() citizen: CitizenEntity,
@@ -49,9 +41,6 @@ export class CitizenComplaintsController {
     };
   }
 
-  /**
-   * مشاهدة شكوى واحدة (يجب أن تكون تابعة للمواطن نفسه).
-   */
   @Get(':id')
   @SerializeResponse(ComplaintResponseDto)
   findOne(
@@ -61,9 +50,6 @@ export class CitizenComplaintsController {
     return this.citizenComplaintsService.findOne(citizen, id);
   }
 
-  /**
-   * تعديل شكوى المواطن قبل انتهاء المعالجة.
-   */
   @Patch(':id')
   @SerializeResponse(ComplaintResponseDto)
   update(

@@ -1,11 +1,6 @@
-// File: src/modules/your-bucket-name/dtos/request/staff/update-complaint-content.dto.ts
+import { IsArray, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { ComplaintStatus } from '../../../enums';
 
-import { IsArray, IsOptional, IsString, MaxLength } from 'class-validator';
-
-/**
- * تعديل محتوى الشكوى (title/description/location/attachments)
- * بإنشاء نسخة history جديدة.
- */
 export class UpdateComplaintContentDto {
   @IsOptional()
   @IsString()
@@ -24,4 +19,12 @@ export class UpdateComplaintContentDto {
   @IsOptional()
   @IsArray()
   attachments?: string[];
+
+  @IsEnum(ComplaintStatus)
+  status: ComplaintStatus;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  note?: string;
 }
