@@ -1,14 +1,16 @@
 // File: src/modules/your-bucket-name/dtos/query/citizen-complaint-filter.dto.ts
 
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { PaginationQueryDto } from '../../../../common/pagination/dto/pagination-query.dto';
-import { ComplaintAuthority } from '../../enums/complaint-authority.enum';
-import { ComplaintPriority } from '../../enums/complaint-priority.enum';
-import { ComplaintStatus } from '../../enums/complaint-status.enum';
+import { ComplaintAuthority, ComplaintCategory, ComplaintStatus } from '../../your-bucket-name/enums';
 
+/**
+ * فلترة شكاوى المواطن (يرى فقط شكاويه). fileciteturn4file0L184-L190
+ */
 export class CitizenComplaintFilterDto extends PaginationQueryDto {
   @IsOptional()
   @IsString({ message: 'Search must be a string' })
+  @MaxLength(200)
   search?: string;
 
   @IsOptional()
@@ -16,10 +18,10 @@ export class CitizenComplaintFilterDto extends PaginationQueryDto {
   status?: ComplaintStatus;
 
   @IsOptional()
-  @IsEnum(ComplaintAuthority, { message: 'Authority must be a valid ComplaintAuthority' })
-  authority?: ComplaintAuthority;
+  @IsEnum(ComplaintCategory, { message: 'Category must be a valid ComplaintCategory' })
+  category?: ComplaintCategory;
 
   @IsOptional()
-  @IsEnum(ComplaintPriority, { message: 'Priority must be a valid ComplaintPriority' })
-  priority?: ComplaintPriority;
+  @IsEnum(ComplaintAuthority, { message: 'Authority must be a valid ComplaintAuthority' })
+  authority?: ComplaintAuthority;
 }

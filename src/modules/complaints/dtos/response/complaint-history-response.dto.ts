@@ -1,8 +1,5 @@
-// File: src/modules/your-bucket-name/dtos/response/complaint-history-response.dto.ts
-
 import { Exclude, Expose } from 'class-transformer';
-import { Role } from '../../../../common/enums/role.enum';
-import { ComplaintStatus } from '../../enums/complaint-status.enum';
+import { ComplaintStatus } from '../../enums';
 
 @Exclude()
 export class ComplaintHistoryResponseDto {
@@ -13,22 +10,25 @@ export class ComplaintHistoryResponseDto {
   complaintId: number;
 
   @Expose()
-  fromStatus: ComplaintStatus | null;
+  internalUserId: number | null;
 
   @Expose()
-  toStatus: ComplaintStatus | null;
+  title: string;
+
+  @Expose()
+  description: string;
+
+  @Expose()
+  status: ComplaintStatus;
+
+  @Expose()
+  location: string | null;
+
+  @Expose()
+  attachments: string[];
 
   @Expose()
   note: string | null;
-
-  @Expose()
-  changedByRole: Role;
-
-  @Expose()
-  changedByCitizenId: number | null;
-
-  @Expose()
-  changedByInternalUserId: number | null;
 
   @Expose()
   createdAt: Date;

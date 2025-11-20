@@ -1,10 +1,5 @@
-// File: src/modules/your-bucket-name/dtos/response/complaint-response.dto.ts
-
 import { Exclude, Expose } from 'class-transformer';
-import { ComplaintAuthority } from '../../enums/complaint-authority.enum';
-import { ComplaintCategory } from '../../enums/complaint-category.enum';
-import { ComplaintPriority } from '../../enums/complaint-priority.enum';
-import { ComplaintStatus } from '../../enums/complaint-status.enum';
+import { ComplaintAuthority, ComplaintCategory, ComplaintStatus } from '../..';
 
 @Exclude()
 export class ComplaintResponseDto {
@@ -12,8 +7,24 @@ export class ComplaintResponseDto {
   id: number;
 
   @Expose()
-  referenceNumber: string;
+  citizenId: number;
 
+  @Expose()
+  category: ComplaintCategory;
+
+  @Expose()
+  authority: ComplaintAuthority;
+
+  @Expose()
+  lockedByInternalUserId: number | null;
+
+  @Expose()
+  lockedAt: Date | null;
+
+  @Expose()
+  createdAt: Date;
+
+  // Snapshot fields from latest history
   @Expose()
   title: string;
 
@@ -24,44 +35,11 @@ export class ComplaintResponseDto {
   status: ComplaintStatus;
 
   @Expose()
-  priority: ComplaintPriority;
-
-  @Expose()
-  category: ComplaintCategory;
-
-  @Expose()
-  authority: ComplaintAuthority;
-
-  @Expose()
-  locationText: string | null;
-
-  @Expose()
-  latitude: number | null;
-
-  @Expose()
-  longitude: number | null;
+  location: string | null;
 
   @Expose()
   attachments: string[];
 
   @Expose()
-  citizenId: number;
-
-  @Expose()
-  assignedToInternalUserId: number | null;
-
-  @Expose()
-  lockedByInternalUserId: number | null;
-
-  @Expose()
-  lockedAt: Date | null;
-
-  @Expose()
-  closedAt: Date | null;
-
-  @Expose()
-  createdAt: Date;
-
-  @Expose()
-  updatedAt: Date;
+  lastHistoryAt: Date;
 }

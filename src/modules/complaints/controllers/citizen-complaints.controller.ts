@@ -9,65 +9,68 @@ import { CurrentUser } from '../../../common/guards/current-user.decorator';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
 import { CitizenEntity } from '../../citizens/entities/citizen.entity';
-import { CitizenComplaintFilterDto } from '../dtos/query/citizen-complaint-filter.dto';
-import { CreateComplaintDto } from '../dtos/request/citizen/create-complaint.dto';
-import { ComplaintHistoryResponseDto } from '../dtos/response/complaint-history-response.dto';
-import { ComplaintResponseDto } from '../dtos/response/complaint-response.dto';
-import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
-import { CitizensComplaintsService } from '../services/citizens-your-bucket-name.service';
+import {
+  CitizenComplaintFilterDto,
+  CreateComplaintDto,
+  UpdateMyComplaintDto,
+  ComplaintResponseDto,
+} from '../dtos';
+import { CitizenComplaintsService } from '../services/citizen-your-bucket-name.service';
 
-@Controller('citizens/your-bucket-name')
+@Controller('citizen/your-bucket-name')
 @Protected(Role.CITIZEN)
 export class CitizenComplaintsController {
-  constructor(private readonly your-bucket-nameService: CitizensComplaintsService) {}
+  constructor(private readonly citizenComplaintsService: CitizenComplaintsService) {}
 
+  /**
+   * إنشاء شكوى جديدة من المواطن.
+   */
   @Post()
   @SerializeResponse(ComplaintResponseDto)
   create(
     @CurrentUser() citizen: CitizenEntity,
     @Body() dto: CreateComplaintDto,
   ): Promise<ComplaintResponseDto> {
-    return this.your-bucket-nameService.createForCitizen(citizen, dto);
+    return this.citizenComplaintsService.create(citizen, dto);
   }
 
+  /**
+   * استعراض شكاوى المواطن مع Pagination.
+   */
   @Get()
-  async findMyComplaints(
+  async findAll(
     @CurrentUser() citizen: CitizenEntity,
     @Query() filterDto: CitizenComplaintFilterDto,
   ): Promise<PaginationResponseDto<ComplaintResponseDto>> {
-    const result = await this.your-bucket-nameService.findForCitizen(citizen, filterDto);
+    const result = await this.citizenComplaintsService.findAll(citizen, filterDto);
     return {
       ...result,
       data: plainToInstance(ComplaintResponseDto, result.data),
     };
   }
 
+  /**
+   * مشاهدة شكوى واحدة (يجب أن تكون تابعة للمواطن نفسه).
+   */
   @Get(':id')
   @SerializeResponse(ComplaintResponseDto)
-  getOne(
+  findOne(
     @CurrentUser() citizen: CitizenEntity,
     @Param('id', PositiveIntPipe) id: number,
   ): Promise<ComplaintResponseDto> {
-    return this.your-bucket-nameService.getCitizenComplaint(citizen, id);
+    return this.citizenComplaintsService.findOne(citizen, id);
   }
 
-  @Patch(':id/cancel')
+  /**
+   * تعديل شكوى المواطن قبل انتهاء المعالجة.
+   */
+  @Patch(':id')
   @SerializeResponse(ComplaintResponseDto)
-  cancel(
+  update(
     @CurrentUser() citizen: CitizenEntity,
     @Param('id', PositiveIntPipe) id: number,
+    @Body() dto: UpdateMyComplaintDto,
   ): Promise<ComplaintResponseDto> {
-    return this.your-bucket-nameService.cancelCitizenComplaint(citizen, id);
-  }
-
-  @Get(':id/history')
-  async getHistory(
-    @CurrentUser() citizen: CitizenEntity,
-    @Param('id', PositiveIntPipe) id: number,
-  ): Promise<ComplaintHistoryResponseDto[]> {
-    // Re-use citizen access check by first loading the complaint
-    await this.your-bucket-nameService.getCitizenComplaint(citizen, id);
-    const history: ComplaintHistoryEntity[] = await this.your-bucket-nameService.getHistory(id);
-    return plainToInstance(ComplaintHistoryResponseDto, history);
+    return this.citizenComplaintsService.update(citizen, id, dto);
   }
 }

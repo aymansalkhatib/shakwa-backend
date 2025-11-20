@@ -1,22 +1,41 @@
+// File: src/modules/your-bucket-name/entities/complaint.entity.ts
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CitizenEntity } from '../../citizens/entities/citizen.entity';
+import { ComplaintAuthority, ComplaintCategory } from '../enums';
+import { ComplaintHistoryEntity } from './complaint-history.entity';
 
 @Entity('your-bucket-name')
 export class ComplaintEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'citizen_id' })
+  @Column({ name: 'citizen_id', type: 'int' })
   citizenId: number;
 
-  @Column({ name: 'locked_by_internal_user_id', nullable: true })
+  @Column({
+    type: 'enum',
+    enum: ComplaintCategory,
+    enumName: 'complaint_category_enum',
+    default: ComplaintCategory.GENERAL_SERVICE,
+  })
+  category: ComplaintCategory;
+
+  @Column({
+    type: 'enum',
+    enum: ComplaintAuthority,
+    enumName: 'complaint_authority_enum',
+  })
+  authority: ComplaintAuthority;
+
+  @Column({ name: 'locked_by_internal_user_id', type: 'int', nullable: true })
   lockedByInternalUserId: number | null;
 
   @Column({ name: 'locked_at', type: 'timestamptz', nullable: true })
@@ -28,4 +47,7 @@ export class ComplaintEntity {
   @ManyToOne(() => CitizenEntity, { nullable: false })
   @JoinColumn({ name: 'citizen_id' })
   citizen: CitizenEntity;
+
+  @OneToMany(() => ComplaintHistoryEntity, (history) => history.complaint)
+  histories: ComplaintHistoryEntity[];
 }

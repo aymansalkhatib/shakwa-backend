@@ -1,15 +1,11 @@
-// File: src/modules/your-bucket-name/dtos/query/staff-complaint-filter.dto.ts
-
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { PaginationQueryDto } from '../../../../common/pagination/dto/pagination-query.dto';
-import { StrictBoolean } from '../../../../common/decorators/strict-boolean.decorator';
-import { ComplaintAuthority } from '../../enums/complaint-authority.enum';
-import { ComplaintPriority } from '../../enums/complaint-priority.enum';
-import { ComplaintStatus } from '../../enums/complaint-status.enum';
+import { ComplaintCategory, ComplaintStatus } from '../../enums';
 
 export class StaffComplaintFilterDto extends PaginationQueryDto {
   @IsOptional()
   @IsString({ message: 'Search must be a string' })
+  @MaxLength(200)
   search?: string;
 
   @IsOptional()
@@ -17,14 +13,6 @@ export class StaffComplaintFilterDto extends PaginationQueryDto {
   status?: ComplaintStatus;
 
   @IsOptional()
-  @IsEnum(ComplaintAuthority, { message: 'Authority must be a valid ComplaintAuthority' })
-  authority?: ComplaintAuthority;
-
-  @IsOptional()
-  @IsEnum(ComplaintPriority, { message: 'Priority must be a valid ComplaintPriority' })
-  priority?: ComplaintPriority;
-
-  @IsOptional()
-  @StrictBoolean()
-  includeUnassigned?: boolean;
+  @IsEnum(ComplaintCategory, { message: 'Category must be a valid ComplaintCategory' })
+  category?: ComplaintCategory;
 }

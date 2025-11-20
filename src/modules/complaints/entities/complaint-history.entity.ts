@@ -7,8 +7,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
-import { ComplaintAuthority } from '../enums/complaint-authority.enum';
-import { ComplaintCategory } from '../enums/complaint-category.enum';
 import { ComplaintStatus } from '../enums/complaint-status.enum';
 import { ComplaintEntity } from './complaint.entity';
 
@@ -20,7 +18,7 @@ export class ComplaintHistoryEntity {
   @Column({ name: 'internal_user_id', type: 'int', nullable: true })
   internalUserId: number | null;
 
-  @Column({ name: 'complaint_id' })
+  @Column({ name: 'complaint_id', type: 'int' })
   complaintId: number;
 
   @Column({ type: 'varchar', length: 200 })
@@ -36,21 +34,6 @@ export class ComplaintHistoryEntity {
     default: ComplaintStatus.NEW,
   })
   status: ComplaintStatus;
-
-  @Column({
-    type: 'enum',
-    enum: ComplaintCategory,
-    enumName: 'complaint_category_enum',
-    default: ComplaintCategory.GENERAL_SERVICE,
-  })
-  category: ComplaintCategory;
-
-  @Column({
-    type: 'enum',
-    enum: ComplaintAuthority,
-    enumName: 'complaint_authority_enum',
-  })
-  authority: ComplaintAuthority;
 
   @Column({
     name: 'location',

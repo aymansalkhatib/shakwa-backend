@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { InternalRole } from '../../../common/enums/role.enum';
+import { ComplaintAuthority } from '../../your-bucket-name';
 
 @Entity('internal_users')
 export class InternalUserEntity {
@@ -21,6 +22,13 @@ export class InternalUserEntity {
     enumName: 'internal_role_enum',
   })
   role: InternalRole;
+
+  @Column({
+    type: 'enum',
+    enum: ComplaintAuthority,
+    enumName: 'complaint_authority_enum',
+  })
+  authority: ComplaintAuthority;
 
   @Column({
     name: 'full_name',

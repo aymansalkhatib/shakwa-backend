@@ -1,162 +1,209 @@
-// File: src/modules/your-bucket-name/services/staff-your-bucket-name.service.ts
-
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
-import { StaffComplaintFilterDto } from '../dtos/query/staff-complaint-filter.dto';
-import { UpdateComplaintStatusDto } from '../dtos/request/update-complaint-status.dto';
-import { ComplaintEntity } from '../entities/complaint.entity';
-import { ComplaintStatus } from '../enums/complaint-status.enum';
-import { IComplaintFilter } from '../repositories/interfaces';
-import { BaseComplaintsService } from './base-your-bucket-name.service';
+import {
+  COMPLAINTS_REPOSITORY_TOKEN,
+  COMPLAINT_HISTORY_REPOSITORY_TOKEN,
+} from '../constants/your-bucket-name.tokens';
+import {
+  ComplaintResponseDto,
+  StaffComplaintFilterDto,
+  UpdateComplaintContentDto,
+  UpdateComplaintStatusDto,
+} from '../dtos';
+import { ComplaintStatus } from '../enums';
+import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
+import {
+  ComplaintWithLatestHistory,
+  IComplaintsRepository,
+} from '../repositories/your-bucket-name.repository.interface';
 
 @Injectable()
-export class StaffComplaintsService extends BaseComplaintsService {
-  // -----------------------------------------------------------------------
-  // عمليات الموظف (Staff-facing)
-  // -----------------------------------------------------------------------
+export class StaffComplaintsService {
+  private readonly LOCK_TTL_MS = 30 * 60 * 1000;
 
-  async findForStaff(
+  constructor(
+    @Inject(COMPLAINTS_REPOSITORY_TOKEN)
+    private readonly your-bucket-nameRepo: IComplaintsRepository,
+    @Inject(COMPLAINT_HISTORY_REPOSITORY_TOKEN)
+    private readonly historyRepo: IComplaintHistoryRepository,
+  ) {}
+
+  async findAll(
     staff: InternalUserEntity,
     filterDto: StaffComplaintFilterDto,
-  ): Promise<PaginationResponseDto<ComplaintEntity>> {
-    const filter: IComplaintFilter = {
+  ): Promise<PaginationResponseDto<ComplaintWithLatestHistory>> {
+    return await this.your-bucket-nameRepo.findAll({
       ...filterDto,
-      staffId: staff.id,
-      includeUnassignedForStaff:
-        typeof filterDto.includeUnassigned === 'boolean' ? filterDto.includeUnassigned : true,
-    };
-    return await this.your-bucket-nameRepository.findAll(filter);
+      authority: staff.authority,
+    });
   }
 
-  async getComplaintForStaff(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepository.findById(id);
-    if (!complaint) {
-      throw new NotFoundException('Complaint not found');
+  async findOne(staff: InternalUserEntity, id: number): Promise<ComplaintWithLatestHistory> {
+    const complaint = await this.your-bucket-nameRepo.findById(id);
+    if (!complaint) throw new NotFoundException('Complaint not found');
+
+    if (complaint.authority !== staff.authority) {
+      throw new ForbiddenException('You are not allowed to access this complaint');
     }
-    // يمكن لاحقاً تقييد رؤية الموظف بحسب الجهة أو الصلاحيات
+
     return complaint;
   }
 
-  async lockComplaintForStaff(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.getComplaintForStaff(staff, id);
-    this.ensureNotClosed(complaint);
-    this.ensureLockAvailable(complaint, staff);
+  async lock(staff: InternalUserEntity, id: number): Promise<ComplaintWithLatestHistory> {
+    let complaint = await this.your-bucket-nameRepo.findById(id);
+    if (!complaint) throw new NotFoundException('Complaint not found');
+    if (complaint.authority !== staff.authority) {
+      throw new ForbiddenException('You are not allowed to lock this complaint');
+    }
 
-    const updated = await this.your-bucket-nameRepository.update(complaint, {
+    const latestStatus = complaint.latestHistory?.status ?? ComplaintStatus.NEW;
+    this.ensureNotClosed(latestStatus);
+
+    this.ensureLockAvailable(complaint.lockedByInternalUserId, complaint.lockedAt, staff.id);
+
+    complaint = await this.your-bucket-nameRepo.update(complaint, {
       lockedByInternalUserId: staff.id,
       lockedAt: new Date(),
     });
 
-    await this.addHistory({
-      complaintId: complaint.id,
-      fromStatus: complaint.status,
-      toStatus: complaint.status,
-      note: 'Complaint locked by staff member.',
-      changedByRole: this.mapInternalRoleToRole(staff),
-      changedByCitizenId: null,
-      changedByInternalUserId: staff.id,
-    });
-
-    return updated;
+    return;
   }
 
-  async unlockComplaintForStaff(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.getComplaintForStaff(staff, id);
-    this.ensureNotClosed(complaint);
-
-    if (
-      complaint.lockedByInternalUserId &&
-      complaint.lockedByInternalUserId !== staff.id &&
-      this.isLockActive(complaint)
-    ) {
-      throw new BadRequestException('Complaint is locked by another staff member.');
+  async unlock(staff: InternalUserEntity, id: number): Promise<ComplaintResponseDto> {
+    const complaint = await this.your-bucket-nameRepo.findById(id);
+    if (!complaint) throw new NotFoundException('Complaint not found');
+    if (complaint.authority !== staff.authority) {
+      throw new ForbiddenException('You are not allowed to unlock this complaint');
     }
 
-    const updated = await this.your-bucket-nameRepository.update(complaint, {
+    this.ensureLockOwnerOrExpired(complaint.lockedByInternalUserId, complaint.lockedAt, staff.id);
+
+    await this.your-bucket-nameRepo.update(complaint, {
       lockedByInternalUserId: null,
       lockedAt: null,
     });
 
-    await this.addHistory({
-      complaintId: complaint.id,
-      fromStatus: complaint.status,
-      toStatus: complaint.status,
-      note: 'Complaint unlocked by staff member.',
-      changedByRole: this.mapInternalRoleToRole(staff),
-      changedByCitizenId: null,
-      changedByInternalUserId: staff.id,
-    });
-
-    return updated;
+    const full = await this.your-bucket-nameRepo.findById(id);
+    return new ComplaintResponseDto(full!);
   }
 
-  async assignToCurrentStaff(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.getComplaintForStaff(staff, id);
-    this.ensureNotClosed(complaint);
+  async updateContent(
+    staff: InternalUserEntity,
+    id: number,
+    dto: UpdateComplaintContentDto,
+  ): Promise<ComplaintResponseDto> {
+    const complaint = await this.your-bucket-nameRepo.findById(id);
+    if (!complaint) throw new NotFoundException('Complaint not found');
 
-    if (complaint.assignedToInternalUserId && complaint.assignedToInternalUserId !== staff.id) {
-      throw new BadRequestException('Complaint is already assigned to another staff member.');
+    if (complaint.authority !== staff.authority) {
+      throw new ForbiddenException('You are not allowed to update this complaint');
     }
 
-    const updated = await this.your-bucket-nameRepository.update(complaint, {
-      assignedToInternalUserId: staff.id,
+    const latest = complaint.latestHistory;
+    const latestStatus = latest?.status ?? ComplaintStatus.NEW;
+
+    this.ensureNotClosed(latestStatus);
+    this.ensureLockOwnerOrExpired(complaint.lockedByInternalUserId, complaint.lockedAt, staff.id);
+
+    await this.historyRepo.addEntry({
+      complaintId: id,
+      internalUserId: staff.id,
+      title: dto.title ?? latest?.title ?? '',
+      description: dto.description ?? latest?.description ?? '',
+      status: latestStatus,
+      location: dto.location ?? latest?.location ?? null,
+      attachments: dto.attachments ?? latest?.attachments ?? [],
+      note: 'Content updated by staff.',
     });
 
-    await this.addHistory({
-      complaintId: complaint.id,
-      fromStatus: complaint.status,
-      toStatus: complaint.status,
-      note: 'Complaint assigned to staff member.',
-      changedByRole: this.mapInternalRoleToRole(staff),
-      changedByCitizenId: null,
-      changedByInternalUserId: staff.id,
-    });
-
-    return updated;
+    const full = await this.your-bucket-nameRepo.findById(id);
+    return new ComplaintResponseDto(full!);
   }
 
-  async updateStatusByStaff(
+  async updateStatus(
     staff: InternalUserEntity,
     id: number,
     dto: UpdateComplaintStatusDto,
-  ): Promise<ComplaintEntity> {
-    const complaint = await this.getComplaintForStaff(staff, id);
-    this.ensureNotClosed(complaint);
-    this.ensureLockAvailable(complaint, staff);
+  ): Promise<ComplaintResponseDto> {
+    const complaint = await this.your-bucket-nameRepo.findById(id);
+    if (!complaint) throw new NotFoundException('Complaint not found');
 
-    const previousStatus = complaint.status;
+    if (complaint.authority !== staff.authority) {
+      throw new ForbiddenException('You are not allowed to update this complaint');
+    }
+
+    const latest = complaint.latestHistory;
+    const previousStatus = latest?.status ?? ComplaintStatus.NEW;
     const newStatus = dto.status;
 
-    if (previousStatus === ComplaintStatus.CANCELLED) {
-      throw new BadRequestException('Cancelled your-bucket-name cannot be updated.');
+    this.ensureNotClosed(previousStatus);
+    this.ensureLockOwnerOrExpired(complaint.lockedByInternalUserId, complaint.lockedAt, staff.id);
+
+    // Basic rule: can't move from terminal status
+    if (this.isTerminalStatus(previousStatus)) {
+      throw new BadRequestException('Closed your-bucket-name cannot be modified.');
     }
 
-    const updateData: Partial<ComplaintEntity> = {
+    await this.historyRepo.addEntry({
+      complaintId: id,
+      internalUserId: staff.id,
+      title: latest?.title ?? '',
+      description: latest?.description ?? '',
       status: newStatus,
-    };
-
-    if (this.isTerminalStatus(newStatus)) {
-      updateData.closedAt = new Date();
-    }
-
-    // تعيين تلقائي للموظف الحالي إذا لم تكن الشكوى مخصصة
-    if (!complaint.assignedToInternalUserId) {
-      updateData.assignedToInternalUserId = staff.id;
-    }
-
-    const updated = await this.your-bucket-nameRepository.update(complaint, updateData);
-
-    await this.addHistory({
-      complaintId: complaint.id,
-      fromStatus: previousStatus,
-      toStatus: newStatus,
+      location: latest?.location ?? null,
+      attachments: latest?.attachments ?? [],
       note: dto.note ?? null,
-      changedByRole: this.mapInternalRoleToRole(staff),
-      changedByCitizenId: null,
-      changedByInternalUserId: staff.id,
     });
 
-    return updated;
+    const full = await this.your-bucket-nameRepo.findById(id);
+    return new ComplaintResponseDto(full!);
+  }
+
+  private ensureNotClosed(status: ComplaintStatus) {
+    if (this.isTerminalStatus(status)) {
+      throw new BadRequestException('Closed your-bucket-name cannot be modified.');
+    }
+  }
+
+  private isTerminalStatus(status: ComplaintStatus): boolean {
+    return (
+      status === ComplaintStatus.RESOLVED ||
+      status === ComplaintStatus.REJECTED ||
+      status === ComplaintStatus.CANCELLED ||
+      status === ComplaintStatus.CLOSED
+    );
+  }
+
+  private isLockActive(lockedAt: Date | null): boolean {
+    if (!lockedAt) return false;
+    return Date.now() - lockedAt.getTime() < this.LOCK_TTL_MS;
+  }
+
+  private ensureLockAvailable(
+    lockedById: number | null,
+    lockedAt: Date | null,
+    currentStaffId: number,
+  ) {
+    if (lockedById && lockedById !== currentStaffId && this.isLockActive(lockedAt)) {
+      throw new ConflictException('Complaint is locked by another staff member.');
+    }
+  }
+
+  private ensureLockOwnerOrExpired(
+    lockedById: number | null,
+    lockedAt: Date | null,
+    currentStaffId: number,
+  ) {
+    if (lockedById && lockedById !== currentStaffId && this.isLockActive(lockedAt)) {
+      throw new ConflictException('Complaint is locked by another staff member.');
+    }
   }
 }
