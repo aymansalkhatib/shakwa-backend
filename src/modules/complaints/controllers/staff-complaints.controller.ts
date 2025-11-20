@@ -45,4 +45,13 @@ export class StaffComplaintsController {
   ): Promise<ComplaintResponseDto> {
     return this.staffComplaintsService.updateContent(staff, id, dto);
   }
+
+  @Patch(':id/lock')
+  @SerializeResponse(ComplaintResponseDto)
+  lockComplaint(
+    @CurrentUser() staff: InternalUserEntity,
+    @Param('id', PositiveIntPipe) id: number,
+  ): Promise<ComplaintResponseDto> {
+    return this.staffComplaintsService.lockComplaint(staff, id);
+  }
 }

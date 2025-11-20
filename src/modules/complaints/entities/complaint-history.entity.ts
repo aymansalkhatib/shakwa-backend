@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -9,7 +10,7 @@ import {
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import { ComplaintStatus } from '../enums/complaint-status.enum';
 import { ComplaintEntity } from './complaint.entity';
-
+@Index('idx_complaint_status', ['status'])
 @Entity('complaint_histories')
 export class ComplaintHistoryEntity {
   @PrimaryGeneratedColumn()

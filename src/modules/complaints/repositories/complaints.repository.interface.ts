@@ -12,13 +12,17 @@ export interface IComplaintsRepository {
 
   findAll(filter: IComplaintFilter): Promise<IPaginatedResponse<ComplaintEntity>>;
 
-  findById(id: number): Promise<ComplaintEntity | null>;
+  findById(id: number, relations?: string[]): Promise<ComplaintEntity | null>;
 
-  findByIdWithLatestHistory(id: number): Promise<ComplaintEntity | null>;
+  findByIdWithHistory(id: number): Promise<ComplaintEntity | null>;
 
   update(complaint: ComplaintEntity, data: IUpdateComplaintData): Promise<ComplaintEntity>;
 
   exists(id: number): Promise<boolean>;
 
   getStatistics(): Promise<IComplaintStatistics>;
+
+  lock(complaintId: number, internalUserId: number): Promise<ComplaintEntity>;
+
+  releaseLock(complaintId: number, internalUserId: number): Promise<ComplaintEntity>;
 }

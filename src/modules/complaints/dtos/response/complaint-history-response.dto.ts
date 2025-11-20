@@ -1,5 +1,7 @@
 import { Exclude, Expose } from 'class-transformer';
 import { ComplaintStatus } from '../../enums';
+import { InternalUserResponseDto } from '@app/modules/internal-users/dtos';
+import { PublicInternalUserResponseDto } from '@app/modules/internal-users/dtos/response/public-internal-user-response';
 
 @Exclude()
 export class ComplaintHistoryResponseDto {
@@ -11,6 +13,9 @@ export class ComplaintHistoryResponseDto {
 
   @Expose()
   internalUserId: number | null;
+
+  @Expose()
+  internalUser: PublicInternalUserResponseDto;
 
   @Expose()
   title: string;

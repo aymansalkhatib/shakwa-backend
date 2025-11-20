@@ -18,6 +18,11 @@ import { AdminComplaintsService } from '../services/admin-your-bucket-name.servi
 export class AdminComplaintsController {
   constructor(private readonly adminComplaintsService: AdminComplaintsService) {}
 
+  @Get('statistics')
+  async getStatistics(): Promise<ComplaintStatisticsDto> {
+    return this.adminComplaintsService.getStatistics();
+  }
+
   @Get()
   async findAll(
     @Query() filterDto: AdminComplaintFilterDto,
@@ -45,8 +50,12 @@ export class AdminComplaintsController {
     return this.adminComplaintsService.updateContent(admin, id, dto);
   }
 
-  @Get('statistics')
-  async getStatistics(): Promise<ComplaintStatisticsDto> {
-    return this.adminComplaintsService.getStatistics();
+  @Patch(':id/lock')
+  @SerializeResponse(ComplaintResponseDto)
+  lockComplaint(
+    @CurrentUser() admin: InternalUserEntity,
+    @Param('id', PositiveIntPipe) id: number,
+  ): Promise<ComplaintResponseDto> {
+    return this.adminComplaintsService.lockComplaint(admin, id);
   }
 }
