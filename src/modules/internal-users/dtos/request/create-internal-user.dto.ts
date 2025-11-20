@@ -16,7 +16,7 @@ export class CreateInternalUserDto {
   @Length(8, 128, { message: 'Password must be between 8 and 128 characters' })
   password: string;
 
-  @IsEnum(ComplaintAuthority, { message: 'Authority must be a valid ComplaintAuthority value' })
+  @IsEnum(ComplaintAuthority)
   @IsNotEmpty({ message: 'Authority is required' })
   authority: ComplaintAuthority;
 }

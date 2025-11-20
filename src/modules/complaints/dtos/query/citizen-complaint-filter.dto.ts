@@ -9,14 +9,14 @@ export class CitizenComplaintFilterDto extends PaginationQueryDto {
   search?: string;
 
   @IsOptional()
-  @IsEnum(ComplaintStatus, { message: 'Status must be a valid ComplaintStatus' })
+  @IsEnum(ComplaintStatus)
   status?: ComplaintStatus;
 
   @IsOptional()
-  @IsEnum(ComplaintCategory, { message: 'Category must be a valid ComplaintCategory' })
+  @IsEnum(ComplaintCategory)
   category?: ComplaintCategory;
 
   @IsOptional()
-  @IsEnum(ComplaintAuthority, { message: 'Authority must be a valid ComplaintAuthority' })
+  @IsEnum(ComplaintAuthority)
   authority?: ComplaintAuthority;
 }

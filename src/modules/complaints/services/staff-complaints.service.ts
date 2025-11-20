@@ -10,7 +10,6 @@ import { ComplaintEntity } from '../entities';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
 import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
 import { BaseComplaintsService } from './base-your-bucket-name.service';
-import { ComplaintsRepository } from '../repositories';
 
 @Injectable()
 export class StaffComplaintsService extends BaseComplaintsService {

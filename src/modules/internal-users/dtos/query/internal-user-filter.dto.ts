@@ -14,11 +14,11 @@ export class InternalUserFilterDto extends PaginationQueryDto {
   email?: string;
 
   @IsOptional()
-  @IsEnum(InternalRole, { message: 'Role must be a valid InternalRole' })
+  @IsEnum(InternalRole)
   role?: InternalRole;
 
   @IsOptional()
   @IsNotEmpty({ message: 'Authority is required' })
-  @IsEnum(ComplaintAuthority, { message: 'Authority must be a valid ComplaintAuthority value' })
+  @IsEnum(ComplaintAuthority)
   authority: ComplaintAuthority;
 }
