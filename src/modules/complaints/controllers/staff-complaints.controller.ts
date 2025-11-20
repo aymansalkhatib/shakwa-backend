@@ -14,12 +14,12 @@ import { UpdateComplaintStatusDto } from '../dtos/request/update-complaint-statu
 import { ComplaintHistoryResponseDto } from '../dtos/response/complaint-history-response.dto';
 import { ComplaintResponseDto } from '../dtos/response/complaint-response.dto';
 import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
-import { ComplaintsService } from '../services/your-bucket-name.service';
+import { StaffComplaintsService } from '../services/staff-your-bucket-name.service';
 
 @Controller('staff/your-bucket-name')
 @Protected(Role.STAFF)
 export class StaffComplaintsController {
-  constructor(private readonly your-bucket-nameService: ComplaintsService) {}
+  constructor(private readonly your-bucket-nameService: StaffComplaintsService) {}
 
   @Get()
   async findAllForStaff(

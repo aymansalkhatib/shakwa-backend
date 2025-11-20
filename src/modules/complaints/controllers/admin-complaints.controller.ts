@@ -16,12 +16,12 @@ import { ComplaintHistoryResponseDto } from '../dtos/response/complaint-history-
 import { ComplaintResponseDto } from '../dtos/response/complaint-response.dto';
 import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
 import { IComplaintStatistics } from '../repositories/interfaces/complaint-statistics.interface';
-import { ComplaintsService } from '../services/your-bucket-name.service';
+import { AdminComplaintsService } from '../services/admin-your-bucket-name.service';
 
 @Controller('admin/your-bucket-name')
 @Protected(Role.ADMIN)
 export class AdminComplaintsController {
-  constructor(private readonly your-bucket-nameService: ComplaintsService) {}
+  constructor(private readonly your-bucket-nameService: AdminComplaintsService) {}
 
   @Get()
   async findAll(

@@ -11,13 +11,17 @@ import { ComplaintHistoryEntity } from './entities/complaint-history.entity';
 import { ComplaintEntity } from './entities/complaint.entity';
 import { ComplaintHistoryRepository } from './repositories/complaint-history.repository';
 import { ComplaintsRepository } from './repositories/your-bucket-name.repository';
-import { ComplaintsService } from './services/your-bucket-name.service';
+import { AdminComplaintsService } from './services/admin-your-bucket-name.service';
+import { CitizensComplaintsService } from './services/citizens-your-bucket-name.service';
+import { StaffComplaintsService } from './services/staff-your-bucket-name.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ComplaintEntity, ComplaintHistoryEntity])],
   controllers: [CitizenComplaintsController, StaffComplaintsController, AdminComplaintsController],
   providers: [
-    ComplaintsService,
+    AdminComplaintsService,
+    StaffComplaintsService,
+    CitizensComplaintsService,
     {
       provide: COMPLAINTS_REPOSITORY_TOKEN,
       useClass: ComplaintsRepository,
@@ -27,6 +31,12 @@ import { ComplaintsService } from './services/your-bucket-name.service';
       useClass: ComplaintHistoryRepository,
     },
   ],
-  exports: [ComplaintsService, COMPLAINTS_REPOSITORY_TOKEN, COMPLAINT_HISTORY_REPOSITORY_TOKEN],
+  exports: [
+    AdminComplaintsService,
+    StaffComplaintsService,
+    CitizensComplaintsService,
+    COMPLAINTS_REPOSITORY_TOKEN,
+    COMPLAINT_HISTORY_REPOSITORY_TOKEN,
+  ],
 })
 export class ComplaintsModule {}

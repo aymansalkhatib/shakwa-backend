@@ -14,12 +14,12 @@ import { CreateComplaintDto } from '../dtos/request/citizen/create-complaint.dto
 import { ComplaintHistoryResponseDto } from '../dtos/response/complaint-history-response.dto';
 import { ComplaintResponseDto } from '../dtos/response/complaint-response.dto';
 import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
-import { ComplaintsService } from '../services/your-bucket-name.service';
+import { CitizensComplaintsService } from '../services/citizens-your-bucket-name.service';
 
 @Controller('citizens/your-bucket-name')
 @Protected(Role.CITIZEN)
 export class CitizenComplaintsController {
-  constructor(private readonly your-bucket-nameService: ComplaintsService) {}
+  constructor(private readonly your-bucket-nameService: CitizensComplaintsService) {}
 
   @Post()
   @SerializeResponse(ComplaintResponseDto)
