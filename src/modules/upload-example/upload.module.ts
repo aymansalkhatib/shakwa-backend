@@ -1,6 +1,13 @@
 import { Module } from '@nestjs/common';
 import { UploadControllerExample } from './upload.controller';
 import { UploadServiceExample } from './upload.service';
+import {
+  DEFAULT_FILE_VALIDATION_OPTIONS,
+  FIELD_FILE_TYPE_CONSTRAINTS,
+  FILE_SIZE_LIMITS,
+  FILE_VALIDATION_CONFIG,
+  StorageModule,
+} from '@app/shared/services/storage';
 
 /**
  * Upload Example Module
@@ -20,9 +27,20 @@ import { UploadServiceExample } from './upload.service';
  * All endpoints return structured DTOs with comprehensive file metadata.
  */
 @Module({
-  imports: [],
+  imports: [StorageModule],
   controllers: [UploadControllerExample],
-  providers: [UploadServiceExample],
+  providers: [
+    UploadServiceExample,
+    {
+      provide: FILE_VALIDATION_CONFIG,
+      useValue: {
+        isFileRequired: true, // By default, a file is required
+        allowedFileTypes: ['png', 'jpg', 'jpeg'], // Default allowed file types (images)
+        globalMaxFileSize: '5MB', // Default max file size for all file types
+        perTypeSizeLimits: FILE_SIZE_LIMITS, // specific limits by type by default
+      },
+    },
+  ],
   exports: [UploadServiceExample],
 })
 export class UploadModuleExample {}

@@ -1,13 +1,13 @@
 import { Inject, Injectable, PipeTransform } from '@nestjs/common';
-import { STORAGE_CONSTANTS } from '../constants/storage';
 import { isArrayOfFiles, isSingleFile } from '../functions/file-structure-checker';
 import { optimizeImage } from '../functions/optimize-image';
 import { FileUpload, ImageCompressionOptions, NestedFileUpload } from '../types';
+import { IMAGE_COMPRESSION_CONFIG } from '../constants/storage.token';
 
 @Injectable()
 export class ImageProcessingPipe implements PipeTransform {
   constructor(
-    @Inject(STORAGE_CONSTANTS.IMAGE_COMPRESSION_CONFIG)
+    @Inject(IMAGE_COMPRESSION_CONFIG)
     private readonly options: ImageCompressionOptions,
   ) {}
 

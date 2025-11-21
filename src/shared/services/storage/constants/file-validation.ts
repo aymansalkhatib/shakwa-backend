@@ -37,6 +37,7 @@ export const FIELD_FILE_TYPE_CONSTRAINTS: Record<string, NonEmptyArray<Supported
   videos: VIDEO_FILE_TYPES,
   audios: AUDIO_FILE_TYPES,
   file: DOCUMENT_FILE_TYPES,
+  files: DOCUMENT_FILE_TYPES,
 };
 
 /**

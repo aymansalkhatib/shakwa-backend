@@ -11,7 +11,7 @@ export * from './types';
 
 // Constants
 export * from './constants/file-validation';
-export * from './constants/storage';
+export * from './constants/storage.token';
 
 // Pipes
 export * from './pipes/image-processing.pipe';

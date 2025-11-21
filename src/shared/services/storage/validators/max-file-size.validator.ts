@@ -8,7 +8,6 @@ import { validateFileUpload } from '../functions/file-structure-checker';
  */
 export class MaxFileSizeValidator extends FileValidator {
   private readonly globalMaxFileSize: number;
-  private readonly maxSizeLabel: FileSizeUnit;
 
   /**
    * Constructor for initializing the validator with the maximum file size and optional custom error message.
@@ -23,8 +22,6 @@ export class MaxFileSizeValidator extends FileValidator {
     super({});
     // Convert the max size (provided as string) to bytes using the 'bytes' library
     this.globalMaxFileSize = bytes(this.config.globalMaxFileSize);
-    // Keep original format (e.g. '2MB')
-    this.maxSizeLabel = this.config.globalMaxFileSize;
   }
 
   /**
@@ -33,7 +30,7 @@ export class MaxFileSizeValidator extends FileValidator {
    */
   buildErrorMessage(): string {
     // Default error message if no custom message is provided
-    const defaultMessage = `The file size exceeds the allowed limit. Maximum allowed size is ${this.maxSizeLabel} bytes.`;
+    const defaultMessage = `The file size exceeds the allowed limit. Maximum allowed size is ${this.config.globalMaxFileSize} bytes.`;
     return this.config.errorMessage
       ? this.config.errorMessage(this.globalMaxFileSize)
       : defaultMessage;

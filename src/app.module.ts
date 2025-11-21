@@ -17,6 +17,7 @@ import { AppThrottlerModule } from './shared/modules/app-throttler/app-throttler
 import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.module';
 import { RedisModule } from './shared/services/redis';
 import { ComplaintsModule } from './modules/your-bucket-name';
+import { UploadModuleExample } from './modules/upload-example/upload.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ComplaintsModule } from './modules/your-bucket-name';
     CitizensModule,
     AuthModule,
     ComplaintsModule,
+    UploadModuleExample
   ],
 
   controllers: [AppController],

@@ -1,10 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IStorageProvider, STORAGE_PROVIDER } from './interfaces/storage-provider.interface';
+import { IStorageProvider } from './interfaces/storage-provider.interface';
 import { StorageOptions, UploadResult } from './interfaces/storage-options.interface';
+import { STORAGE_PROVIDER_SERVICE } from './constants/storage.token';
 
 @Injectable()
 export class StorageService {
-  constructor(@Inject(STORAGE_PROVIDER) private readonly storageProvider: IStorageProvider) {}
+  constructor(
+    @Inject(STORAGE_PROVIDER_SERVICE) private readonly storageProvider: IStorageProvider,
+  ) {}
 
   async upload(file: Buffer, options: StorageOptions): Promise<UploadResult> {
     return this.storageProvider.upload(file, options);

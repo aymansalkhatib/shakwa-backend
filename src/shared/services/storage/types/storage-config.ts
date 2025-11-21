@@ -1,17 +1,4 @@
 /**
- * Supported storage providers
- */
-export type StorageProvider = 'local' | 'supabase';
-
-/**
- * Base configuration options for storage providers
- */
-export interface StorageConfig {
-  localConfig?: LocalStorageConfig;
-  supabaseConfig?: SupabaseStorageConfig;
-}
-
-/**
  * Configuration for the local storage provider
  */
 export interface LocalStorageConfig {

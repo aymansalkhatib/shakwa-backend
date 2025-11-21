@@ -5,5 +5,3 @@ export interface IStorageProvider {
   delete(path: string): Promise<void>;
   getUrl(path: string): Promise<string>;
 }
-
-export const STORAGE_PROVIDER = Symbol('STORAGE_PROVIDER');

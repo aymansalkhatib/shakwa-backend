@@ -4,6 +4,7 @@ import { FileUpload, NonEmptyArray, SupportedFileType } from '../types/file';
 import { FIELD_FILE_TYPE_CONSTRAINTS } from '../constants/file-validation';
 import { extname } from 'path';
 import magicBytes from 'magic-bytes.js';
+import { extractFileExtension } from '../functions/file-helper';
 
 /**
  * Validates files' signatures including MIME type, magic number, and field-specific constraints.
@@ -13,14 +14,14 @@ export class FileValidationSignatureValidator extends FileValidator {
   private currentErrorMessage: string = '';
 
   constructor(
-    private readonly allowedTypes: NonEmptyArray<SupportedFileType>,
+    private readonly allowedFileTypes: NonEmptyArray<SupportedFileType>,
     private readonly enableStrictValidation: boolean = true,
     private readonly errorMessages: {
       mimeType?: string;
       magicNumber?: string;
       fieldType?: string;
     } = {
-      mimeType: 'Invalid file type provided. Allowed types are: ' + allowedTypes.join(', '),
+      mimeType: 'Invalid file type provided. Allowed types are: ' + allowedFileTypes.join(', '),
       magicNumber: 'File signature does not match the expected format.',
       fieldType: 'File type not allowed for the specified field.',
     },
@@ -50,10 +51,6 @@ export class FileValidationSignatureValidator extends FileValidator {
       return false;
     }
 
-    if (!this.validateFieldSpecificFileTypes(files)) {
-      return false;
-    }
-
     return true;
   }
 
@@ -67,7 +64,7 @@ export class FileValidationSignatureValidator extends FileValidator {
     const isValid = validateFileUpload<NonEmptyArray<SupportedFileType>>(
       files,
       this.isMimeTypeValidForFile,
-      this.allowedTypes,
+      this.allowedFileTypes,
     );
 
     if (!isValid) {
@@ -94,59 +91,6 @@ export class FileValidationSignatureValidator extends FileValidator {
   }
 
   /**
-   * Validates that files are allowed for their respective fields based on type constraints.
-   * @param {any} files - The file(s) to validate.
-   * @returns {boolean} True if all files meet the field type constraints.
-   * @private
-   */
-  private validateFieldSpecificFileTypes(files: any): boolean {
-    const isValid = validateFileUpload<Record<string, NonEmptyArray<SupportedFileType>>>(
-      files,
-      this.validateFieldFileTypeAgainstConstraints.bind(this),
-      FIELD_FILE_TYPE_CONSTRAINTS,
-    );
-
-    if (!isValid) {
-      this.currentErrorMessage = this.errorMessages.fieldType;
-    }
-
-    return isValid;
-  }
-
-  /**
-   * Validates that the file type is allowed for a specific field.
-   * @param {Express.Multer.File} file - The file to validate.
-   * @param {Record<string, NonEmptyArray<SupportedFileType>>} allowedFieldTypes - Mapping of fields to allowed types.
-   * @returns {boolean} True if the file type is valid for the specified field.
-   * @private
-   */
-  private validateFieldFileTypeAgainstConstraints(
-    file: Express.Multer.File,
-    allowedFieldTypes: Record<string, NonEmptyArray<SupportedFileType>>,
-  ): boolean {
-    const allowedTypes = allowedFieldTypes[file.fieldname];
-
-    if (!allowedTypes) {
-      return false;
-    }
-
-    const fileExtension = this.getFileExtension(file.originalname);
-    // const fileExtension = extname(file.originalname).toLowerCase().slice(1);
-
-    return allowedTypes.includes(fileExtension as SupportedFileType);
-  }
-
-  /**
-   * Extracts the file extension from the file's original name.
-   * @param {string} filename - The file's original name.
-   * @returns {string} The file extension in lowercase without the dot.
-   * @private
-   */
-  private getFileExtension(filename: string): string {
-    return extname(filename).toLowerCase().slice(1);
-  }
-
-  /**
    * Checks if the MIME type of the file is valid according to the allowed types.
    * @param {Express.Multer.File} file - The file to check.
    * @param {NonEmptyArray<SupportedFileType>} allowedMimeTypes - Allowed MIME types.
@@ -157,7 +101,7 @@ export class FileValidationSignatureValidator extends FileValidator {
     file: Express.Multer.File,
     allowedMimeTypes: NonEmptyArray<SupportedFileType>,
   ): boolean {
-    const fileExt: string = extname(file.originalname).toLowerCase().slice(1);
+    const fileExt: string = extractFileExtension(file.originalname);
 
     return (allowedMimeTypes as string[]).includes(fileExt);
   }

@@ -8,7 +8,7 @@ import {
   validateFileUpload,
 } from '../functions/file-structure-checker';
 import { formatBytes } from '../functions/format-bytes';
-import { FileSizeUnit, FileUpload, SupportedFileType } from '../types/file';
+import { FileSizeUnit, FileUpload, NonEmptyArray, SupportedFileType } from '../types/file';
 
 /**
  * Validates file sizes based on their type.
@@ -17,6 +17,7 @@ import { FileSizeUnit, FileUpload, SupportedFileType } from '../types/file';
 export class FileSizeValidatorPerType extends FileValidator {
   constructor(
     private readonly options: {
+      allowedFileTypes: NonEmptyArray<SupportedFileType>;
       perTypeSizeLimits: Record<SupportedFileType, FileSizeUnit>;
     },
   ) {
@@ -28,8 +29,9 @@ export class FileSizeValidatorPerType extends FileValidator {
    * @param file - The file that failed validation
    * @returns Descriptive error message
    */
-  buildErrorMessage(file: Express.Multer.File): string {
+  buildErrorMessage(file: any): string {
     // Case: single or array of files
+
     if (isSingleFile(file) || isArrayOfFiles(file)) {
       try {
         const fileType = this.extractFileType(file);
@@ -68,7 +70,9 @@ export class FileSizeValidatorPerType extends FileValidator {
     const result: [SupportedFileType, FileSizeUnit][] = [];
 
     for (const [type, size] of Object.entries(limits)) {
-      result.push([type as SupportedFileType, size as FileSizeUnit]);
+      if (this.options.allowedFileTypes.includes(type as any)) {
+        result.push([type as SupportedFileType, size as FileSizeUnit]);
+      }
     }
 
     return result.sort((a, b) => bytes(b[1]) - bytes(a[1]));
