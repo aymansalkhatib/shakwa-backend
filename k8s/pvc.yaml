@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shakwa-uploads-pvc
+  namespace: shakwa
+spec:
+  accessModes:
+    - ReadWriteMany # Multiple pods can read/write simultaneously
+  resources:
+    requests:
+      storage: 10Gi
+  # Uncomment and specify storageClassName based on your cluster
+  # storageClassName: standard  # For GKE
+  # storageClassName: gp2       # For AWS EKS
+  # storageClassName: default   # For Azure AKS or Minikube
