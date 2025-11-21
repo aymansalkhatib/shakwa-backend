@@ -65,7 +65,7 @@ export class CitizensAuthService {
     return { token };
   }
 
-  async register(registerDto: CitizenRegisterDto): Promise<void> {
+  async register(registerDto: CitizenRegisterDto) {
     // 1. Verify token and extract data
     const decodedToken = this.jwtService.verifySecurityToken(registerDto.token);
 
@@ -103,12 +103,22 @@ export class CitizensAuthService {
     }
 
     // 6. Create citizen
-    await this.citizensService.create(registerDto);
+    const citizen = await this.citizensService.create(registerDto);
 
     // 7. Clean up Redis verification data
     await this.authCodeService.clearCode(
       this.genKey(registerDto.email, AuthCodePurpose.EMAIL_VERIFICATION_TOKEN),
     );
+
+    const token = this.jwtService.createAccessToken({
+      userId: citizen.id,
+      role: Role.CITIZEN,
+    });
+
+    return {
+      token,
+      user: plainToInstance(CitizenResponseDto, citizen),
+    };
   }
 
   async login(loginDto: CitizenLoginDto, ip: string) {

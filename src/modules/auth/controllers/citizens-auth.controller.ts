@@ -38,10 +38,7 @@ export class CitizensAuthController {
 
   @Post('register')
   async register(@Body() dto: CitizenRegisterDto) {
-    await this.citizensAuthService.register(dto);
-    return {
-      message: 'Citizen registered successfully. You can now login to your account.',
-    };
+    return await this.citizensAuthService.register(dto);
   }
 
   @Post('login')
