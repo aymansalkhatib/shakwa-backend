@@ -12,8 +12,6 @@ export const storageSchema = z.object({
   SUPABASE_URL: z.string().url('SUPABASE_URL must be a valid URL').optional(),
 
   // Firebase configuration (optional - for storage and notifications)
-  STORAGE_BUCKET: z.string().min(1, 'STORAGE_BUCKET is required').optional(),
-
   FIREBASE_SERVICE_ACCOUNT: z.string().min(1, 'FIREBASE_SERVICE_ACCOUNT is required').optional(),
 });
 

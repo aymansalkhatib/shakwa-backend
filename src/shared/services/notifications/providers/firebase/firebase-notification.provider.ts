@@ -1,48 +1,49 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FirebaseError } from 'firebase-admin/app';
-import {
-  BaseNotificationDto,
-  SingleTokenNotificationDto,
-  TokensNotificationDto,
-  TopicNotificationDto,
-} from './dto/notification.dto';
-import { BatchResponse, INotificationService } from './interfaces/notification.interface';
-import { FIREBASE_ADMIN } from './notification.constants';
+import { BatchResponse } from '../../interfaces/batch-response.interface';
+import { AbstractNotificationProvider } from '../abstract-notification.provider';
+import { SingleTokenNotificationOptions } from '../../interfaces/single-token-notification-options.interface';
+import { TokensNotificationOptions } from '../../interfaces/tokens-notification-options.interface';
+import { TopicNotificationOptions } from '../../interfaces/topic-notification-options.interface';
+import { BaseNotificationOptions } from '../../interfaces/base-notification-options.interface';
+import { FIREBASE_ADMIN } from '../../constants/notification.token';
 
 type NotificationTarget = { token: string; topic?: never } | { topic: string; token?: never };
 
 @Injectable()
-export class FirebaseNotificationService implements INotificationService {
-  private readonly logger = new Logger(FirebaseNotificationService.name);
+export class FirebaseNotificationProvider extends AbstractNotificationProvider {
+  private readonly logger = new Logger(FirebaseNotificationProvider.name);
   private readonly batchSize = 500;
 
-  constructor(@Inject(FIREBASE_ADMIN) private readonly firebaseAdmin: admin.app.App) {}
+  constructor(@Inject(FIREBASE_ADMIN) private readonly firebaseAdmin: admin.app.App) {
+    super();
+  }
 
-  async sendToToken(notification: SingleTokenNotificationDto): Promise<string> {
-    const message = this.buildBaseMessage(notification, { token: notification.token });
+  async sendToToken(options: SingleTokenNotificationOptions): Promise<string> {
+    this.validateSingleTokenOptions(options);
+    const message = this.buildBaseMessage(options, { token: options.token });
 
     try {
       const response = await this.firebaseAdmin.messaging().send(message);
-
-      this.logger.log(`Successfully sent notification to token ${notification.token}`);
+      this.logger.log(`Successfully sent notification to token ${options.token}`);
       return response;
     } catch (error) {
       this.logger.error(
-        `Failed to send notification to token ${notification.token}`,
+        `Failed to send notification to token ${options.token}`,
         (error as Error).stack,
       );
       throw error;
     }
   }
 
-  async sendToTokens(notification: TokensNotificationDto): Promise<BatchResponse> {
-    const { tokens, ...notificationData } = notification;
+  async sendToTokens(options: TokensNotificationOptions): Promise<BatchResponse> {
+    this.validateTokensOptions(options);
+    const { tokens, ...notificationData } = options;
     const batches = this.createBatches(tokens);
 
     let successCount = 0;
     let failureCount = 0;
-    const failures: { index: number; error: Error | FirebaseError }[] = [];
+    const failures: { index: number; error: Error }[] = [];
 
     const results = await Promise.allSettled(
       batches.map((batchTokens, batchIndex) =>
@@ -57,7 +58,7 @@ export class FirebaseNotificationService implements INotificationService {
               if (!resp.success && resp.error) {
                 failures.push({
                   index: batchIndex * this.batchSize + index,
-                  error: resp.error,
+                  error: resp.error as any,
                 });
               }
             });
@@ -74,8 +75,9 @@ export class FirebaseNotificationService implements INotificationService {
     return { successCount, failureCount, failures };
   }
 
-  async sendToTopic(notification: TopicNotificationDto): Promise<string> {
-    const { topic, ...notificationData } = notification;
+  async sendToTopic(options: TopicNotificationOptions): Promise<string> {
+    this.validateTopicOptions(options);
+    const { topic, ...notificationData } = options;
     const message = this.buildBaseMessage(notificationData, { topic });
 
     try {
@@ -109,7 +111,7 @@ export class FirebaseNotificationService implements INotificationService {
   }
 
   private buildBaseMessage(
-    notification: BaseNotificationDto,
+    notification: BaseNotificationOptions,
     target: NotificationTarget,
   ): admin.messaging.Message {
     const cleanedTarget: any = {};
@@ -142,7 +144,7 @@ export class FirebaseNotificationService implements INotificationService {
   }
 
   private buildMulticastMessage(
-    notification: BaseNotificationDto,
+    notification: BaseNotificationOptions,
     tokens: string[],
   ): admin.messaging.MulticastMessage {
     return {
