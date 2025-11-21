@@ -1,10 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { AbstractStorageProvider } from '../abstract-storage.provider';
-import { StorageOptions, UploadResult } from '../../interfaces/storage-options.interface';
 import { EnvironmentConfig } from '../../../../modules/app-config';
+import {
+  MultiDeleteOptions,
+  MultiUploadOptions,
+  StorageOptions,
+  UploadResult,
+} from '../../interfaces';
+import { AbstractStorageProvider } from '../abstract-storage.provider';
 
 @Injectable()
 export class LocalStorageProvider extends AbstractStorageProvider {
@@ -35,6 +40,29 @@ export class LocalStorageProvider extends AbstractStorageProvider {
     }
   }
 
+  /**
+   * Optimized batch upload for local storage using concurrent writes
+   */
+  async uploadMultiple(options: MultiUploadOptions): Promise<UploadResult[]> {
+    // Create all necessary directories first
+    const directories = new Set(
+      options.files.map((f) => path.dirname(path.join(this.basePath, this.sanitizePath(f.path)))),
+    );
+
+    await Promise.all(Array.from(directories).map((dir) => fs.mkdir(dir, { recursive: true })));
+
+    // Upload all files concurrently
+    return Promise.all(
+      options.files.map((fileOptions) =>
+        this.upload(fileOptions.file, {
+          path: fileOptions.path,
+          mimeType: fileOptions.mimeType,
+          maxSize: options.maxSize,
+        }),
+      ),
+    );
+  }
+
   async delete(filePath: string): Promise<void> {
     const fullPath = path.join(this.basePath, this.sanitizePath(filePath));
     try {
@@ -44,6 +72,19 @@ export class LocalStorageProvider extends AbstractStorageProvider {
         throw error;
       }
     }
+  }
+
+  /**
+   * Optimized batch delete for local storage using concurrent deletions
+   */
+  async deleteMultiple(options: MultiDeleteOptions): Promise<void> {
+    await Promise.all(
+      options.paths.map((filePath) =>
+        this.delete(filePath).catch(() => {
+          // Ignore errors for individual file deletions
+        }),
+      ),
+    );
   }
 
   async getUrl(filePath: string): Promise<string> {

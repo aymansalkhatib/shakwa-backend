@@ -1,10 +1,14 @@
 // Module
 export * from './storage.module';
 
-// Services
-export * from './base-storage.service';
-export * from './local-storage.service';
-export * from './supabase-storage.service';
+// Providers
+export * from './providers/abstract-storage.provider';
+export * from './providers/firebase/firebase-storage.provider';
+export * from './providers/local/local-storage.provider';
+export * from './providers/supabase/supabase-storage.provider';
+
+// Interfaces
+export * from './interfaces';
 
 // Types
 export * from './types';

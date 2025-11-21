@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IStorageProvider } from './interfaces/storage-provider.interface';
-import { StorageOptions, UploadResult } from './interfaces/storage-options.interface';
 import { STORAGE_PROVIDER_SERVICE } from './constants/storage.token';
+import { MultiDeleteOptions, MultiUploadOptions, UploadResult } from './interfaces';
+import { StorageOptions } from './interfaces/storage-options.interface';
+import { IStorageProvider } from './interfaces/storage-provider.interface';
 
 @Injectable()
 export class StorageService {
@@ -13,8 +14,16 @@ export class StorageService {
     return this.storageProvider.upload(file, options);
   }
 
+  async uploadMultiple(options: MultiUploadOptions): Promise<UploadResult[]> {
+    return this.storageProvider.uploadMultiple(options);
+  }
+
   async delete(path: string): Promise<void> {
     return this.storageProvider.delete(path);
+  }
+
+  async deleteMultiple(options: MultiDeleteOptions): Promise<void> {
+    return this.storageProvider.deleteMultiple(options);
   }
 
   async getUrl(path: string): Promise<string> {

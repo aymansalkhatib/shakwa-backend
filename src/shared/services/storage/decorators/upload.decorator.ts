@@ -1,4 +1,4 @@
-import { applyDecorators, UseInterceptors } from '@nestjs/common';
+import { applyDecorators, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import {
   AnyFilesInterceptor,
   FileFieldsInterceptor,
@@ -9,6 +9,8 @@ import {
   MulterField,
   MulterOptions,
 } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
+import { CustomFileParsingPipe } from '../pipes/parse-file.pipe';
+import { ImageProcessingPipe } from '../pipes/image-processing.pipe';
 
 export function SingleFileUpload(fieldName: string = 'file') {
   return applyDecorators(
@@ -50,3 +52,17 @@ export function MultipleFieldFilesUpload(fields: MulterField[]) {
 export function AnyFilesUpload(localOptions: MulterOptions = { limits: { files: 5 } }) {
   return applyDecorators(UseInterceptors(AnyFilesInterceptor(localOptions)));
 }
+
+/**
+ * Parameter decorator that combines @UploadedFiles with CustomFileParsingPipe and ImageProcessingPipe.
+ * This simplifies the common pattern of applying both pipes to uploaded files.
+ *
+ * @example
+ * // Instead of:
+ * // @UploadedFiles(CustomFileParsingPipe, ImageProcessingPipe)
+ * // Use:
+ * // @ProcessedFiles()
+ *
+ * @returns A parameter decorator that applies file parsing and image processing
+ */
+export const ProcessedFiles = () => UploadedFiles(CustomFileParsingPipe, ImageProcessingPipe);
