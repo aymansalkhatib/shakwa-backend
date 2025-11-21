@@ -8,14 +8,7 @@ import {
   SingleFileUpload,
 } from '@app/shared/services/storage';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common';
-import {
-  AnyFilesUploadResponseDto,
-  DeleteFileDto,
-  DeleteMultipleFilesDto,
-  MultipleFilesUploadResponseDto,
-  MultipleTypesUploadResponseDto,
-  SingleFileUploadResponseDto,
-} from './dtos';
+import { DeleteFileDto, DeleteMultipleFilesDto, FileInfoDto } from './dtos';
 import { UploadService } from './upload.service';
 
 @Controller('upload')
@@ -25,33 +18,33 @@ export class UploadController {
   @Post('single')
   @HttpCode(HttpStatus.CREATED)
   @SingleFileUpload('file')
-  @SerializeResponse(SingleFileUploadResponseDto)
+  @SerializeResponse(FileInfoDto)
   async uploadSingle(
     @ProcessedFile()
     file: Express.Multer.File,
-  ): Promise<SingleFileUploadResponseDto> {
+  ): Promise<FileInfoDto[]> {
     return this.uploadService.uploadSingleFile(file);
   }
 
   @Post('multiple')
   @HttpCode(HttpStatus.CREATED)
   @MultipleFilesUpload('files', 10)
-  @SerializeResponse(MultipleFilesUploadResponseDto)
+  @SerializeResponse(FileInfoDto)
   async uploadMultiple(
     @ProcessedFiles()
     files: Express.Multer.File[],
-  ): Promise<MultipleFilesUploadResponseDto> {
+  ): Promise<FileInfoDto[]> {
     return this.uploadService.uploadMultipleFiles(files);
   }
 
   @Post('any')
   @HttpCode(HttpStatus.CREATED)
   @AnyFilesUpload({ limits: { files: 20 } })
-  @SerializeResponse(AnyFilesUploadResponseDto)
+  @SerializeResponse(FileInfoDto)
   async uploadAny(
     @ProcessedFiles()
     files: Express.Multer.File[],
-  ): Promise<AnyFilesUploadResponseDto> {
+  ): Promise<FileInfoDto[]> {
     return this.uploadService.uploadAnyFiles(files);
   }
 
@@ -62,11 +55,11 @@ export class UploadController {
     { name: 'documents', maxCount: 3 },
     { name: 'videos', maxCount: 2 },
   ])
-  @SerializeResponse(MultipleTypesUploadResponseDto)
+  @SerializeResponse(FileInfoDto)
   async uploadGrouped(
     @ProcessedFiles()
     files: Record<string, Express.Multer.File[]>,
-  ): Promise<MultipleTypesUploadResponseDto> {
+  ): Promise<FileInfoDto[]> {
     return this.uploadService.uploadMultipleTypesOfFiles(files);
   }
 

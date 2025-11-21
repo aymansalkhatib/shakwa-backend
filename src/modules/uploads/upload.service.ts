@@ -1,37 +1,28 @@
 ﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { StorageService } from '../../shared/services/storage/storage.service';
-import {
-  AnyFilesUploadResponseDto,
-  MultipleFilesUploadResponseDto,
-  MultipleTypesUploadResponseDto,
-  SingleFileUploadResponseDto,
-} from './dtos';
+import { FileInfoDto } from './dtos';
 
 @Injectable()
 export class UploadService {
   constructor(private readonly storageService: StorageService) {}
 
-  async uploadSingleFile(file: Express.Multer.File): Promise<SingleFileUploadResponseDto> {
+  async uploadSingleFile(file: Express.Multer.File): Promise<FileInfoDto[]> {
     const result = await this.storageService.upload(file.buffer, {
       path: `${Date.now()}-${file.originalname}`,
       mimeType: file.mimetype,
     });
 
-    return {
-      success: true,
-      message: 'File uploaded successfully',
-      file: {
-        originalName: file.originalname,
-        filename: result.path.split('/').pop(),
-        path: result.path,
+    return [
+      {
         url: result.url,
         size: file.size,
         mimeType: file.mimetype,
+        fieldName: file.fieldname,
       },
-    };
+    ];
   }
 
-  async uploadMultipleFiles(files: Express.Multer.File[]): Promise<MultipleFilesUploadResponseDto> {
+  async uploadMultipleFiles(files: Express.Multer.File[]): Promise<FileInfoDto[]> {
     const uploadResults = await this.storageService.uploadMultiple({
       files: files.map((file) => ({
         file: file.buffer,
@@ -40,67 +31,34 @@ export class UploadService {
       })),
     });
 
-    const uploadedFiles = files.map((file, index) => ({
-      originalName: file.originalname,
-      filename: uploadResults[index].path.split('/').pop(),
-      path: uploadResults[index].path,
-      url: uploadResults[index].url,
-      size: file.size,
-      mimeType: file.mimetype,
-    }));
-
-    return {
-      success: true,
-      message: `${files.length} files uploaded successfully`,
-      files: uploadedFiles,
-      totalFiles: files.length,
-      totalSize: files.reduce((sum, file) => sum + file.size, 0),
-    };
-  }
-
-  async uploadAnyFiles(files: Express.Multer.File[]): Promise<AnyFilesUploadResponseDto> {
-    const uploadResults = await this.storageService.uploadMultiple({
-      files: files.map((file) => ({
-        file: file.buffer,
-        path: `${Date.now()}-${file.originalname}`,
-        mimeType: file.mimetype,
-      })),
-    });
-
-    const uploadedFiles = files.map((file, index) => ({
-      originalName: file.originalname,
-      filename: uploadResults[index].path.split('/').pop(),
-      path: uploadResults[index].path,
+    return files.map((file, index) => ({
       url: uploadResults[index].url,
       size: file.size,
       mimeType: file.mimetype,
       fieldName: file.fieldname,
     }));
+  }
 
-    const filesByField = uploadedFiles.reduce(
-      (acc, file) => {
-        if (!acc[file.fieldName]) {
-          acc[file.fieldName] = [];
-        }
-        acc[file.fieldName].push(file);
-        return acc;
-      },
-      {} as Record<string, any[]>,
-    );
+  async uploadAnyFiles(files: Express.Multer.File[]): Promise<FileInfoDto[]> {
+    const uploadResults = await this.storageService.uploadMultiple({
+      files: files.map((file) => ({
+        file: file.buffer,
+        path: `${Date.now()}-${file.originalname}`,
+        mimeType: file.mimetype,
+      })),
+    });
 
-    return {
-      success: true,
-      message: `${files.length} files uploaded successfully`,
-      files: uploadedFiles,
-      filesByField,
-      totalFiles: files.length,
-      totalSize: files.reduce((sum, file) => sum + file.size, 0),
-    };
+    return files.map((file, index) => ({
+      url: uploadResults[index].url,
+      size: file.size,
+      mimeType: file.mimetype,
+      fieldName: file.fieldname,
+    }));
   }
 
   async uploadMultipleTypesOfFiles(
     files: Record<string, Express.Multer.File[]>,
-  ): Promise<MultipleTypesUploadResponseDto> {
+  ): Promise<FileInfoDto[]> {
     const allFiles: Express.Multer.File[] = [];
     Object.values(files).forEach((fileArray) => {
       allFiles.push(...fileArray);
@@ -114,33 +72,12 @@ export class UploadService {
       })),
     });
 
-    let resultIndex = 0;
-    const filesByField: Record<string, any[]> = {};
-    let totalSize = 0;
-
-    for (const [fieldName, fileArray] of Object.entries(files)) {
-      filesByField[fieldName] = fileArray.map((file) => {
-        const result = uploadResults[resultIndex++];
-        totalSize += file.size;
-        return {
-          originalName: file.originalname,
-          filename: result.path.split('/').pop(),
-          path: result.path,
-          url: result.url,
-          size: file.size,
-          mimeType: file.mimetype,
-        };
-      });
-    }
-
-    return {
-      success: true,
-      message: `${allFiles.length} files uploaded successfully across ${Object.keys(files).length} fields`,
-      filesByField,
-      totalFiles: allFiles.length,
-      totalSize,
-      fieldCount: Object.keys(files).length,
-    };
+    return allFiles.map((file, index) => ({
+      url: uploadResults[index].url,
+      size: file.size,
+      mimeType: file.mimetype,
+      fieldName: file.fieldname,
+    }));
   }
 
   async deleteFile(filePath: string): Promise<void> {
@@ -155,10 +92,7 @@ export class UploadService {
     await this.storageService.deleteMultiple({ paths: filePaths });
   }
 
-  async replaceFile(
-    oldFilePath: string,
-    newFile: Express.Multer.File,
-  ): Promise<SingleFileUploadResponseDto> {
+  async replaceFile(oldFilePath: string, newFile: Express.Multer.File): Promise<FileInfoDto[]> {
     try {
       await this.storageService.delete(oldFilePath);
     } catch (error) {

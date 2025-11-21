@@ -109,16 +109,6 @@ export class CitizensAuthService {
     await this.authCodeService.clearCode(
       this.genKey(registerDto.email, AuthCodePurpose.EMAIL_VERIFICATION_TOKEN),
     );
-
-    const token = this.jwtService.createAccessToken({
-      userId: citizen.id,
-      role: Role.CITIZEN,
-    });
-
-    return {
-      token,
-      user: plainToInstance(CitizenResponseDto, citizen),
-    };
   }
 
   async login(loginDto: CitizenLoginDto, ip: string) {

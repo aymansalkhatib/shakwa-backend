@@ -2,15 +2,6 @@ import { Expose } from 'class-transformer';
 
 export class FileInfoDto {
   @Expose()
-  originalName: string;
-
-  @Expose()
-  filename: string;
-
-  @Expose()
-  path: string;
-
-  @Expose()
   url: string;
 
   @Expose()
@@ -20,5 +11,5 @@ export class FileInfoDto {
   mimeType: string;
 
   @Expose()
-  fieldName?: string;
+  fieldName: string;
 }
