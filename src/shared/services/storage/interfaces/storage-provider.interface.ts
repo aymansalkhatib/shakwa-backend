@@ -40,4 +40,11 @@ export interface IStorageProvider {
    * @returns Public URL to access the file
    */
   getUrl(path: string): Promise<string>;
+
+  /**
+   * Get the public URLs for multiple files
+   * @param paths - Array of file paths
+   * @returns Array of public URLs to access the files
+   */
+  getUrls(paths: string[]): Promise<string[]>;
 }

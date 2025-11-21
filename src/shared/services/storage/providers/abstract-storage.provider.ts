@@ -27,4 +27,15 @@ export abstract class AbstractStorageProvider implements IStorageProvider {
   protected sanitizePath(path: string): string {
     return path.replace(/^\/+/, '').replace(/\/+$/, '');
   }
+
+  /**
+   * Default implementation for getting multiple URLs
+   * Concrete providers can override this for optimized batch operations
+   */
+  async getUrls(paths: string[]): Promise<string[]> {
+    const results = await Promise.allSettled(paths.map((path) => this.getUrl(path)));
+    return results
+      .filter((result): result is PromiseFulfilledResult<string> => result.status === 'fulfilled')
+      .map((result) => result.value);
+  }
 }

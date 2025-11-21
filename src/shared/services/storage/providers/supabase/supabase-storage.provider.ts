@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { EnvironmentConfig } from '../../../../modules/app-config';
@@ -84,7 +84,7 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
       .createSignedUrl(this.sanitizePath(filePath), 3600); // 1 hour expiration
 
     if (error) {
-      throw new BadRequestException(error.message);
+      throw new Error('An unexpected error occurred while generating the signed URL. Please ensure the file exists and try again.');
     }
 
     return data.signedUrl;

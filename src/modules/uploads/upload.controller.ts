@@ -8,7 +8,13 @@ import {
   SingleFileUpload,
 } from '@app/shared/services/storage';
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common';
-import { DeleteFileDto, DeleteMultipleFilesDto, FileInfoDto } from './dtos';
+import {
+  DeleteFileDto,
+  DeleteMultipleFilesDto,
+  FileInfoDto,
+  GetFileUrlDto,
+  GetFileUrlsDto,
+} from './dtos';
 import { UploadService } from './upload.service';
 
 @Controller('upload')
@@ -16,7 +22,6 @@ export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('single')
-  @HttpCode(HttpStatus.CREATED)
   @SingleFileUpload('file')
   @SerializeResponse(FileInfoDto)
   async uploadSingle(
@@ -27,7 +32,6 @@ export class UploadController {
   }
 
   @Post('multiple')
-  @HttpCode(HttpStatus.CREATED)
   @MultipleFilesUpload('files', 10)
   @SerializeResponse(FileInfoDto)
   async uploadMultiple(
@@ -38,7 +42,6 @@ export class UploadController {
   }
 
   @Post('any')
-  @HttpCode(HttpStatus.CREATED)
   @AnyFilesUpload({ limits: { files: 20 } })
   @SerializeResponse(FileInfoDto)
   async uploadAny(
@@ -49,7 +52,6 @@ export class UploadController {
   }
 
   @Post('grouped')
-  @HttpCode(HttpStatus.CREATED)
   @MultipleFieldFilesUpload([
     { name: 'images', maxCount: 5 },
     { name: 'documents', maxCount: 3 },
@@ -76,9 +78,14 @@ export class UploadController {
   }
 
   @Get('url')
-  @HttpCode(HttpStatus.OK)
-  async getFileUrl(@Query('path') path: string): Promise<{ url: string }> {
-    const url = await this.uploadService.getFileUrl(path);
+  async getFileUrl(@Query() dto: GetFileUrlDto): Promise<{ url: string }> {
+    const url = await this.uploadService.getFileUrl(dto.path);
     return { url };
+  }
+
+  @Get('urls')
+  async getFileUrls(@Query() dto: GetFileUrlsDto): Promise<{ urls: string[] }> {
+    const urls = await this.uploadService.getFileUrls(dto.paths);
+    return { urls };
   }
 }

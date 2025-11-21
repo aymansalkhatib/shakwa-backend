@@ -29,4 +29,8 @@ export class StorageService {
   async getUrl(path: string): Promise<string> {
     return this.storageProvider.getUrl(path);
   }
+
+  async getUrls(paths: string[]): Promise<string[]> {
+    return this.storageProvider.getUrls(paths);
+  }
 }

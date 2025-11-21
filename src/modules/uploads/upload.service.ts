@@ -39,7 +39,15 @@ export class UploadService {
   }
 
   async getFileUrl(filePath: string): Promise<string> {
-    return this.storageService.getUrl(filePath);
+    try {
+      return await this.storageService.getUrl(filePath);
+    } catch (error: any) {
+      throw new NotFoundException(error.message);
+    }
+  }
+
+  async getFileUrls(filePaths: string[]): Promise<string[]> {
+    return this.storageService.getUrls(filePaths);
   }
 
   /**
