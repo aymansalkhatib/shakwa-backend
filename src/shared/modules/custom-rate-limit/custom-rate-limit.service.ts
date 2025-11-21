@@ -1,6 +1,6 @@
 // File: custom-rate-limit.service.ts
+import { RedisService } from '@app/shared/services/redis';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { RedisService } from '../redis/redis.service';
 
 /**
  * Rate limit state stored in Redis

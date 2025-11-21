@@ -1,11 +1,11 @@
 import { CanActivate, ExecutionContext, HttpException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { CustomRateLimitService } from '../../shared/services/custom-rate-limit/custom-rate-limit.service';
 import {
   CUSTOM_RATE_LIMIT_METADATA_KEY,
   RateLimitOptions,
 } from '../decorators/custom-rate-limit.decorator';
+import { CustomRateLimitService } from '@app/shared/modules/custom-rate-limit';
 
 /**
  * Guard that enforces custom rate limiting

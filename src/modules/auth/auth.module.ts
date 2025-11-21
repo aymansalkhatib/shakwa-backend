@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AppJwtService } from '../../shared/modules/app-jwt/app-jwt.service';
-import { CustomRateLimitModule } from '../../shared/services/custom-rate-limit/custom-rate-limit.module';
 import { MailModule } from '../../shared/services/mail';
 import { RedisModule } from '../../shared/services/redis';
 import { CitizensModule } from '../citizens/citizens.module';
@@ -11,6 +10,7 @@ import { AuthCodeService } from './services/auth-code.service';
 import { CitizensAuthService } from './services/citizens-auth.service';
 import { InternalUsersAuthService } from './services/internal-users-auth.service';
 import { LoginAttemptService } from './services/login-attempt.service';
+import { CustomRateLimitModule } from '@app/shared/modules/custom-rate-limit/custom-rate-limit.module';
 
 @Module({
   imports: [CitizensModule, InternalUsersModule, RedisModule, CustomRateLimitModule, MailModule],

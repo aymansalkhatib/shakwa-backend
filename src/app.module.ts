@@ -12,7 +12,7 @@ import { AppConfigModule } from './shared/modules/app-config/app-config.module';
 import { AppI18nModule } from './shared/modules/app-i18n/i18n.module';
 import { AppJwtModule } from './shared/modules/app-jwt/app-jwt.module';
 import { AppLoggerModule, LoggingMiddleware } from './shared/modules/app-logger';
-import { AppStorageModule } from './shared/modules/app-storage/app-storage.module';
+import { StorageModule } from './shared/services/storage/storage.module';
 import { AppThrottlerModule } from './shared/modules/app-throttler/app-throttler.module';
 import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.module';
 import { RedisModule } from './shared/services/redis';
@@ -26,7 +26,7 @@ import { ComplaintsModule } from './modules/your-bucket-name';
     AppTypeOrmModule,
     AppThrottlerModule,
     AppJwtModule,
-    AppStorageModule.register({ provider: 'local' }),
+    StorageModule,
     RedisModule,
     CitizensModule,
     AuthModule,

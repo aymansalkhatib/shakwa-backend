@@ -8,21 +8,15 @@ import {
 } from '@nestjs/common';
 
 import { UploadServiceExample } from './upload.service';
-import {
-  SingleFileUpload,
-  MultipleFilesUpload,
-  AnyFilesUpload,
-  MultipleFieldFilesUpload,
-} from '../../shared/modules/app-storage/decorators/upload.decorator';
-import { ImageProcessingPipe } from '../../shared/modules/app-storage/pipes/image-processing.pipe';
-import { CustomFileParsingPipe } from '../../shared/modules/app-storage/pipes/parse-file.pipe';
-import { SerializeResponse } from '../../common/decorators/serialize-response.decorator';
+
 import {
   SingleFileUploadResponseDto,
   MultipleFilesUploadResponseDto,
   AnyFilesUploadResponseDto,
   MultipleTypesUploadResponseDto,
 } from './dto/upload-response.dto';
+import { SerializeResponse } from '@app/common/decorators/serialize-response.decorator';
+import { SingleFileUpload, CustomFileParsingPipe, MultipleFilesUpload, ImageProcessingPipe, AnyFilesUpload, MultipleFieldFilesUpload } from '@app/shared/services/storage';
 
 /**
  * Example controller demonstrating various file upload patterns.

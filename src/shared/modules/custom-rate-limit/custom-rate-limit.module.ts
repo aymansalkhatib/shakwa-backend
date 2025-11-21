@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { RedisModule } from '../redis';
 import { CustomRateLimitService } from './custom-rate-limit.service';
+import { RedisModule } from '@app/shared/services/redis';
 
 @Module({
   imports: [RedisModule],

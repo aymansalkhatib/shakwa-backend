@@ -1,5 +1,5 @@
 // Module
-export * from './app-storage.module';
+export * from './storage.module';
 
 // Services
 export * from './base-storage.service';
