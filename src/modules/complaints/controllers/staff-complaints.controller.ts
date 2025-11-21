@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import { SignedUrlInterceptor } from '@app/shared/services/storage/interceptors/signed-url.interceptor';
+import { Body, Controller, Get, Param, Patch, Query, UseInterceptors } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Protected } from '../../../common/decorators/protected.decorator';
 import { SerializeResponse } from '../../../common/decorators/serialize-response.decorator';
@@ -12,6 +13,7 @@ import { StaffComplaintsService } from '../services/staff-your-bucket-name.servi
 
 @Controller('staff/your-bucket-name')
 @Protected(Role.STAFF)
+@UseInterceptors(SignedUrlInterceptor)
 export class StaffComplaintsController {
   constructor(private readonly staffComplaintsService: StaffComplaintsService) {}
 

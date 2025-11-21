@@ -1,7 +1,7 @@
-import { BadRequestException, ConflictException } from '@nestjs/common';
-import { ComplaintStatus } from '../enums';
-import { ComplaintEntity } from '../entities';
 import { InternalUserEntity } from '@app/modules/internal-users/entities/internal-user.entity';
+import { BadRequestException, ConflictException } from '@nestjs/common';
+import { ComplaintEntity } from '../entities';
+import { ComplaintStatus } from '../enums';
 
 export abstract class BaseComplaintsService {
   protected constructor() {}

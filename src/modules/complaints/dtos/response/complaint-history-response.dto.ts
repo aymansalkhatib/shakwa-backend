@@ -1,7 +1,7 @@
+import { PublicInternalUserResponseDto } from '@app/modules/internal-users/dtos/response/public-internal-user-response';
+import { SignedUrl } from '@app/shared/services/storage/decorators/signed-url.decorator';
 import { Exclude, Expose } from 'class-transformer';
 import { ComplaintStatus } from '../../enums';
-import { InternalUserResponseDto } from '@app/modules/internal-users/dtos';
-import { PublicInternalUserResponseDto } from '@app/modules/internal-users/dtos/response/public-internal-user-response';
 
 @Exclude()
 export class ComplaintHistoryResponseDto {
@@ -30,7 +30,11 @@ export class ComplaintHistoryResponseDto {
   location: string | null;
 
   @Expose()
+  @SignedUrl({ isList: true, targetField: 'attachmentUrls' })
   attachments: string[];
+
+  @Expose()
+  attachmentUrls?: string[];
 
   @Expose()
   note: string | null;
