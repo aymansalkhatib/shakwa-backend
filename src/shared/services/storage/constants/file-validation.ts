@@ -23,22 +23,14 @@ export const FILE_SIZE_LIMITS: Record<SupportedFileType, FileSizeUnit> = {
 /**
  * Predefined allowed file types grouped by usage context.
  */
-const IMAGE_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['png', 'jpg', 'jpeg'];
-const VIDEO_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['mp4'];
-const AUDIO_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['ogg'];
-const DOCUMENT_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['txt'];
+export const IMAGE_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['png', 'jpg', 'jpeg'];
+export const VIDEO_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['mp4'];
+export const AUDIO_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['ogg'];
+export const DOCUMENT_FILE_TYPES: NonEmptyArray<SupportedFileType> = ['txt'];
 
 /**
  * Maps field names to allowed file types to enforce field-specific file restrictions.
  */
-export const FIELD_FILE_TYPE_CONSTRAINTS: Record<string, NonEmptyArray<SupportedFileType>> = {
-  image: IMAGE_FILE_TYPES,
-  images: IMAGE_FILE_TYPES,
-  videos: VIDEO_FILE_TYPES,
-  audios: AUDIO_FILE_TYPES,
-  file: DOCUMENT_FILE_TYPES,
-  files: DOCUMENT_FILE_TYPES,
-};
 
 /**
  * List of supported file formats used by the Sharp image processing library.
@@ -81,7 +73,7 @@ export const FORMAT_PRIORITIES: ImageFormat[] = ['webp', 'jpeg', 'png'];
  */
 export const DEFAULT_FILE_VALIDATION_OPTIONS: FileValidationOptions = {
   isFileRequired: true, // By default, a file is required
-  allowedFileTypes: FIELD_FILE_TYPE_CONSTRAINTS['image'], // Default allowed file types (images)
+  allowedFileTypes: IMAGE_FILE_TYPES, // Default allowed file types (images)
   globalMaxFileSize: '5MB', // Default max file size for all file types
   perTypeSizeLimits: FILE_SIZE_LIMITS, // specific limits by type by default
 };

@@ -1,10 +1,8 @@
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
-import { validateFileUpload } from '../functions/file-structure-checker';
-import { FileUpload, NonEmptyArray, SupportedFileType } from '../types/file';
-import { FIELD_FILE_TYPE_CONSTRAINTS } from '../constants/file-validation';
-import { extname } from 'path';
 import magicBytes from 'magic-bytes.js';
 import { extractFileExtension } from '../functions/file-helper';
+import { validateFileUpload } from '../functions/file-structure-checker';
+import { FileUpload, NonEmptyArray, SupportedFileType } from '../types/file';
 
 /**
  * Validates files' signatures including MIME type, magic number, and field-specific constraints.

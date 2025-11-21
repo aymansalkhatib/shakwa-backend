@@ -9,37 +9,10 @@ import { IStorageProvider } from '../interfaces/storage-provider.interface';
 
 export abstract class AbstractStorageProvider implements IStorageProvider {
   abstract upload(file: Buffer, options: StorageOptions): Promise<UploadResult>;
+  abstract uploadMultiple(options: MultiUploadOptions): Promise<UploadResult[]>;
   abstract delete(path: string): Promise<void>;
   abstract getUrl(path: string): Promise<string>;
-
-  /**
-   * Default implementation for uploading multiple files
-   * Concrete providers can override this for optimized batch operations
-   */
-  async uploadMultiple(options: MultiUploadOptions): Promise<UploadResult[]> {
-    const results: UploadResult[] = [];
-
-    for (const fileOptions of options.files) {
-      const result = await this.upload(fileOptions.file, {
-        path: fileOptions.path,
-        mimeType: fileOptions.mimeType,
-        maxSize: options.maxSize,
-      });
-      results.push(result);
-    }
-
-    return results;
-  }
-
-  /**
-   * Default implementation for deleting multiple files
-   * Concrete providers can override this for optimized batch operations
-   */
-  async deleteMultiple(options: MultiDeleteOptions): Promise<void> {
-    for (const filePath of options.paths) {
-      await this.delete(filePath);
-    }
-  }
+  abstract deleteMultiple(options: MultiDeleteOptions): Promise<void>;
 
   protected validateFile(file: Buffer, options: StorageOptions): void {
     if (!file || file.length === 0) {

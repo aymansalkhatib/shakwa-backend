@@ -2,8 +2,6 @@
 import { StorageService } from '../../shared/services/storage/storage.service';
 import {
   AnyFilesUploadResponseDto,
-  DeleteFileResponseDto,
-  DeleteMultipleFilesResponseDto,
   MultipleFilesUploadResponseDto,
   MultipleTypesUploadResponseDto,
   SingleFileUploadResponseDto,
@@ -15,7 +13,7 @@ export class UploadService {
 
   async uploadSingleFile(file: Express.Multer.File): Promise<SingleFileUploadResponseDto> {
     const result = await this.storageService.upload(file.buffer, {
-      path: `uploads/${Date.now()}-${file.originalname}`,
+      path: `${Date.now()}-${file.originalname}`,
       mimeType: file.mimetype,
     });
 
@@ -37,7 +35,7 @@ export class UploadService {
     const uploadResults = await this.storageService.uploadMultiple({
       files: files.map((file) => ({
         file: file.buffer,
-        path: `uploads/${Date.now()}-${file.originalname}`,
+        path: `${Date.now()}-${file.originalname}`,
         mimeType: file.mimetype,
       })),
     });
@@ -64,7 +62,7 @@ export class UploadService {
     const uploadResults = await this.storageService.uploadMultiple({
       files: files.map((file) => ({
         file: file.buffer,
-        path: `uploads/${Date.now()}-${file.originalname}`,
+        path: `${Date.now()}-${file.originalname}`,
         mimeType: file.mimetype,
       })),
     });
@@ -111,7 +109,7 @@ export class UploadService {
     const uploadResults = await this.storageService.uploadMultiple({
       files: allFiles.map((file) => ({
         file: file.buffer,
-        path: `uploads/${file.fieldname}/${Date.now()}-${file.originalname}`,
+        path: `${file.fieldname}/${Date.now()}-${file.originalname}`,
         mimeType: file.mimetype,
       })),
     });
@@ -145,28 +143,16 @@ export class UploadService {
     };
   }
 
-  async deleteFile(filePath: string): Promise<DeleteFileResponseDto> {
+  async deleteFile(filePath: string): Promise<void> {
     try {
       await this.storageService.delete(filePath);
-      return {
-        success: true,
-        message: 'File deleted successfully',
-        deletedPath: filePath,
-      };
     } catch (error) {
       throw new NotFoundException(`File not found: ${filePath}`);
     }
   }
 
-  async deleteMultipleFiles(filePaths: string[]): Promise<DeleteMultipleFilesResponseDto> {
+  async deleteMultipleFiles(filePaths: string[]): Promise<void> {
     await this.storageService.deleteMultiple({ paths: filePaths });
-
-    return {
-      success: true,
-      message: `${filePaths.length} files deleted successfully`,
-      deletedPaths: filePaths,
-      totalDeleted: filePaths.length,
-    };
   }
 
   async replaceFile(

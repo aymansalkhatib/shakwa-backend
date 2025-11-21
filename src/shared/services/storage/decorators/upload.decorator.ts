@@ -1,4 +1,4 @@
-import { applyDecorators, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { applyDecorators, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import {
   AnyFilesInterceptor,
   FileFieldsInterceptor,
@@ -9,8 +9,8 @@ import {
   MulterField,
   MulterOptions,
 } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
-import { CustomFileParsingPipe } from '../pipes/parse-file.pipe';
 import { ImageProcessingPipe } from '../pipes/image-processing.pipe';
+import { CustomFileParsingPipe } from '../pipes/parse-file.pipe';
 
 export function SingleFileUpload(fieldName: string = 'file') {
   return applyDecorators(
@@ -66,3 +66,4 @@ export function AnyFilesUpload(localOptions: MulterOptions = { limits: { files: 
  * @returns A parameter decorator that applies file parsing and image processing
  */
 export const ProcessedFiles = () => UploadedFiles(CustomFileParsingPipe, ImageProcessingPipe);
+export const ProcessedFile = () => UploadedFile(CustomFileParsingPipe, ImageProcessingPipe);

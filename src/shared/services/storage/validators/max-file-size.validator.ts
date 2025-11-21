@@ -12,7 +12,7 @@ export class MaxFileSizeValidator extends FileValidator {
   /**
    * Constructor for initializing the validator with the maximum file size and optional custom error message.
    * @param options - Configuration options including max size and optional custom message.
-   */
+   */ 
   constructor(
     private readonly config: {
       globalMaxFileSize: FileSizeUnit;

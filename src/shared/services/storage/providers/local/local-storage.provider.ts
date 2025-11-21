@@ -66,11 +66,10 @@ export class LocalStorageProvider extends AbstractStorageProvider {
   async delete(filePath: string): Promise<void> {
     const fullPath = path.join(this.basePath, this.sanitizePath(filePath));
     try {
+      console.log(filePath);
       await fs.unlink(fullPath);
     } catch (error: any) {
-      if (error.code !== 'ENOENT') {
-        throw error;
-      }
+      throw error;
     }
   }
 
@@ -90,6 +89,7 @@ export class LocalStorageProvider extends AbstractStorageProvider {
   async getUrl(filePath: string): Promise<string> {
     // In a real app, this would return a public URL served by a static file server or controller
     // For now, we return the relative path which can be used to construct the URL
-    return `/${this.sanitizePath(filePath)}`;
+    const fullPath = path.join(this.basePath, filePath);
+    return fullPath;
   }
 }

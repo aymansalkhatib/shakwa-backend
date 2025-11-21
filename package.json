@@ -20,7 +20,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "i18n:check": "ts-node src/scripts/i18n-scripts.ts",
-    "seed:dev": "npm run build && cross-env NODE_ENV=development node dist/scripts/seeds/run-all-seeds.js"
+    "seed:dev": "npm run build && cross-env NODE_ENV=development node dist/scripts/seeds/run-all-seeds.js",
+    "seed:prod": "npm run build && cross-env NODE_ENV=production node dist/scripts/seeds/run-all-seeds.js"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",

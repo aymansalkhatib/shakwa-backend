@@ -3,6 +3,7 @@ import {
   AnyFilesUpload,
   MultipleFieldFilesUpload,
   MultipleFilesUpload,
+  ProcessedFile,
   ProcessedFiles,
   SingleFileUpload,
 } from '@app/shared/services/storage';
@@ -10,9 +11,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query } from
 import {
   AnyFilesUploadResponseDto,
   DeleteFileDto,
-  DeleteFileResponseDto,
   DeleteMultipleFilesDto,
-  DeleteMultipleFilesResponseDto,
   MultipleFilesUploadResponseDto,
   MultipleTypesUploadResponseDto,
   SingleFileUploadResponseDto,
@@ -28,7 +27,7 @@ export class UploadController {
   @SingleFileUpload('file')
   @SerializeResponse(SingleFileUploadResponseDto)
   async uploadSingle(
-    @ProcessedFiles()
+    @ProcessedFile()
     file: Express.Multer.File,
   ): Promise<SingleFileUploadResponseDto> {
     return this.uploadService.uploadSingleFile(file);
@@ -72,18 +71,14 @@ export class UploadController {
   }
 
   @Delete()
-  @HttpCode(HttpStatus.OK)
-  @SerializeResponse(DeleteFileResponseDto)
-  async deleteFile(@Query() dto: DeleteFileDto): Promise<DeleteFileResponseDto> {
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteFile(@Query() dto: DeleteFileDto): Promise<void> {
     return this.uploadService.deleteFile(dto.path);
   }
 
   @Delete('multiple')
-  @HttpCode(HttpStatus.OK)
-  @SerializeResponse(DeleteMultipleFilesResponseDto)
-  async deleteMultiple(
-    @Body() dto: DeleteMultipleFilesDto,
-  ): Promise<DeleteMultipleFilesResponseDto> {
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteMultiple(@Body() dto: DeleteMultipleFilesDto): Promise<void> {
     return this.uploadService.deleteMultipleFiles(dto.paths);
   }
 

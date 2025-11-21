@@ -20,7 +20,6 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
     const url = this.configService.getOrThrow<string>('SUPABASE_URL');
     const key = this.configService.getOrThrow<string>('SUPABASE_SERVICE_ROLE_KEY');
     this.bucket = this.configService.getOrThrow<string>('SUPABASE_BUCKET');
-
     this.supabase = createClient(url, key);
   }
 
@@ -34,7 +33,7 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
     });
 
     if (error) {
-      throw error;
+      throw new Error('An unexpected error occurred while uploading the image. Please try again.');
     }
 
     return {
@@ -65,7 +64,7 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
       .remove([this.sanitizePath(filePath)]);
 
     if (error) {
-      throw error;
+      throw new Error('An unexpected error occurred while deleting the image. Please try again.');
     }
   }
 
@@ -77,15 +76,19 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
     const { error } = await this.supabase.storage.from(this.bucket).remove(sanitizedPaths);
 
     if (error) {
-      throw error;
+      throw new Error('An unexpected error occurred while deleting the images. Please try again.');
     }
   }
 
   async getUrl(filePath: string): Promise<string> {
-    const { data } = this.supabase.storage
+    const { data, error } = await this.supabase.storage
       .from(this.bucket)
-      .getPublicUrl(this.sanitizePath(filePath));
+      .createSignedUrl(this.sanitizePath(filePath), 3600); // 1 hour expiration
 
-    return data.publicUrl;
+    if (error) {
+      throw error;
+    }
+
+    return data.signedUrl;
   }
 }
