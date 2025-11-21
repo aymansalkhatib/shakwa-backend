@@ -111,6 +111,11 @@ export class FileValidationSignatureValidator extends FileValidator {
    * @private
    */
   private isMagicNumberValidForFile(file: Express.Multer.File): boolean {
+    // Text files do not have magic numbers, so we skip this check for them
+    if (file.mimetype.startsWith('text/') || file.originalname.endsWith('.txt')) {
+      return true;
+    }
+
     const detectedSignatures = magicBytes(file.buffer).map((detectedFile) => detectedFile.mime);
 
     if (!detectedSignatures.length) return false;

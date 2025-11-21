@@ -9,20 +9,20 @@ export interface FileValidationOptions {
   /**
    * Indicates if the file must be uploaded. Defaults to false.
    */
-  isFileRequired?: boolean;
+  isFileRequired: boolean;
 
   /**
    * List of allowed file types for this field. Must not be empty.
    */
-  allowedFileTypes?: NonEmptyArray<SupportedFileType>;
+  allowedFileTypes: NonEmptyArray<SupportedFileType>;
 
   /**
    * Maximum allowed file size for this field, applied to all types unless overridden.
    */
-  globalMaxFileSize?: FileSizeUnit;
+  globalMaxFileSize: FileSizeUnit;
 
   /**
    * Specific size limits per file type. Overrides globalMaxFileSize for matching types.
    */
-  perTypeSizeLimits?: Record<SupportedFileType, FileSizeUnit>;
+  perTypeSizeLimits: Record<SupportedFileType, FileSizeUnit>;
 }

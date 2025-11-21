@@ -1,13 +1,25 @@
 ﻿import { SerializeResponse } from '@app/common/decorators/serialize-response.decorator';
 import {
   AnyFilesUpload,
+  DEFAULT_FILE_VALIDATION_OPTIONS,
   MultipleFieldFilesUpload,
   MultipleFilesUpload,
   ProcessedFile,
   ProcessedFiles,
   SingleFileUpload,
 } from '@app/shared/services/storage';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common';
+import { GroupedFileValidationPipe, ImageProcessingPipe } from '@app/shared/services/storage/pipes';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  UploadedFiles,
+} from '@nestjs/common';
 import {
   DeleteFileDto,
   DeleteMultipleFilesDto,
@@ -59,7 +71,26 @@ export class UploadController {
   ])
   @SerializeResponse(FileInfoDto)
   async uploadGrouped(
-    @ProcessedFiles()
+    @UploadedFiles(
+      new GroupedFileValidationPipe({
+        images: {
+          ...DEFAULT_FILE_VALIDATION_OPTIONS,
+          allowedFileTypes: ['jpg', 'jpeg', 'png'],
+          globalMaxFileSize: '5MB',
+        },
+        documents: {
+          ...DEFAULT_FILE_VALIDATION_OPTIONS,
+          allowedFileTypes: ['pdf', 'txt'],
+          globalMaxFileSize: '10MB',
+        },
+        videos: {
+          ...DEFAULT_FILE_VALIDATION_OPTIONS,
+          allowedFileTypes: ['mp4'],
+          globalMaxFileSize: '50MB',
+        },
+      }),
+      ImageProcessingPipe,
+    )
     files: Record<string, Express.Multer.File[]>,
   ): Promise<FileInfoDto[]> {
     return this.uploadService.uploadMultipleTypesOfFiles(files);
