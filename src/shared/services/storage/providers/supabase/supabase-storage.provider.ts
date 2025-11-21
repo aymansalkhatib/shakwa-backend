@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { EnvironmentConfig } from '../../../../modules/app-config';
@@ -38,8 +38,6 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
 
     return {
       url: await this.getUrl(filePath),
-      path: filePath,
-      key: data.path,
     };
   }
 
@@ -86,7 +84,7 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
       .createSignedUrl(this.sanitizePath(filePath), 3600); // 1 hour expiration
 
     if (error) {
-      throw error;
+      throw new BadRequestException(error.message);
     }
 
     return data.signedUrl;

@@ -33,7 +33,6 @@ export class LocalStorageProvider extends AbstractStorageProvider {
 
       return {
         url: await this.getUrl(relativePath),
-        path: relativePath,
       };
     } catch (error) {
       throw error;

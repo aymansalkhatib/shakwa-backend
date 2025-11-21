@@ -1,4 +1,5 @@
 ﻿import { Injectable, NotFoundException } from '@nestjs/common';
+import { createUniqueFileName, UploadResult } from '../../shared/services/storage';
 import { StorageService } from '../../shared/services/storage/storage.service';
 import { FileInfoDto } from './dtos';
 
@@ -7,77 +8,22 @@ export class UploadService {
   constructor(private readonly storageService: StorageService) {}
 
   async uploadSingleFile(file: Express.Multer.File): Promise<FileInfoDto[]> {
-    const result = await this.storageService.upload(file.buffer, {
-      path: `${Date.now()}-${file.originalname}`,
-      mimeType: file.mimetype,
-    });
-
-    return [
-      {
-        url: result.url,
-        size: file.size,
-        mimeType: file.mimetype,
-        fieldName: file.fieldname,
-      },
-    ];
+    return this.uploadFiles([file]);
   }
 
   async uploadMultipleFiles(files: Express.Multer.File[]): Promise<FileInfoDto[]> {
-    const uploadResults = await this.storageService.uploadMultiple({
-      files: files.map((file) => ({
-        file: file.buffer,
-        path: `${Date.now()}-${file.originalname}`,
-        mimeType: file.mimetype,
-      })),
-    });
-
-    return files.map((file, index) => ({
-      url: uploadResults[index].url,
-      size: file.size,
-      mimeType: file.mimetype,
-      fieldName: file.fieldname,
-    }));
+    return this.uploadFiles(files);
   }
 
   async uploadAnyFiles(files: Express.Multer.File[]): Promise<FileInfoDto[]> {
-    const uploadResults = await this.storageService.uploadMultiple({
-      files: files.map((file) => ({
-        file: file.buffer,
-        path: `${Date.now()}-${file.originalname}`,
-        mimeType: file.mimetype,
-      })),
-    });
-
-    return files.map((file, index) => ({
-      url: uploadResults[index].url,
-      size: file.size,
-      mimeType: file.mimetype,
-      fieldName: file.fieldname,
-    }));
+    return this.uploadFiles(files);
   }
 
   async uploadMultipleTypesOfFiles(
     files: Record<string, Express.Multer.File[]>,
   ): Promise<FileInfoDto[]> {
-    const allFiles: Express.Multer.File[] = [];
-    Object.values(files).forEach((fileArray) => {
-      allFiles.push(...fileArray);
-    });
-
-    const uploadResults = await this.storageService.uploadMultiple({
-      files: allFiles.map((file) => ({
-        file: file.buffer,
-        path: `${file.fieldname}/${Date.now()}-${file.originalname}`,
-        mimeType: file.mimetype,
-      })),
-    });
-
-    return allFiles.map((file, index) => ({
-      url: uploadResults[index].url,
-      size: file.size,
-      mimeType: file.mimetype,
-      fieldName: file.fieldname,
-    }));
+    const allFiles = Object.values(files).flat();
+    return this.uploadFiles(allFiles);
   }
 
   async deleteFile(filePath: string): Promise<void> {
@@ -92,17 +38,44 @@ export class UploadService {
     await this.storageService.deleteMultiple({ paths: filePaths });
   }
 
-  async replaceFile(oldFilePath: string, newFile: Express.Multer.File): Promise<FileInfoDto[]> {
-    try {
-      await this.storageService.delete(oldFilePath);
-    } catch (error) {
-      // Ignore if old file doesn't exist
-    }
-
-    return this.uploadSingleFile(newFile);
-  }
-
   async getFileUrl(filePath: string): Promise<string> {
     return this.storageService.getUrl(filePath);
+  }
+
+  /**
+   * Prepare files for upload by mapping them to storage options
+   */
+  private prepareFilesForUpload(files: Express.Multer.File[]) {
+    return files.map((file) => ({
+      file: file.buffer,
+      path: createUniqueFileName(file.originalname),
+      mimeType: file.mimetype,
+    }));
+  }
+
+  /**
+   * Map upload results to FileInfoDto
+   */
+  private mapToFileInfoDto(
+    files: Express.Multer.File[],
+    uploadResults: UploadResult[],
+  ): FileInfoDto[] {
+    return files.map((file, index) => ({
+      url: uploadResults[index].url,
+      size: file.size,
+      mimeType: file.mimetype,
+      fieldName: file.fieldname,
+    }));
+  }
+
+  /**
+   * Upload files and return FileInfoDto array
+   */
+  private async uploadFiles(files: Express.Multer.File[]): Promise<FileInfoDto[]> {
+    const uploadResults = await this.storageService.uploadMultiple({
+      files: this.prepareFilesForUpload(files),
+    });
+
+    return this.mapToFileInfoDto(files, uploadResults);
   }
 }
