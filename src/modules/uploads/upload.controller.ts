@@ -1,31 +1,23 @@
-﻿import {
-  Controller,
-  Post,
-  Delete,
-  Get,
-  Body,
-  Query,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import { UploadService } from './upload.service';
+﻿import { SerializeResponse } from '@app/common/decorators/serialize-response.decorator';
 import {
-  SingleFileUpload,
-  MultipleFilesUpload,
   AnyFilesUpload,
   MultipleFieldFilesUpload,
+  MultipleFilesUpload,
   ProcessedFiles,
+  SingleFileUpload,
 } from '@app/shared/services/storage';
-import { SerializeResponse } from '@app/common/decorators/serialize-response.decorator';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common';
 import {
-  SingleFileUploadResponseDto,
-  MultipleFilesUploadResponseDto,
   AnyFilesUploadResponseDto,
-  MultipleTypesUploadResponseDto,
+  DeleteFileDto,
   DeleteFileResponseDto,
+  DeleteMultipleFilesDto,
   DeleteMultipleFilesResponseDto,
-} from './dto/upload-response.dto';
-import { DeleteFileDto, DeleteMultipleFilesDto } from './dto/delete-file.dto';
+  MultipleFilesUploadResponseDto,
+  MultipleTypesUploadResponseDto,
+  SingleFileUploadResponseDto,
+} from './dtos';
+import { UploadService } from './upload.service';
 
 @Controller('upload')
 export class UploadController {

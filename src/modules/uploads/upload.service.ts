@@ -1,13 +1,13 @@
 ﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { StorageService } from '../../shared/services/storage/storage.service';
 import {
-  SingleFileUploadResponseDto,
-  MultipleFilesUploadResponseDto,
   AnyFilesUploadResponseDto,
-  MultipleTypesUploadResponseDto,
   DeleteFileResponseDto,
   DeleteMultipleFilesResponseDto,
-} from './dto/upload-response.dto';
+  MultipleFilesUploadResponseDto,
+  MultipleTypesUploadResponseDto,
+  SingleFileUploadResponseDto,
+} from './dtos';
 
 @Injectable()
 export class UploadService {
@@ -79,13 +79,16 @@ export class UploadService {
       fieldName: file.fieldname,
     }));
 
-    const filesByField = uploadedFiles.reduce((acc, file) => {
-      if (!acc[file.fieldName]) {
-        acc[file.fieldName] = [];
-      }
-      acc[file.fieldName].push(file);
-      return acc;
-    }, {} as Record<string, any[]>);
+    const filesByField = uploadedFiles.reduce(
+      (acc, file) => {
+        if (!acc[file.fieldName]) {
+          acc[file.fieldName] = [];
+        }
+        acc[file.fieldName].push(file);
+        return acc;
+      },
+      {} as Record<string, any[]>,
+    );
 
     return {
       success: true,
