@@ -3,7 +3,6 @@
  * Used by repository layer, independent of DTOs
  */
 export interface IUpdateCitizenData {
-  email?: string;
   phone?: string | null;
   password?: string;
   fullName?: string;

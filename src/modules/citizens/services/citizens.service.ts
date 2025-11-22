@@ -36,14 +36,6 @@ export class CitizensService {
     citizen: CitizenEntity,
     updateCitizenDto: UpdateCitizenDto,
   ): Promise<CitizenEntity> {
-    // Check if email is being updated and already exists
-    if (updateCitizenDto.email) {
-      const existingCitizen = await this.citizensRepository.findByEmail(updateCitizenDto.email);
-      if (existingCitizen && existingCitizen.id !== citizen.id) {
-        throw new BadRequestException('Citizen with this email already exists');
-      }
-    }
-
     // Check if phone is being updated and already exists
     if (updateCitizenDto.phone) {
       const existingCitizen = await this.citizensRepository.findByPhone(updateCitizenDto.phone);
