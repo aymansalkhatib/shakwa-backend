@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 import { IPaginatedResponse } from '../../../common/pagination/interfaces/paginated-response.interface';
@@ -28,7 +28,6 @@ export class ComplaintsRepository implements IComplaintsRepository {
     return await this.complaintRepo.save(e);
   }
 
-  //TODO
   async findAll(filter: IComplaintFilter): Promise<IPaginatedResponse<ComplaintEntity>> {
     const qb = this.complaintRepo
       .createQueryBuilder('complaint')
@@ -65,7 +64,6 @@ export class ComplaintsRepository implements IComplaintsRepository {
 
     return await qb.getOne();
   }
-
 
   async update(complaint: ComplaintEntity, data: IUpdateComplaintData): Promise<ComplaintEntity> {
     const merged = this.complaintRepo.merge(complaint, data);
@@ -122,66 +120,6 @@ export class ComplaintsRepository implements IComplaintsRepository {
     return count > 0;
   }
 
-  //TODO
-  async getStatistics(): Promise<IComplaintStatistics> {
-    /**
-     * Step 1: Subquery to get the latest history entry for each complaint
-     */
-    const latestHistorySubquery = this.historyRepo
-      .createQueryBuilder('h')
-      .select('h.complaint_id', 'complaintId')
-      .addSelect('h.status', 'status')
-      .addSelect(
-        `ROW_NUMBER() OVER (PARTITION BY h.complaint_id ORDER BY h.created_at DESC)`,
-        'rn',
-      );
-
-    /**
-     * Step 2: Wrap subquery, filter rn = 1 (latest)
-     */
-    const latestHistories = await this.historyRepo
-      .createQueryBuilder()
-      .select('t.status', 'status')
-      .from('(' + latestHistorySubquery.getQuery() + ')', 't')
-      .where('t.rn = 1')
-      .getRawMany<{ status: ComplaintStatus }>();
-
-    /**
-     * Step 3: Count by status
-     */
-    const your-bucket-nameByStatus: Record<ComplaintStatus, number> = {} as any;
-    Object.values(ComplaintStatus).forEach((s) => (your-bucket-nameByStatus[s] = 0));
-
-    latestHistories.forEach((row) => {
-      your-bucket-nameByStatus[row.status]++;
-    });
-
-    const totalComplaints = latestHistories.length;
-
-    /**
-     * Step 4: Count by authority directly from your-bucket-name table
-     */
-    const byAuthority = await this.complaintRepo
-      .createQueryBuilder('c')
-      .select('c.authority', 'authority')
-      .addSelect('COUNT(c.id)', 'total')
-      .groupBy('c.authority')
-      .getRawMany<{ authority: ComplaintAuthority; total: string }>();
-
-    const your-bucket-nameByAuthority: Record<ComplaintAuthority, number> = {} as any;
-    Object.values(ComplaintAuthority).forEach((a) => (your-bucket-nameByAuthority[a] = 0));
-
-    byAuthority.forEach((row) => {
-      your-bucket-nameByAuthority[row.authority] = Number(row.total);
-    });
-
-    return {
-      totalComplaints,
-      your-bucket-nameByStatus,
-      your-bucket-nameByAuthority,
-    };
-  }
-
   /**
    * Apply dynamic filters on your-bucket-name + latest history.
    */
@@ -214,4 +152,84 @@ export class ComplaintsRepository implements IComplaintsRepository {
     const historyRepo = manager.getRepository(ComplaintHistoryEntity);
     return new ComplaintsRepository(complaintRepo, historyRepo);
   }
+
+  async getStatistics(): Promise<IComplaintStatistics> {
+    // 1. Initialize result objects with zero values to ensure all keys exist for the frontend
+    const your-bucket-nameByStatus = this.initEnumCounter(ComplaintStatus);
+    const your-bucket-nameByAuthority = this.initEnumCounter(ComplaintAuthority);
+
+    // 2. Execute all queries in parallel to minimize latency
+    const [statusStatsRaw, authorityStatsRaw, totalComplaints] = await Promise.all([
+      this.fetchStatusStatistics(),
+      this.fetchAuthorityStatistics(),
+      this.complaintRepo.count(), // Fast count of total rows
+    ]);
+
+    // 3. Map raw DB results to the structured response objects
+    statusStatsRaw.forEach((row) => {
+      if (your-bucket-nameByStatus[row.status] != undefined) {
+        your-bucket-nameByStatus[row.status] = Number(row.count);
+      }
+    });
+
+    authorityStatsRaw.forEach((row) => {
+      if (your-bucket-nameByAuthority[row.authority] != undefined) {
+        your-bucket-nameByAuthority[row.authority] = Number(row.count);
+      }
+    });
+
+    return {
+      totalComplaints,
+      your-bucket-nameByStatus,
+      your-bucket-nameByAuthority,
+    };
+  }
+
+  /**
+   * Fetches the count of your-bucket-name grouped by their *latest* status.
+   * Uses a Window Function to find the latest history without fetching all data.
+   */
+  private async fetchStatusStatistics() {
+    // Inner Query: Rank histories by creation date for each complaint
+    const subQuery = this.historyRepo
+      .createQueryBuilder('h')
+      .select('h.status', 'status')
+      .addSelect(
+        'ROW_NUMBER() OVER (PARTITION BY h.complaint_id ORDER BY h.created_at DESC)',
+        'rn',
+      );
+
+    // Outer Query: Filter for rank 1 (latest), Group by Status, and Count
+    return await this.historyRepo.manager
+      .createQueryBuilder()
+      .select('ranked.status', 'status')
+      .addSelect('COUNT(ranked.status)', 'count')
+      .from('(' + subQuery.getQuery() + ')', 'ranked') // Wrap subquery
+      .where('ranked.rn = 1') // Only consider the latest entry
+      .groupBy('ranked.status')
+      .getRawMany<{ status: ComplaintStatus; count: string }>();
+  }
+
+  /**
+   * Fetches the count of your-bucket-name grouped by authority.
+   * Performed directly on the your-bucket-name table.
+   */
+  private async fetchAuthorityStatistics() {
+    return await this.complaintRepo
+      .createQueryBuilder('c')
+      .select('c.authority', 'authority')
+      .addSelect('COUNT(c.id)', 'count')
+      .groupBy('c.authority')
+      .getRawMany<{ authority: ComplaintAuthority; count: string }>();
+  }
+
+  /**
+   * Helper to create an object with all Enum keys set to 0.
+   * Prevents "undefined" values in the response.
+   */
+  private initEnumCounter = <T extends Record<string, any>>(enumObj: T) => {
+    const counter: any = {};
+    Object.values(enumObj).forEach((v) => (counter[v] = 0));
+    return counter as Record<T[keyof T], number>;
+  };
 }
