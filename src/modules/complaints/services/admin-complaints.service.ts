@@ -56,7 +56,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
     return this.your-bucket-nameRepo.lock(complaint.id, staff.id, ComplaintLockerRole.INTERNAL_USER);
   }
 
-  async updateComplaint(
+  async update(
     staff: InternalUserEntity,
     id: number,
     dto: UpdateComplaintInternalUserDto,
@@ -85,7 +85,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
       location: latest.location,
       attachments: latest.attachments,
       citizenNote: null,
-      internalUserNote: dto.internalUserNote ,
+      internalUserNote: dto.internalUserNote,
     });
 
     complaint.histories = [history];
@@ -108,7 +108,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
     }
 
     // Invalidate cache
-    // await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);//TODO
+    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
 
     return complaint;
   }

@@ -52,7 +52,7 @@ export class AdminComplaintsController {
     @Param('id', PositiveIntPipe) id: number,
     @Body() dto: UpdateComplaintInternalUserDto,
   ): Promise<ComplaintResponseDto> {
-    return this.adminComplaintsService.updateComplaint(admin, id, dto);
+    return this.adminComplaintsService.update(admin, id, dto);
   }
 
   @Patch(':id/lock')

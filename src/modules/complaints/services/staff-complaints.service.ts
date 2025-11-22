@@ -124,7 +124,7 @@ export class StaffComplaintsService extends BaseComplaintsService {
     }
 
     // Invalidate cache
-    // await this.cacheInvalidation.invalidateComplaintCaches(complaint.id); //TODO
+    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
 
     return complaint;
   }

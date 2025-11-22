@@ -45,7 +45,7 @@ export class CitizenComplaintsService extends BaseComplaintsService {
       complaint.histories = [history];
 
       // Invalidate cache
-      // await this.cacheInvalidation.invalidateComplaintCaches(); //TODO
+      await this.cacheInvalidation.invalidateComplaintCaches();
 
       return complaint;
     });
@@ -122,7 +122,7 @@ export class CitizenComplaintsService extends BaseComplaintsService {
       status: dto.status ?? latestStatus,
       location: dto.location ?? latest?.location,
       attachments: dto.attachments ?? latest?.attachments,
-      citizenNote: dto.citizenNote ,
+      citizenNote: dto.citizenNote,
       internalUserNote: null,
     });
 
@@ -131,7 +131,7 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     await this.your-bucket-nameRepo.releaseLock(complaint.id, citizen.id, ComplaintLockerRole.CITIZEN);
 
     // Invalidate cache
-    // await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
+    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
 
     return complaint;
   }

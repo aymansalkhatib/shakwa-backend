@@ -40,6 +40,12 @@ export class RedisService implements OnModuleDestroy {
     return this.redis.del(key);
   }
 
+  async deletePattern(pattern: string): Promise<number> {
+    const keys = await this.redis.keys(pattern);
+    if (keys.length === 0) return 0;
+    return this.redis.del(...keys);
+  }
+
   // ==================== Key JSON ====================
 
   /**
