@@ -6,6 +6,7 @@ import { Role } from '../../../common/enums/role.enum';
 import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
 import { CitizenResponseDto } from '../../citizens/dtos';
+import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import { CitizensService } from '../../citizens/services/citizens.service';
 import { CitizenLoginDto } from '../dtos/request/citizens/citizen-login.dto';
 import { CitizenRegisterDto } from '../dtos/request/citizens/citizen-register.dto';
@@ -158,6 +159,10 @@ export class CitizensAuthService {
       token,
       user: plainToInstance(CitizenResponseDto, citizen),
     };
+  }
+
+  async logout(citizen: CitizenEntity) {
+    await this.citizensService.updateLastLogoutAt(citizen);
   }
 
   async handleForgotPasswordRequest(dto: ForgotPasswordDto) {

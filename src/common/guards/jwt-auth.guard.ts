@@ -106,6 +106,11 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Token was issued before the last password change.');
     }
 
+    // Check if token was issued before the last logout (invalidate tokens after logout)
+    if (this.isTokenIssuedBeforeEvent(payload.iat, citizen.lastLogoutAt)) {
+      throw new UnauthorizedException('Token expired due to user logout.');
+    }
+
     return citizen;
   }
 

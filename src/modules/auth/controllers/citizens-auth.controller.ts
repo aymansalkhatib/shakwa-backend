@@ -5,6 +5,10 @@ import {
   EmailVerificationRateLimit,
   PasswordResetRateLimit,
 } from '../../../common/decorators/custom-rate-limit.decorator';
+import { Protected } from '../../../common/decorators/protected.decorator';
+import { Role } from '../../../common/enums/role.enum';
+import { CurrentUser } from '../../../common/guards/current-user.decorator';
+import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import { CitizenLoginDto } from '../dtos/request/citizens/citizen-login.dto';
 import { CitizenRegisterDto } from '../dtos/request/citizens/citizen-register.dto';
 import { ForgotPasswordDto } from '../dtos/request/citizens/forgot-password.dto';
@@ -50,6 +54,13 @@ export class CitizensAuthController {
   async login(@Body() dto: CitizenLoginDto, @Req() req: Request) {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip;
     return await this.citizensAuthService.login(dto, ip);
+  }
+
+  @Post('logout')
+  @Protected(Role.CITIZEN)
+  async logout(@CurrentUser() user: CitizenEntity) {
+    await this.citizensAuthService.logout(user);
+    return { message: 'Logged out successfully' };
   }
 
   @Post('forgot-password')

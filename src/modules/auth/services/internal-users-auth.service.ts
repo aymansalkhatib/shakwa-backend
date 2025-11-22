@@ -6,6 +6,7 @@ import { InternalRole } from '../../../common/enums/role.enum';
 import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
 import { InternalUserResponseDto } from '../../internal-users/dtos/response/internal-user-response.dto';
+import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import { InternalUsersService } from '../../internal-users/services/internal-users.service';
 import { InternalUserForgotPasswordDto } from '../dtos/request/internal-users/forgot-password.dto';
 import { InternalUserLoginDto } from '../dtos/request/internal-users/internal-user-login.dto';
@@ -73,6 +74,10 @@ export class InternalUsersAuthService {
       token,
       user: plainToInstance(InternalUserResponseDto, internalUser),
     };
+  }
+
+  async logout(internalUser: InternalUserEntity) {
+    await this.internalUsersService.updateLastLogoutAt(internalUser);
   }
 
   async handleForgotPasswordRequest(dto: InternalUserForgotPasswordDto) {
