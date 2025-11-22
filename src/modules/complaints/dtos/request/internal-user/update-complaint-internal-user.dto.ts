@@ -1,7 +1,7 @@
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { ComplaintStatus } from '../../../enums';
 
-export class UpdateComplaintStaffDto {
+export class UpdateComplaintInternalUserDto {
   @IsOptional()
   @IsEnum(ComplaintStatus)
   status?: ComplaintStatus;

@@ -16,8 +16,9 @@ export class ComplaintHistoryRepository implements IComplaintHistoryRepository {
     const entry = this.historyRepo.create(data);
     return await this.historyRepo.save(entry);
   }
+
   withManager(manager: EntityManager): IComplaintHistoryRepository {
-    const repo = manager.getRepository(ComplaintHistoryEntity);
-    return new ComplaintHistoryRepository(repo);
+    const historyRepo = manager.getRepository(ComplaintHistoryEntity);
+    return new ComplaintHistoryRepository(historyRepo);
   }
 }

@@ -28,6 +28,7 @@ export class ComplaintsRepository implements IComplaintsRepository {
     return await this.complaintRepo.save(e);
   }
 
+  //TODO
   async findAll(filter: IComplaintFilter): Promise<IPaginatedResponse<ComplaintEntity>> {
     const qb = this.complaintRepo
       .createQueryBuilder('complaint')
@@ -48,11 +49,25 @@ export class ComplaintsRepository implements IComplaintsRepository {
       .createQueryBuilder('complaint')
       .where('complaint.id = :id', { id })
       .leftJoinAndSelect('complaint.histories', 'histories')
-      .leftJoinAndSelect('histories.internalUser', 'staff');
+      .leftJoinAndSelect('histories.internalUser', 'staff'); //TODO
 
     return await qb.getOne();
   }
 
+  async findByIdWithLatestHistory(id: number): Promise<ComplaintEntity | null> {
+    const qb = this.complaintRepo
+      .createQueryBuilder('complaint')
+      .where('complaint.id = :id', { id })
+      .leftJoinAndSelect(
+        'complaint.histories',
+        'lastHistory',
+        'lastHistory.id = (SELECT h.id FROM complaint_histories h WHERE h.complaint_id = complaint.id ORDER BY h.created_at DESC LIMIT 1)',
+      );
+
+    return await qb.getOne();
+  }
+
+  //TODO
   async findById(id: number, relations?: string[]): Promise<ComplaintEntity | null> {
     return await this.complaintRepo.findOne({ where: { id }, ...(relations ? { relations } : {}) });
   }
@@ -116,6 +131,7 @@ export class ComplaintsRepository implements IComplaintsRepository {
     return count > 0;
   }
 
+  //TODO
   async getStatistics(): Promise<IComplaintStatistics> {
     /**
      * Step 1: Subquery to get the latest history entry for each complaint

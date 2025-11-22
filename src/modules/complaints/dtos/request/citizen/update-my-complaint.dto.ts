@@ -1,5 +1,5 @@
 import { OmitType, PartialType } from '@nestjs/mapped-types';
-import { IsEnum, IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsIn, IsOptional } from 'class-validator';
 import { ComplaintStatus } from '../../../enums';
 import { CreateComplaintDto } from './create-complaint.dto';
 
@@ -7,11 +7,6 @@ export class UpdateMyComplaintDto extends OmitType(PartialType(CreateComplaintDt
   'authority',
   'category',
 ]) {
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  citizenNote?: string;
-
   @IsOptional()
   @IsEnum(ComplaintStatus)
   @IsIn([ComplaintStatus.CANCELLED], {

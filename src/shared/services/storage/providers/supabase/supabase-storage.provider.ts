@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { EnvironmentConfig } from '../../../../modules/app-config';
+import { RedisService } from '../../../redis';
 import {
   MultiDeleteOptions,
   MultiUploadOptions,
@@ -15,7 +16,10 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
   private readonly supabase: SupabaseClient;
   private readonly bucket: string;
 
-  constructor(private readonly configService: ConfigService<EnvironmentConfig>) {
+  constructor(
+    private readonly configService: ConfigService<EnvironmentConfig>,
+    private readonly redis: RedisService,
+  ) {
     super();
     const url = this.configService.getOrThrow<string>('SUPABASE_URL');
     const key = this.configService.getOrThrow<string>('SUPABASE_SERVICE_ROLE_KEY');
@@ -79,14 +83,20 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
   }
 
   async getUrl(filePath: string): Promise<string> {
+    const cacheKey = `signedUrl:${filePath}`;
+    const cached = await this.redis.getString(cacheKey);
+
+    if (cached) return cached;
+
     const { data, error } = await this.supabase.storage
       .from(this.bucket)
-      .createSignedUrl(this.sanitizePath(filePath), 3600); // 1 hour expiration
+      .createSignedUrl(this.sanitizePath(filePath), 3600);
 
     if (error) {
-      throw new Error('An unexpected error occurred while generating the signed URL. Please ensure the file exists and try again.');
+      throw new Error('Failed to generate signed URL.');
     }
 
+    await this.redis.setString(cacheKey, data.signedUrl, 3600);
     return data.signedUrl;
   }
 }

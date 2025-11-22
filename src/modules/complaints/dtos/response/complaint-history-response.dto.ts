@@ -1,6 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
 import { SignedUrl } from '../../../../shared/services/storage/decorators/signed-url.decorator';
-import { PublicInternalUserResponseDto } from '../../../internal-users/dtos/response/public-internal-user-response';
 import { ComplaintStatus } from '../../enums';
 
 @Exclude()
@@ -13,9 +12,6 @@ export class ComplaintHistoryResponseDto {
 
   @Expose()
   internalUserId: number | null;
-
-  @Expose()
-  internalUser: PublicInternalUserResponseDto;
 
   @Expose()
   title: string;

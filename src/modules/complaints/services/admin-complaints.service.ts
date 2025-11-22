@@ -7,7 +7,7 @@ import {
   COMPLAINTS_REPOSITORY_TOKEN,
   COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
-import { AdminComplaintFilterDto, UpdateComplaintStaffDto } from '../dtos';
+import { AdminComplaintFilterDto, UpdateComplaintInternalUserDto } from '../dtos';
 import { ComplaintEntity } from '../entities';
 import { sendStatusChangeNotification } from '../helpers/send-status-notification.helper';
 import { IComplaintStatistics } from '../repositories';
@@ -58,7 +58,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
   async updateComplaint(
     staff: InternalUserEntity,
     id: number,
-    dto: UpdateComplaintStaffDto,
+    dto: UpdateComplaintInternalUserDto,
   ): Promise<ComplaintEntity> {
     const complaint = await this.findOne(id);
 

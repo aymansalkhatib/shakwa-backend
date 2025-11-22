@@ -7,7 +7,7 @@ import {
   COMPLAINTS_REPOSITORY_TOKEN,
   COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
-import { StaffComplaintFilterDto, UpdateComplaintStaffDto } from '../dtos';
+import { StaffComplaintFilterDto, UpdateComplaintInternalUserDto } from '../dtos';
 import { ComplaintEntity } from '../entities';
 import { sendStatusChangeNotification } from '../helpers/send-status-notification.helper';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
@@ -69,7 +69,7 @@ export class StaffComplaintsService extends BaseComplaintsService {
   async updateComplaint(
     staff: InternalUserEntity,
     id: number,
-    dto: UpdateComplaintStaffDto,
+    dto: UpdateComplaintInternalUserDto,
   ): Promise<ComplaintEntity> {
     const complaint = await this.your-bucket-nameRepo.findById(id, ['histories']);
     if (!complaint) throw new NotFoundException('Complaint not found');

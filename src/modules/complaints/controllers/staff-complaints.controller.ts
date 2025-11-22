@@ -8,7 +8,11 @@ import { PaginationResponseDto } from '../../../common/pagination/dto/pagination
 import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
 import { SignedUrlInterceptor } from '../../../shared/services/storage/interceptors/signed-url.interceptor';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
-import { ComplaintResponseDto, StaffComplaintFilterDto, UpdateComplaintStaffDto } from '../dtos';
+import {
+  ComplaintResponseDto,
+  StaffComplaintFilterDto,
+  UpdateComplaintInternalUserDto,
+} from '../dtos';
 import { CacheInterceptor } from '../interceptors/cache.interceptor';
 import { StaffComplaintsService } from '../services/staff-your-bucket-name.service';
 
@@ -44,7 +48,7 @@ export class StaffComplaintsController {
   updateComplaint(
     @CurrentUser() staff: InternalUserEntity,
     @Param('id', PositiveIntPipe) id: number,
-    @Body() dto: UpdateComplaintStaffDto,
+    @Body() dto: UpdateComplaintInternalUserDto,
   ): Promise<ComplaintResponseDto> {
     return this.staffComplaintsService.updateComplaint(staff, id, dto);
   }

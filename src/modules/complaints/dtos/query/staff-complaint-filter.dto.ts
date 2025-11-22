@@ -1,4 +1,5 @@
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { PositiveIntegerId } from '../../../../common/decorators/positive-integer-id.decorator';
 import { PaginationQueryDto } from '../../../../common/pagination/dto/pagination-query.dto';
 import { ComplaintCategory, ComplaintStatus } from '../../enums';
 
@@ -15,4 +16,8 @@ export class StaffComplaintFilterDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(ComplaintCategory)
   category?: ComplaintCategory;
+
+  @IsOptional()
+  @PositiveIntegerId()
+  citizenId?: number;
 }

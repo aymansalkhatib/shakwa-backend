@@ -8,7 +8,6 @@ import {
   COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
 import { CitizenComplaintFilterDto, CreateComplaintDto, UpdateMyComplaintDto } from '../dtos';
-import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
 import { ComplaintEntity } from '../entities/complaint.entity';
 import { ComplaintStatus } from '../enums';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
@@ -30,29 +29,23 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     super();
   }
 
-  async create(citizen: CitizenEntity, dto: CreateComplaintDto): Promise<ComplaintEntity> {
+  async create(citizen: CitizenEntity, dto: CreateComplaintDto): Promise<any> {
     return this.dataSource.transaction(async (manager) => {
-      const complaintRepo = manager.getRepository(ComplaintEntity);
-      const historyRepo = manager.getRepository(ComplaintHistoryEntity);
+      const complaintRepo = this.your-bucket-nameRepo.withManager(manager);
+      const historyRepo = this.historyRepo.withManager(manager);
 
-      const complaint = await complaintRepo.save(
-        complaintRepo.create({ ...dto, citizenId: citizen.id }),
-      );
-
-      const history = await historyRepo.save(
-        historyRepo.create({
-          ...dto,
-          complaintId: complaint.id,
-          status: ComplaintStatus.NEW,
-          citizenNote: 'Complaint created by citizen.',
-          internalUserNote: null,
-        }),
-      );
+      const complaint = await complaintRepo.create({ ...dto, citizenId: citizen.id });
+      const history = await historyRepo.addEntry({
+        ...dto,
+        complaintId: complaint.id,
+        status: ComplaintStatus.NEW,
+        citizenNote: 'Complaint created by citizen.',
+      });
 
       complaint.histories = [history];
 
       // Invalidate cache
-      await this.cacheInvalidation.invalidateComplaintCaches();
+      await this.cacheInvalidation.invalidateComplaintCaches(); //TODO
 
       return complaint;
     });
@@ -81,8 +74,13 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     id: number,
     dto: UpdateMyComplaintDto,
   ): Promise<ComplaintEntity> {
-    const complaint = await this.findOne(citizen, id);
-    const latest = complaint.histories[complaint.histories.length - 1];
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
+
+    if (!complaint || complaint.citizenId !== citizen.id) {
+      throw new NotFoundException('Complaint not found');
+    }
+
+    const latest = complaint.histories[0];
     const latestStatus = latest.status;
 
     const now = new Date();
@@ -117,13 +115,13 @@ export class CitizenComplaintsService extends BaseComplaintsService {
       location: dto.location ?? latest?.location,
       attachments: dto.attachments ?? latest?.attachments,
       citizenNote: dto.citizenNote ?? latest?.citizenNote,
-      internalUserNote: latest?.internalUserNote, // Preserve internal user note
+      internalUserNote: null,
     });
 
     complaint.histories = [history];
 
     // Invalidate cache
-    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
+    // await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
 
     return complaint;
   }

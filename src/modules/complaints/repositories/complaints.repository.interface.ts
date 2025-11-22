@@ -17,6 +17,8 @@ export interface IComplaintsRepository {
 
   findByIdWithHistory(id: number): Promise<ComplaintEntity | null>;
 
+  findByIdWithLatestHistory(id: number): Promise<ComplaintEntity | null>;
+
   update(complaint: ComplaintEntity, data: IUpdateComplaintData): Promise<ComplaintEntity>;
 
   exists(id: number): Promise<boolean>;
