@@ -17,14 +17,14 @@ export class CitizenResponseDto {
   @Expose()
   blockedAt: Date | null;
 
-  @Expose()
-  lastLoginAt: Date | null;
+  // @Expose()
+  // lastLoginAt: Date | null;
 
-  @Expose()
-  lastLoginIp: string | null;
+  // @Expose()
+  // lastLoginIp: string | null;
 
-  @Expose()
-  passwordChangedAt?: Date;
+  // @Expose()
+  // passwordChangedAt?: Date;
 
   @Expose()
   createdAt: Date;

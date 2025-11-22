@@ -57,9 +57,9 @@ export class LoginAttemptService {
       const newState: IFailState = { count: 0, blockedUntil };
 
       await this.redis.setString(key, JSON.stringify(newState), blockSeconds);
-      await this.mailService.sendLoginLockedNotification({
+      this.mailService.sendLoginLockedNotification({
         failedAttempts: state.count,
-        ipAddress: options.ipAddress ?? 'Unknown',
+        ipAddress: options.ipAddress,
         lockDuration: `${(blockSeconds / 3600).toFixed(2)} hours`,
         lockedUntil: new Date((now + blockSeconds) * 1000).toLocaleString(),
         subject: 'Sign-in Temporarily Locked',

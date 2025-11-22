@@ -6,7 +6,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -30,9 +29,6 @@ export class CitizenEntity {
 
   @Column({ name: 'full_name', type: 'varchar', length: 100 })
   fullName: string;
-
-  // @OneToMany(() => Complaint, (complaint) => complaint.citizen)
-  // your-bucket-name: Complaint[];
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   fcmToken: string | null;

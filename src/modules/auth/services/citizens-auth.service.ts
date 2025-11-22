@@ -103,7 +103,7 @@ export class CitizensAuthService {
     }
 
     // 6. Create citizen
-    const citizen = await this.citizensService.create(registerDto);
+    await this.citizensService.create(registerDto);
 
     // 7. Clean up Redis verification data
     await this.authCodeService.clearCode(

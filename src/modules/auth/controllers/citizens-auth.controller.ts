@@ -18,7 +18,7 @@ export class CitizensAuthController {
   constructor(private readonly citizensAuthService: CitizensAuthService) {}
 
   @Post('send-verification-email')
-  // @EmailVerificationRateLimit()
+  @EmailVerificationRateLimit()
   async sendVerificationEmail(@Body() dto: SendVerificationEmailDto) {
     await this.citizensAuthService.sendVerificationEmail(dto);
     return {
@@ -51,7 +51,7 @@ export class CitizensAuthController {
   }
 
   @Post('forgot-password')
-  // @PasswordResetRateLimit()
+  @PasswordResetRateLimit()
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     await this.citizensAuthService.handleForgotPasswordRequest(dto);
     return {
