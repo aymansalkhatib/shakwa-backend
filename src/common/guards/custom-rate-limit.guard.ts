@@ -5,7 +5,7 @@ import {
   CUSTOM_RATE_LIMIT_METADATA_KEY,
   RateLimitOptions,
 } from '../decorators/custom-rate-limit.decorator';
-import { CustomRateLimitService } from '@app/shared/modules/custom-rate-limit';
+import { CustomRateLimitService } from '../../shared/modules/custom-rate-limit';
 
 /**
  * Guard that enforces custom rate limiting

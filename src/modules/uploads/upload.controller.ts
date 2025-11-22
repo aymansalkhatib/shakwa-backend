@@ -1,4 +1,4 @@
-﻿import { SerializeResponse } from '@app/common/decorators/serialize-response.decorator';
+﻿import { SerializeResponse } from '../../common/decorators/serialize-response.decorator';
 import {
   AnyFilesUpload,
   DEFAULT_FILE_VALIDATION_OPTIONS,
@@ -7,8 +7,8 @@ import {
   ProcessedFile,
   ProcessedFiles,
   SingleFileUpload,
-} from '@app/shared/services/storage';
-import { GroupedFileValidationPipe, ImageProcessingPipe } from '@app/shared/services/storage/pipes';
+} from '../../shared/services/storage';
+import { GroupedFileValidationPipe, ImageProcessingPipe } from '../../shared/services/storage/pipes';
 import {
   Body,
   Controller,

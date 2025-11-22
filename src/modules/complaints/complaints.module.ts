@@ -14,7 +14,7 @@ import { ComplaintsRepository } from './repositories/your-bucket-name.repository
 import { AdminComplaintsService } from './services/admin-your-bucket-name.service';
 import { CitizenComplaintsService } from './services/citizen-your-bucket-name.service';
 import { StaffComplaintsService } from './services/staff-your-bucket-name.service';
-import { StorageModule } from '@app/shared/services/storage';
+import { StorageModule } from '../../shared/services/storage';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ComplaintEntity, ComplaintHistoryEntity]), StorageModule],

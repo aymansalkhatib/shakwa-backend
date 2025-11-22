@@ -1,4 +1,4 @@
-import { InternalUserEntity } from '@app/modules/internal-users/entities/internal-user.entity';
+import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { ComplaintEntity } from '../entities';
 import { ComplaintStatus } from '../enums';

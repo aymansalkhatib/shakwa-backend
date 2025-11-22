@@ -1,5 +1,5 @@
-import { PublicInternalUserResponseDto } from '@app/modules/internal-users/dtos/response/public-internal-user-response';
-import { SignedUrl } from '@app/shared/services/storage/decorators/signed-url.decorator';
+import { PublicInternalUserResponseDto } from '../../../internal-users/dtos/response/public-internal-user-response';
+import { SignedUrl } from '../../../../shared/services/storage/decorators/signed-url.decorator';
 import { Exclude, Expose } from 'class-transformer';
 import { ComplaintStatus } from '../../enums';
 

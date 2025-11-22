@@ -10,7 +10,7 @@ import { AuthCodeService } from './services/auth-code.service';
 import { CitizensAuthService } from './services/citizens-auth.service';
 import { InternalUsersAuthService } from './services/internal-users-auth.service';
 import { LoginAttemptService } from './services/login-attempt.service';
-import { CustomRateLimitModule } from '@app/shared/modules/custom-rate-limit/custom-rate-limit.module';
+import { CustomRateLimitModule } from '../../shared/modules/custom-rate-limit/custom-rate-limit.module';
 
 @Module({
   imports: [CitizensModule, InternalUsersModule, RedisModule, CustomRateLimitModule, MailModule],

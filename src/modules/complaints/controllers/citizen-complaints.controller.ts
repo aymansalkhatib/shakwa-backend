@@ -1,4 +1,4 @@
-import { SignedUrlInterceptor } from '@app/shared/services/storage/interceptors/signed-url.interceptor';
+import { SignedUrlInterceptor } from '../../../shared/services/storage/interceptors/signed-url.interceptor';
 import { Body, Controller, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Protected } from '../../../common/decorators/protected.decorator';
