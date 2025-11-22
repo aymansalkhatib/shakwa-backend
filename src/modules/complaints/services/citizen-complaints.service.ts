@@ -1,4 +1,6 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import {
@@ -6,14 +8,12 @@ import {
   COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
 import { CitizenComplaintFilterDto, CreateComplaintDto, UpdateMyComplaintDto } from '../dtos';
-import { ComplaintEntity } from '../entities/complaint.entity';
 import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
+import { ComplaintEntity } from '../entities/complaint.entity';
 import { ComplaintStatus } from '../enums';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
 import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
 import { BaseComplaintsService } from './base-your-bucket-name.service';
-import { DataSource } from 'typeorm';
-import { InjectDataSource } from '@nestjs/typeorm';
 
 @Injectable()
 export class CitizenComplaintsService extends BaseComplaintsService {
@@ -94,11 +94,11 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     const history = await this.historyRepo.addEntry({
       complaintId: complaint.id,
       internalUserId: null,
-      title: dto.title ?? latest?.title ?? '',
-      description: dto.description ?? latest?.description ?? '',
-      status: latestStatus,
-      location: dto.location ?? latest?.location ?? null,
-      attachments: dto.attachments ?? latest?.attachments ?? [],
+      title: dto.title ?? latest?.title,
+      description: dto.description ?? latest?.description,
+      status: dto.status ?? latestStatus,
+      location: dto.location ?? latest?.location,
+      attachments: dto.attachments ?? latest?.attachments,
       note: 'Complaint updated by citizen.',
     });
 
