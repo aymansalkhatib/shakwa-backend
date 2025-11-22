@@ -19,13 +19,13 @@ export class CitizenEntity {
   id: number;
 
   @Column({ type: 'varchar', length: 120 })
-  email: string | null;
+  email: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  phone: string | null;
+  @Column({ type: 'varchar', length: 20 })
+  phone: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  password: string | null;
+  @Column({ type: 'varchar' })
+  password: string;
 
   @Column({ name: 'full_name', type: 'varchar', length: 100 })
   fullName: string;
