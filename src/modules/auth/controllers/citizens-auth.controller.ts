@@ -1,6 +1,7 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import {
+  CodeVerificationRateLimit,
   EmailVerificationRateLimit,
   PasswordResetRateLimit,
 } from '../../../common/decorators/custom-rate-limit.decorator';
@@ -27,6 +28,7 @@ export class CitizensAuthController {
   }
 
   @Post('verify-code')
+  @CodeVerificationRateLimit()
   async verifyCode(@Body() dto: VerifyEmailCodeDto) {
     const result = await this.citizensAuthService.verifyEmailCode(dto);
     return {
@@ -60,6 +62,7 @@ export class CitizensAuthController {
   }
 
   @Post('verify-reset-code')
+  @CodeVerificationRateLimit()
   async verifyResetPassword(@Body() dto: VerifyResetPasswordDto) {
     const result = await this.citizensAuthService.verifyResetPassword(dto);
     return {

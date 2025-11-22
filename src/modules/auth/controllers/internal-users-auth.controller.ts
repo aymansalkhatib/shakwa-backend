@@ -1,6 +1,9 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
-import { PasswordResetRateLimit } from '../../../common/decorators/custom-rate-limit.decorator';
+import {
+  CodeVerificationRateLimit,
+  PasswordResetRateLimit,
+} from '../../../common/decorators/custom-rate-limit.decorator';
 import { InternalUserForgotPasswordDto } from '../dtos/request/internal-users/forgot-password.dto';
 import { InternalUserLoginDto } from '../dtos/request/internal-users/internal-user-login.dto';
 import { InternalUserResetPasswordDto } from '../dtos/request/internal-users/reset-password.dto';
@@ -18,7 +21,7 @@ export class InternalUsersAuthController {
   }
 
   @Post('forgot-password')
-  // @PasswordResetRateLimit()
+  @PasswordResetRateLimit()
   async forgotPassword(@Body() dto: InternalUserForgotPasswordDto) {
     await this.internalUsersAuthService.handleForgotPasswordRequest(dto);
     return {
@@ -27,6 +30,7 @@ export class InternalUsersAuthController {
   }
 
   @Post('verify-reset-code')
+  @CodeVerificationRateLimit()
   async verifyResetPassword(@Body() dto: InternalUserVerifyResetPasswordDto) {
     const result = await this.internalUsersAuthService.verifyResetPassword(dto);
     return {

@@ -1,5 +1,5 @@
 import { ClassSerializerInterceptor, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ParseQueryMiddleware } from './common/middlewares/parse-query.middleware';
@@ -17,6 +17,7 @@ import { AppThrottlerModule } from './shared/modules/app-throttler/app-throttler
 import { AppTypeOrmModule } from './shared/modules/app-type-orm/app-type-orm.module';
 import { RedisModule } from './shared/services/redis';
 import { StorageModule } from './shared/services/storage/storage.module';
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 
 @Module({
   imports: [
@@ -52,10 +53,10 @@ import { StorageModule } from './shared/services/storage/storage.module';
       useClass: ClassSerializerInterceptor,
     },
     // Global Rate Limiting with Custom Guard
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: CustomThrottlerGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: CustomThrottlerGuard,
+    },
   ],
 })
 export class AppModule implements NestModule {
