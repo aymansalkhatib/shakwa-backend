@@ -1,7 +1,16 @@
 /**
  * All supported MIME file types within the system.
  */
-export type SupportedFileType = 'png' | 'jpg' | 'jpeg' | 'pdf' | 'mp4' | 'ogg' | 'txt';
+export type SupportedFileType =
+  | 'png'
+  | 'jpg'
+  | 'jpeg'
+  | 'pdf'
+  | 'mp4'
+  | 'ogg'
+  | 'txt'
+  | 'mp3'
+  | 'docx';
 
 /**
  * Standard file size format. Example: '5MB', '100KB'.

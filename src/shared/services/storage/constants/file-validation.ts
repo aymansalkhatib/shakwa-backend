@@ -13,11 +13,13 @@ import {
 export const FILE_SIZE_LIMITS: Record<SupportedFileType, FileSizeUnit> = {
   png: '2MB',
   jpg: '2MB',
-  jpeg: '1500KB',
-  pdf: '4MB',
-  mp4: '15MB',
-  ogg: '5MB',
-  txt: '200KB',
+  jpeg: '2MB',
+  pdf: '2MB',
+  mp4: '20MB',
+  ogg: '4MB',
+  txt: '2MB',
+  mp3: '2MB',
+  docx: '4MB',
 };
 
 /**

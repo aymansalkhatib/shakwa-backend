@@ -12,4 +12,7 @@ export class FileInfoDto {
 
   @Expose()
   fieldName: string;
+
+  @Expose()
+  path: string;
 }

@@ -21,7 +21,7 @@ export class LocalStorageProvider extends AbstractStorageProvider {
   }
 
   async upload(file: Buffer, options: StorageOptions): Promise<UploadResult> {
-    this.validateFile(file, options);
+    this.validateFile(file);
 
     const relativePath = this.sanitizePath(options.path);
     const fullPath = path.join(this.basePath, relativePath);
@@ -55,8 +55,6 @@ export class LocalStorageProvider extends AbstractStorageProvider {
       options.files.map((fileOptions) =>
         this.upload(fileOptions.file, {
           path: fileOptions.path,
-          mimeType: fileOptions.mimeType,
-          maxSize: options.maxSize,
         }),
       ),
     );

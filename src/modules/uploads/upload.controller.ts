@@ -1,15 +1,4 @@
-﻿import { SerializeResponse } from '../../common/decorators/serialize-response.decorator';
-import {
-  AnyFilesUpload,
-  DEFAULT_FILE_VALIDATION_OPTIONS,
-  MultipleFieldFilesUpload,
-  MultipleFilesUpload,
-  ProcessedFile,
-  ProcessedFiles,
-  SingleFileUpload,
-} from '../../shared/services/storage';
-import { GroupedFileValidationPipe, ImageProcessingPipe } from '../../shared/services/storage/pipes';
-import {
+﻿import {
   Body,
   Controller,
   Delete,
@@ -20,6 +9,21 @@ import {
   Query,
   UploadedFiles,
 } from '@nestjs/common';
+import { SerializeResponse } from '../../common/decorators/serialize-response.decorator';
+import {
+  AnyFilesUpload,
+  CustomFileParsingPipe,
+  DEFAULT_FILE_VALIDATION_OPTIONS,
+  MultipleFieldFilesUpload,
+  MultipleFilesUpload,
+  ProcessedFile,
+  ProcessedFiles,
+  SingleFileUpload,
+} from '../../shared/services/storage';
+import {
+  GroupedFileValidationPipe,
+  ImageProcessingPipe,
+} from '../../shared/services/storage/pipes';
 import {
   DeleteFileDto,
   DeleteMultipleFilesDto,
@@ -47,7 +51,13 @@ export class UploadController {
   @MultipleFilesUpload('files', 10)
   @SerializeResponse(FileInfoDto)
   async uploadMultiple(
-    @ProcessedFiles()
+    @UploadedFiles(
+      new CustomFileParsingPipe({
+        ...DEFAULT_FILE_VALIDATION_OPTIONS,
+        allowedFileTypes: ['jpeg', 'jpg', 'mp4', 'ogg', 'mp3', 'png', 'txt', 'docx'],
+      }),
+      ImageProcessingPipe,
+    )
     files: Express.Multer.File[],
   ): Promise<FileInfoDto[]> {
     return this.uploadService.uploadMultipleFiles(files);

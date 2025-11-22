@@ -14,13 +14,9 @@ export abstract class AbstractStorageProvider implements IStorageProvider {
   abstract getUrl(path: string): Promise<string>;
   abstract deleteMultiple(options: MultiDeleteOptions): Promise<void>;
 
-  protected validateFile(file: Buffer, options: StorageOptions): void {
+  protected validateFile(file: Buffer): void {
     if (!file || file.length === 0) {
       throw new BadRequestException('File content is empty');
-    }
-
-    if (options.maxSize && file.length > options.maxSize) {
-      throw new BadRequestException(`File size exceeds limit of ${options.maxSize} bytes`);
     }
   }
 

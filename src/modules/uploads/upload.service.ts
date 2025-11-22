@@ -67,12 +67,14 @@ export class UploadService {
   private mapToFileInfoDto(
     files: Express.Multer.File[],
     uploadResults: UploadResult[],
+    preparedFiles: { path: string }[],
   ): FileInfoDto[] {
     return files.map((file, index) => ({
       url: uploadResults[index].url,
       size: file.size,
       mimeType: file.mimetype,
       fieldName: file.fieldname,
+      path: preparedFiles[index].path,
     }));
   }
 
@@ -80,10 +82,11 @@ export class UploadService {
    * Upload files and return FileInfoDto array
    */
   private async uploadFiles(files: Express.Multer.File[]): Promise<FileInfoDto[]> {
+    const preparedFiles = this.prepareFilesForUpload(files);
     const uploadResults = await this.storageService.uploadMultiple({
-      files: this.prepareFilesForUpload(files),
+      files: preparedFiles,
     });
 
-    return this.mapToFileInfoDto(files, uploadResults);
+    return this.mapToFileInfoDto(files, uploadResults, preparedFiles);
   }
 }

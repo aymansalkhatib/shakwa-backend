@@ -28,11 +28,10 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
   }
 
   async upload(file: Buffer, options: StorageOptions): Promise<UploadResult> {
-    this.validateFile(file, options);
+    this.validateFile(file);
     const filePath = this.sanitizePath(options.path);
 
-    const { data, error } = await this.supabase.storage.from(this.bucket).upload(filePath, file, {
-      contentType: options.mimeType,
+    const { error } = await this.supabase.storage.from(this.bucket).upload(filePath, file, {
       upsert: true,
     });
 
@@ -53,8 +52,6 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
       options.files.map((fileOptions) =>
         this.upload(fileOptions.file, {
           path: fileOptions.path,
-          mimeType: fileOptions.mimeType,
-          maxSize: options.maxSize,
         }),
       ),
     );

@@ -6,6 +6,4 @@ export interface MultiUploadFileOptions {
   file: Buffer;
   /** The path where the file should be stored */
   path: string;
-  /** MIME type of the file */
-  mimeType?: string;
 }

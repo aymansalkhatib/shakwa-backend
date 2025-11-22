@@ -6,6 +6,4 @@ import { MultiUploadFileOptions } from './multi-upload-file-options.interface';
 export interface MultiUploadOptions {
   /** Array of files to upload */
   files: MultiUploadFileOptions[];
-  /** Maximum allowed file size in bytes (applies to all files) */
-  maxSize?: number;
 }
