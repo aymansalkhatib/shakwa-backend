@@ -49,14 +49,52 @@ export class RedisService implements OnModuleDestroy {
   // ==================== Key JSON ====================
 
   /**
-   * Create/Update JSON value
+   * Create/Update JSON value with optional tags for invalidation
    */
-  async setJson<T>(key: string, value: T, ttlSeconds?: number): Promise<'OK'> {
+  async setJson<T>(key: string, value: T, ttlSeconds?: number, tags: string[] = []): Promise<'OK'> {
     const payload = JSON.stringify(value);
+
+    // 1. Set the actual key-value
     if (ttlSeconds && ttlSeconds > 0) {
-      return this.redis.setex(key, ttlSeconds, payload);
+      await this.redis.setex(key, ttlSeconds, payload);
+    } else {
+      await this.redis.set(key, payload);
     }
-    return this.redis.set(key, payload);
+
+    // 2. Associate key with tags
+    if (tags.length > 0) {
+      const pipeline = this.redis.pipeline();
+      for (const tag of tags) {
+        pipeline.sadd(`tag:${tag}`, key);
+        // Optional: Set TTL for tag set to prevent infinite growth?
+        // For now, we assume tags are relatively stable or manually cleared.
+      }
+      await pipeline.exec();
+    }
+
+    return 'OK';
+  }
+
+  /**
+   * Invalidate keys associated with specific tags
+   */
+  async invalidateTags(tags: string[]): Promise<void> {
+    if (tags.length === 0) return;
+
+    for (const tag of tags) {
+      const tagKey = `tag:${tag}`;
+
+      // 1. Get all keys associated with this tag
+      const keys = await this.redis.smembers(tagKey);
+
+      if (keys.length > 0) {
+        // 2. Delete all those keys
+        await this.redis.del(...keys);
+      }
+
+      // 3. Delete the tag set itself
+      await this.redis.del(tagKey);
+    }
   }
 
   /**

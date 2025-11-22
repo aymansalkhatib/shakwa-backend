@@ -20,6 +20,7 @@ export class CacheInterceptor implements NestInterceptor {
 
     // Generate cache key from URL, query params, and user ID
     const cacheKey = this.generateCacheKey(url, query, user?.id);
+    const tags = this.generateTags(url);
 
     try {
       // Try to get from cache
@@ -32,7 +33,7 @@ export class CacheInterceptor implements NestInterceptor {
       // If not in cache, execute request and cache the result
       return next.handle().pipe(
         tap(async (data) => {
-          await this.redisService.setJson(cacheKey, data, this.defaultTTL);
+          await this.redisService.setJson(cacheKey, data, this.defaultTTL, tags);
         }),
       );
     } catch (error) {
@@ -44,5 +45,20 @@ export class CacheInterceptor implements NestInterceptor {
     const queryString = JSON.stringify(query || {});
     const userPart = userId ? `:user:${userId}` : '';
     return `cache:your-bucket-name:${url}${userPart}:${Buffer.from(queryString).toString('base64')}`;
+  }
+
+  private generateTags(url: string): string[] {
+    const path = url.split('?')[0];
+
+    // Check if it's a detail request (ends with a number)
+    // Regex: /your-bucket-name/123
+    const detailMatch = path.match(/\/your-bucket-name\/(\d+)$/);
+
+    if (detailMatch) {
+      return [`complaint:${detailMatch[1]}`, 'your-bucket-name:details'];
+    }
+
+    // Default to list tag for other complaint requests
+    return ['your-bucket-name:list'];
   }
 }
