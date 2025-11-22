@@ -43,14 +43,14 @@ export class AdminComplaintsService extends BaseComplaintsService {
   }
 
   async lockComplaint(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findById(id, ['histories']);
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
-    const latest = complaint.histories[complaint.histories.length - 1];
+    const latest = complaint.histories[0];
     const latestStatus = latest.status;
 
     // Admin can lock even terminal your-bucket-name
-    // this.ensureNotTerminal(latestStatus);
+    this.ensureNotTerminal(latestStatus);
 
     return this.your-bucket-nameRepo.lock(complaint.id, staff.id);
   }
@@ -60,9 +60,9 @@ export class AdminComplaintsService extends BaseComplaintsService {
     id: number,
     dto: UpdateComplaintInternalUserDto,
   ): Promise<ComplaintEntity> {
-    const complaint = await this.findOne(id);
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
 
-    const latest = complaint.histories[complaint.histories.length - 1];
+    const latest = complaint.histories[0];
     const latestStatus = latest.status;
 
     // Admin can update terminal your-bucket-name (only status and note)
@@ -83,7 +83,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
       status: dto.status ?? latestStatus,
       location: latest.location,
       attachments: latest.attachments,
-      citizenNote: latest.citizenNote, // Preserve citizen note
+      citizenNote: latest.citizenNote,
       internalUserNote: dto.internalUserNote ?? latest.internalUserNote,
     });
 
@@ -103,7 +103,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
     }
 
     // Invalidate cache
-    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
+    // await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);//TODO
 
     return complaint;
   }

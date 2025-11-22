@@ -50,7 +50,7 @@ export class StaffComplaintsController {
     @Param('id', PositiveIntPipe) id: number,
     @Body() dto: UpdateComplaintInternalUserDto,
   ): Promise<ComplaintResponseDto> {
-    return this.staffComplaintsService.updateComplaint(staff, id, dto);
+    return this.staffComplaintsService.update(staff, id, dto);
   }
 
   @Patch(':id/lock')

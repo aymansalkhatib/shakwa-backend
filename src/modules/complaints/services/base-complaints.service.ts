@@ -1,6 +1,4 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
-import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
-import { ComplaintEntity } from '../entities';
 import { ComplaintStatus } from '../enums';
 
 export abstract class BaseComplaintsService {
@@ -70,19 +68,6 @@ export abstract class BaseComplaintsService {
   protected isLockActive(lockedUntil: Date | null): boolean {
     if (!lockedUntil) return false;
     return Date.now() < lockedUntil.getTime();
-  }
-
-  protected ensureLockAvailable(complaint: ComplaintEntity, internalUser: InternalUserEntity) {
-    if (!complaint.lockedByInternalUserId) return true;
-
-    if (
-      complaint.lockedByInternalUserId === internalUser.id &&
-      this.isLockActive(complaint.lockedUntil)
-    ) {
-      throw new BadRequestException('You already are locking this complaint.');
-    }
-
-    throw new BadRequestException('This complaint is locked by another staff member.');
   }
 
   protected ensureLockOwner(

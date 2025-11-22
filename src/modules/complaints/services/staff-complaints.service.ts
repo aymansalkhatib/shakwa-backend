@@ -22,6 +22,7 @@ export class StaffComplaintsService extends BaseComplaintsService {
     private readonly your-bucket-nameRepo: IComplaintsRepository,
     @Inject(COMPLAINT_HISTORY_REPOSITORY_TOKEN)
     private readonly historyRepo: IComplaintHistoryRepository,
+    //
     private readonly notificationService: NotificationService,
     private readonly citizensService: CitizensAdminService,
     private readonly cacheInvalidation: CacheInvalidationService,
@@ -51,14 +52,14 @@ export class StaffComplaintsService extends BaseComplaintsService {
   }
 
   async lockComplaint(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findById(id, ['histories']);
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
     if (complaint.authority !== staff.authority) {
       throw new ForbiddenException('You are not allowed to update this complaint');
     }
 
-    const latest = complaint.histories[complaint.histories.length - 1];
+    const latest = complaint.histories[0];
     const latestStatus = latest.status;
 
     this.ensureNotTerminal(latestStatus);
@@ -66,19 +67,19 @@ export class StaffComplaintsService extends BaseComplaintsService {
     return this.your-bucket-nameRepo.lock(complaint.id, staff.id);
   }
 
-  async updateComplaint(
+  async update(
     staff: InternalUserEntity,
     id: number,
     dto: UpdateComplaintInternalUserDto,
   ): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findById(id, ['histories']);
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
     if (complaint.authority !== staff.authority) {
       throw new ForbiddenException('You are not allowed to update this complaint');
     }
 
-    const latest = complaint.histories[complaint.histories.length - 1];
+    const latest = complaint.histories[0];
     const latestStatus = latest.status;
 
     this.ensureNotTerminal(latestStatus);
@@ -118,7 +119,7 @@ export class StaffComplaintsService extends BaseComplaintsService {
     }
 
     // Invalidate cache
-    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
+    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id); //TODO
 
     return complaint;
   }
