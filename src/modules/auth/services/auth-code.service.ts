@@ -53,8 +53,8 @@ export class AuthCodeService {
 
   async sendCodeViaEmail(data: SendVerificationCodeOptions): Promise<void> {
     const result = await this.mailService.sendVerificationCode(data);
-    if (!result) {
-      throw new BadRequestException(`Failed to send verification code email: ${result}`);
+    if (!result.error) {
+      throw new BadRequestException(`Failed to send verification code email ${result.error}`);
     }
   }
 

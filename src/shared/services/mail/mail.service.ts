@@ -2,9 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentConfig } from '../../modules/app-config';
 import { IMailProvider, MAIL_PROVIDER } from './interfaces/mail-provider.interface';
-import { ITemplateProcessor, TEMPLATE_PROCESSOR } from './interfaces/template-processor.interface';
 import { SendLoginLockedOptions } from './interfaces/send-login-locked-options';
 import { SendVerificationCodeOptions } from './interfaces/send-verification-code.interface';
+import { ITemplateProcessor, TEMPLATE_PROCESSOR } from './interfaces/template-processor.interface';
+import { SendMailResult } from './interfaces';
 
 /**
  * Main mail service - Orchestrates email sending
@@ -25,7 +26,7 @@ export class MailService {
   /**
    * Send verification code email
    */
-  async sendVerificationCode(data: SendVerificationCodeOptions): Promise<boolean> {
+  async sendVerificationCode(data: SendVerificationCodeOptions): Promise<SendMailResult> {
     const html = await this.templateProcessor.renderTemplate('verify-code', {
       code: data.code,
       email: data.to,
@@ -38,9 +39,7 @@ export class MailService {
       html,
     });
 
-    console.log(result);
-
-    return result.success;
+    return result;
   }
 
   /**
