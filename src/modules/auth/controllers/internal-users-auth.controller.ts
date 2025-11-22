@@ -18,7 +18,7 @@ export class InternalUsersAuthController {
   }
 
   @Post('forgot-password')
-  @PasswordResetRateLimit()
+  // @PasswordResetRateLimit()
   async forgotPassword(@Body() dto: InternalUserForgotPasswordDto) {
     await this.internalUsersAuthService.handleForgotPasswordRequest(dto);
     return {

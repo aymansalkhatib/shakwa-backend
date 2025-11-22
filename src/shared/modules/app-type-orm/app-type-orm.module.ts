@@ -40,7 +40,8 @@ import { EnvironmentConfig } from '../app-config/env.schema';
                 rejectUnauthorized: false,
               },
 
-          synchronize: isDev,
+          synchronize: true,
+          // synchronize: isDev,
           migrationsRun: !isDev,
           migrations: [__dirname + '/../../migrations/**/*{.ts,.js}'],
           migrationsTableName: 'migrations',
