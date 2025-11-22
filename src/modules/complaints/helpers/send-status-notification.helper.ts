@@ -49,11 +49,9 @@ async function handleNotificationError(
   citizensService: CitizensAdminService,
   citizenId: number,
 ) {
-  const isInvalidToken =
-    error?.message?.includes('not-found') ||
-    error?.message?.includes('invalid-registration-token') ||
-    error?.message?.includes('registration-token-not-registered');
-
+  const isInvalidToken = error?.message?.includes(
+    'The registration token is not a valid FCM registration token',
+  );
   if (isInvalidToken) {
     await citizensService.update(citizenId, { fcmToken: null });
   }

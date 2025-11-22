@@ -15,6 +15,9 @@ export class CitizenResponseDto {
   fullName: string;
 
   @Expose()
+  fcmToken: string;
+
+  @Expose()
   blockedAt: Date | null;
 
   // @Expose()
