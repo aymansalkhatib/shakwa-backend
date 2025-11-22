@@ -16,7 +16,7 @@ export class CitizensAdminService {
     return await this.citizensRepository.findAll(filterCitizenDto);
   }
 
-  async findOne(id: number): Promise<CitizenEntity> {
+  async findOneOrFail(id: number): Promise<CitizenEntity> {
     const citizen = await this.citizensRepository.findOne(id);
 
     if (!citizen) {
@@ -26,8 +26,13 @@ export class CitizensAdminService {
     return citizen;
   }
 
+  async findOne(id: number): Promise<CitizenEntity | null> {
+    const citizen = await this.citizensRepository.findOne(id);
+    return citizen;
+  }
+
   async blockCitizen(id: number): Promise<CitizenEntity> {
-    const citizen = await this.findOne(id);
+    const citizen = await this.findOneOrFail(id);
 
     if (citizen.blockedAt) {
       throw new ConflictException('Citizen is already blocked');
@@ -41,7 +46,7 @@ export class CitizensAdminService {
   }
 
   async unblockCitizen(id: number): Promise<CitizenEntity> {
-    const citizen = await this.findOne(id);
+    const citizen = await this.findOneOrFail(id);
 
     if (!citizen.blockedAt) {
       throw new ConflictException('Citizen is not blocked');

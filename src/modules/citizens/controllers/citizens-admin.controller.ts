@@ -28,7 +28,7 @@ export class CitizensAdminController {
   @Get(':id')
   @SerializeResponse(CitizenResponseDto)
   findOne(@Param('id', PositiveIntPipe) id: number): Promise<CitizenResponseDto> {
-    return this.citizensAdminService.findOne(id);
+    return this.citizensAdminService.findOneOrFail(id);
   }
 
   @Post(':id/block')

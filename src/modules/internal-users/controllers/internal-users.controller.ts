@@ -80,7 +80,7 @@ export class InternalUsersController {
   @Protected(Role.ADMIN)
   @SerializeResponse(InternalUserResponseDto)
   findOne(@Param('id', PositiveIntPipe) id: number): Promise<InternalUserResponseDto> {
-    return this.internalUsersService.findOne(id);
+    return this.internalUsersService.findOneOrFail(id);
   }
 
   @Get()
