@@ -16,9 +16,6 @@ export class ComplaintResponseDto {
   authority: ComplaintAuthority;
 
   @Expose()
-  lockedByInternalUserId: number | null;
-
-  @Expose()
   lockedUntil: Date | null;
 
   @Expose()

@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 import { IPaginatedResponse } from '../../../common/pagination/interfaces/paginated-response.interface';
 import { paginate } from '../../../common/pagination/paginate.service';
 import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
 import { ComplaintEntity } from '../entities/complaint.entity';
-import { ComplaintAuthority, ComplaintStatus } from '../enums';
+import { ComplaintAuthority, ComplaintLockerRole, ComplaintStatus } from '../enums';
 import { IComplaintsRepository } from './your-bucket-name.repository.interface';
 import {
   IComplaintFilter,
@@ -48,8 +48,7 @@ export class ComplaintsRepository implements IComplaintsRepository {
     const qb = this.complaintRepo
       .createQueryBuilder('complaint')
       .where('complaint.id = :id', { id })
-      .leftJoinAndSelect('complaint.histories', 'histories')
-      .leftJoinAndSelect('histories.internalUser', 'staff'); //TODO
+      .leftJoinAndSelect('complaint.histories', 'histories');
 
     return await qb.getOne();
   }
@@ -67,62 +66,54 @@ export class ComplaintsRepository implements IComplaintsRepository {
     return await qb.getOne();
   }
 
-  //TODO
-  async findById(id: number, relations?: string[]): Promise<ComplaintEntity | null> {
-    return await this.complaintRepo.findOne({ where: { id }, ...(relations ? { relations } : {}) });
-  }
 
   async update(complaint: ComplaintEntity, data: IUpdateComplaintData): Promise<ComplaintEntity> {
     const merged = this.complaintRepo.merge(complaint, data);
     return await this.complaintRepo.save(merged);
   }
 
-  async lock(compalintId: number, internalUserId: number): Promise<ComplaintEntity> {
+  async lock(
+    id: number,
+    lockerId: number,
+    lockerRole: ComplaintLockerRole,
+  ): Promise<ComplaintEntity> {
     return await this.complaintRepo.manager.transaction(async (manager) => {
       const complaint = await manager.findOne(ComplaintEntity, {
-        where: { id: compalintId },
+        where: { id },
         lock: { mode: 'pessimistic_write' },
       });
 
-      if (complaint.lockedUntil > new Date()) {
-        if (complaint.lockedByInternalUserId === internalUserId) {
-          throw new BadRequestException('You are already locking this complaint');
-        } else {
-          throw new BadRequestException('Another staff is locking this complaint');
+      if (!complaint) throw new NotFoundException('Complaint not found');
+
+      if (complaint.lockedById && complaint.lockedUntil && complaint.lockedUntil > new Date()) {
+        if (complaint.lockedById !== lockerId || complaint.lockedByRole !== lockerRole) {
+          throw new ConflictException('Complaint is already locked by another user');
         }
       }
 
-      complaint.lockedByInternalUserId = internalUserId;
-      complaint.lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+      complaint.lockedById = lockerId;
+      complaint.lockedByRole = lockerRole;
+      complaint.lockedUntil = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes lock
 
       return manager.save(complaint);
     });
   }
 
-  async releaseLock(complaintId: number, internalUserId: number): Promise<ComplaintEntity> {
-    return await this.complaintRepo.manager.transaction(async (manager) => {
+  async releaseLock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<void> {
+    await this.complaintRepo.manager.transaction(async (manager) => {
       const complaint = await manager.findOne(ComplaintEntity, {
-        where: { id: complaintId },
+        where: { id },
         lock: { mode: 'pessimistic_write' },
       });
 
-      if (!complaint) {
-        throw new BadRequestException('Complaint not found');
+      if (!complaint) return;
+
+      if (complaint.lockedById === lockerId && complaint.lockedByRole === lockerRole) {
+        complaint.lockedById = null;
+        complaint.lockedByRole = null;
+        complaint.lockedUntil = null;
+        await manager.save(complaint);
       }
-
-      const now = new Date();
-      if (
-        complaint.lockedUntil &&
-        complaint.lockedUntil > now &&
-        complaint.lockedByInternalUserId !== internalUserId
-      ) {
-        throw new BadRequestException('Another staff is locking this complaint');
-      }
-
-      complaint.lockedByInternalUserId = null;
-      complaint.lockedUntil = null;
-
-      return manager.save(complaint);
     });
   }
 

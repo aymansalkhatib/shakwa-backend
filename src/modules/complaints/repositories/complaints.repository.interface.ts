@@ -1,6 +1,7 @@
 import { EntityManager } from 'typeorm';
 import { IPaginatedResponse } from '../../../common/pagination/interfaces/paginated-response.interface';
 import { ComplaintEntity } from '../entities/complaint.entity';
+import { ComplaintLockerRole } from '../enums/complaint-locker-role.enum';
 import {
   IComplaintFilter,
   IComplaintStatistics,
@@ -13,8 +14,6 @@ export interface IComplaintsRepository {
 
   findAll(filter: IComplaintFilter): Promise<IPaginatedResponse<ComplaintEntity>>;
 
-  findById(id: number, relations?: string[]): Promise<ComplaintEntity | null>;
-
   findByIdWithHistory(id: number): Promise<ComplaintEntity | null>;
 
   findByIdWithLatestHistory(id: number): Promise<ComplaintEntity | null>;
@@ -25,9 +24,9 @@ export interface IComplaintsRepository {
 
   getStatistics(): Promise<IComplaintStatistics>;
 
-  lock(complaintId: number, internalUserId: number): Promise<ComplaintEntity>;
+  lock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<ComplaintEntity>;
 
-  releaseLock(complaintId: number, internalUserId: number): Promise<ComplaintEntity>;
+  releaseLock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<void>;
 
   withManager(manager: EntityManager): IComplaintsRepository;
 }

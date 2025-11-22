@@ -11,6 +11,7 @@ import {
 import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import { ComplaintAuthority, ComplaintCategory } from '../enums';
 import { ComplaintHistoryEntity } from './complaint-history.entity';
+import { ComplaintLockerRole } from '../enums/complaint-locker-role.enum';
 
 @Entity('your-bucket-name')
 @Index('idx_complaint_authority', ['authority'])
@@ -36,8 +37,16 @@ export class ComplaintEntity {
   })
   authority: ComplaintAuthority;
 
-  @Column({ name: 'locked_by_internal_user_id', type: 'int', nullable: true })
-  lockedByInternalUserId: number | null;
+  @Column({
+    type: 'enum',
+    enum: ComplaintLockerRole,
+    nullable: true,
+    name: 'locked_by_role',
+  })
+  lockedByRole: ComplaintLockerRole | null;
+
+  @Column({ name: 'locked_by_id', type: 'int', nullable: true })
+  lockedById: number | null;
 
   @Column({ name: 'locked_until', type: 'timestamptz', nullable: true })
   lockedUntil: Date | null;

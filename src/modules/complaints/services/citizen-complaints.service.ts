@@ -9,7 +9,7 @@ import {
 } from '../constants/your-bucket-name.tokens';
 import { CitizenComplaintFilterDto, CreateComplaintDto, UpdateMyComplaintDto } from '../dtos';
 import { ComplaintEntity } from '../entities/complaint.entity';
-import { ComplaintStatus } from '../enums';
+import { ComplaintLockerRole, ComplaintStatus } from '../enums';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
 import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
 import { BaseComplaintsService } from './base-your-bucket-name.service';
@@ -45,7 +45,7 @@ export class CitizenComplaintsService extends BaseComplaintsService {
       complaint.histories = [history];
 
       // Invalidate cache
-      await this.cacheInvalidation.invalidateComplaintCaches(); //TODO
+      // await this.cacheInvalidation.invalidateComplaintCaches(); //TODO
 
       return complaint;
     });
@@ -69,6 +69,21 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     return complaint;
   }
 
+  async lockComplaint(citizen: CitizenEntity, id: number): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
+
+    if (!complaint || complaint.citizenId !== citizen.id) {
+      throw new NotFoundException('Complaint not found');
+    }
+
+    const latest = complaint.histories[0];
+    const latestStatus = latest.status;
+
+    this.ensureNotTerminal(latestStatus);
+
+    return this.your-bucket-nameRepo.lock(complaint.id, citizen.id, ComplaintLockerRole.CITIZEN);
+  }
+
   async update(
     citizen: CitizenEntity,
     id: number,
@@ -84,41 +99,36 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     const latestStatus = latest.status;
 
     const now = new Date();
-    if (complaint.lockedUntil && complaint.lockedUntil > now) {
-      throw new BadRequestException(
-        'This complaint is currently being processed and cannot be edited.',
-      );
-    }
+    const hoursSinceCreation = (now.getTime() - complaint.createdAt.getTime()) / (1000 * 60 * 60);
 
-    if (!latest) {
-      throw new BadRequestException('Complaint has no history to update.');
+    if (hoursSinceCreation > 24) {
+      throw new BadRequestException('You can only edit a complaint within 24 hours of creation.');
     }
 
     this.ensureNotTerminal(latestStatus);
 
-    // If citizen is changing status, it can only be to CANCELLED
-    if (dto.status && dto.status !== ComplaintStatus.CANCELLED) {
-      throw new BadRequestException('Citizens can only change status to CANCELLED.');
-    }
-
     // Validate status transition if status is being changed
-    if (dto.status) {
+    if (dto.status && dto.status !== latestStatus) {
       this.validateStatusTransition(latestStatus, dto.status);
     }
 
+    this.ensureLockOwner(complaint, citizen.id, ComplaintLockerRole.CITIZEN);
+
     const history = await this.historyRepo.addEntry({
-      complaintId: complaint.id,
+      complaintId: id,
       internalUserId: null,
-      title: dto.title ?? latest?.title,
-      description: dto.description ?? latest?.description,
+      title: latest.title,
+      description: latest.description,
       status: dto.status ?? latestStatus,
       location: dto.location ?? latest?.location,
       attachments: dto.attachments ?? latest?.attachments,
-      citizenNote: dto.citizenNote ?? latest?.citizenNote,
+      citizenNote: dto.citizenNote ,
       internalUserNote: null,
     });
 
     complaint.histories = [history];
+
+    await this.your-bucket-nameRepo.releaseLock(complaint.id, citizen.id, ComplaintLockerRole.CITIZEN);
 
     // Invalidate cache
     // await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);

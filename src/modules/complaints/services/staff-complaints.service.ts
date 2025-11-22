@@ -9,6 +9,7 @@ import {
 } from '../constants/your-bucket-name.tokens';
 import { StaffComplaintFilterDto, UpdateComplaintInternalUserDto } from '../dtos';
 import { ComplaintEntity } from '../entities';
+import { ComplaintLockerRole } from '../enums/complaint-locker-role.enum';
 import { sendStatusChangeNotification } from '../helpers/send-status-notification.helper';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
 import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
@@ -64,7 +65,7 @@ export class StaffComplaintsService extends BaseComplaintsService {
 
     this.ensureNotTerminal(latestStatus);
 
-    return this.your-bucket-nameRepo.lock(complaint.id, staff.id);
+    return this.your-bucket-nameRepo.lock(complaint.id, staff.id, ComplaintLockerRole.INTERNAL_USER);
   }
 
   async update(
@@ -89,7 +90,7 @@ export class StaffComplaintsService extends BaseComplaintsService {
       this.validateStatusTransition(latestStatus, dto.status);
     }
 
-    this.ensureLockOwner(complaint.lockedByInternalUserId, complaint.lockedUntil, staff.id);
+    this.ensureLockOwner(complaint, staff.id, ComplaintLockerRole.INTERNAL_USER);
 
     const history = await this.historyRepo.addEntry({
       complaintId: id,
@@ -99,13 +100,17 @@ export class StaffComplaintsService extends BaseComplaintsService {
       status: dto.status ?? latestStatus,
       location: latest.location,
       attachments: latest.attachments,
-      citizenNote: latest.citizenNote, // Preserve citizen note
-      internalUserNote: dto.internalUserNote ?? latest.internalUserNote,
+      citizenNote: null,
+      internalUserNote: dto.internalUserNote,
     });
 
     complaint.histories = [history];
 
-    await this.your-bucket-nameRepo.releaseLock(complaint.id, staff.id);
+    await this.your-bucket-nameRepo.releaseLock(
+      complaint.id,
+      staff.id,
+      ComplaintLockerRole.INTERNAL_USER,
+    );
 
     // Send notification if status changed
     if (dto.status && dto.status !== latestStatus) {
@@ -119,7 +124,7 @@ export class StaffComplaintsService extends BaseComplaintsService {
     }
 
     // Invalidate cache
-    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id); //TODO
+    // await this.cacheInvalidation.invalidateComplaintCaches(complaint.id); //TODO
 
     return complaint;
   }

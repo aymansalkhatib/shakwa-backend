@@ -62,4 +62,12 @@ export class CitizenComplaintsController {
   ): Promise<ComplaintResponseDto> {
     return this.citizenComplaintsService.update(citizen, id, dto);
   }
+
+  @Patch(':id/lock')
+  async lock(
+    @CurrentUser() citizen: CitizenEntity,
+    @Param('id', PositiveIntPipe) id: number,
+  ): Promise<ComplaintResponseDto> {
+    return this.citizenComplaintsService.lockComplaint(citizen, id);
+  }
 }

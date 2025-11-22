@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { ComplaintStatus } from '../enums';
+import { ComplaintLockerRole } from '../enums/complaint-locker-role.enum';
 
 export abstract class BaseComplaintsService {
   protected constructor() {}
@@ -71,17 +72,38 @@ export abstract class BaseComplaintsService {
   }
 
   protected ensureLockOwner(
-    lockedById: number | null,
-    lockedUntil: Date | null,
-    currentStaffId: number,
+    complaint: {
+      lockedById: number | null;
+      lockedByRole: ComplaintLockerRole | null;
+      lockedUntil: Date | null;
+    },
+    currentUserId: number,
+    currentUserRole: ComplaintLockerRole,
   ) {
-    if (!lockedById)
-      throw new BadRequestException('You should lock the complaint before upadting it.');
+    // 1. If locked by someone else (different ID or different Role) AND lock is active
+    if (
+      (complaint.lockedById !== currentUserId || complaint.lockedByRole !== currentUserRole) &&
+      this.isLockActive(complaint.lockedUntil)
+    ) {
+      throw new ConflictException('Complaint is locked by another user.');
+    }
 
-    if (lockedById && lockedById !== currentStaffId && this.isLockActive(lockedUntil))
-      throw new ConflictException('Complaint is locked by another staff member.');
+    // 2. If locked by current user but expired
+    if (
+      complaint.lockedById === currentUserId &&
+      complaint.lockedByRole === currentUserRole &&
+      !this.isLockActive(complaint.lockedUntil)
+    ) {
+      throw new BadRequestException('Your lock has expired, please lock the complaint again.');
+    }
 
-    if (lockedById && lockedById === currentStaffId && !this.isLockActive(lockedUntil))
-      throw new BadRequestException('Your lock was expired, please lock the complaint again.');
+    // 3. If not locked (no ID/Role OR expired and not caught by above)
+    if (
+      !complaint.lockedById ||
+      !complaint.lockedByRole ||
+      !this.isLockActive(complaint.lockedUntil)
+    ) {
+      throw new BadRequestException('You should lock the complaint before updating it.');
+    }
   }
 }

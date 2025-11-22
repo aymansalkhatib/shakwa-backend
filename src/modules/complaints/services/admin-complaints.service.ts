@@ -9,6 +9,7 @@ import {
 } from '../constants/your-bucket-name.tokens';
 import { AdminComplaintFilterDto, UpdateComplaintInternalUserDto } from '../dtos';
 import { ComplaintEntity } from '../entities';
+import { ComplaintLockerRole } from '../enums';
 import { sendStatusChangeNotification } from '../helpers/send-status-notification.helper';
 import { IComplaintStatistics } from '../repositories';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
@@ -52,7 +53,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
     // Admin can lock even terminal your-bucket-name
     this.ensureNotTerminal(latestStatus);
 
-    return this.your-bucket-nameRepo.lock(complaint.id, staff.id);
+    return this.your-bucket-nameRepo.lock(complaint.id, staff.id, ComplaintLockerRole.INTERNAL_USER);
   }
 
   async updateComplaint(
@@ -68,7 +69,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
     // Admin can update terminal your-bucket-name (only status and note)
     // No ensureNotTerminal check here
 
-    this.ensureLockOwner(complaint.lockedByInternalUserId, complaint.lockedUntil, staff.id);
+    this.ensureLockOwner(complaint, staff.id, ComplaintLockerRole.INTERNAL_USER);
 
     // Validate status transition if status is being changed
     if (dto.status && dto.status !== latestStatus) {
@@ -83,13 +84,17 @@ export class AdminComplaintsService extends BaseComplaintsService {
       status: dto.status ?? latestStatus,
       location: latest.location,
       attachments: latest.attachments,
-      citizenNote: latest.citizenNote,
-      internalUserNote: dto.internalUserNote ?? latest.internalUserNote,
+      citizenNote: null,
+      internalUserNote: dto.internalUserNote ,
     });
 
     complaint.histories = [history];
 
-    await this.your-bucket-nameRepo.releaseLock(complaint.id, staff.id);
+    await this.your-bucket-nameRepo.releaseLock(
+      complaint.id,
+      staff.id,
+      ComplaintLockerRole.INTERNAL_USER,
+    );
 
     // Send notification if status changed
     if (dto.status && dto.status !== latestStatus) {
