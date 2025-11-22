@@ -10,7 +10,7 @@ export class UpdateMyComplaintDto extends OmitType(PartialType(CreateComplaintDt
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  note?: string;
+  citizenNote?: string;
 
   @IsOptional()
   @IsEnum(ComplaintStatus)

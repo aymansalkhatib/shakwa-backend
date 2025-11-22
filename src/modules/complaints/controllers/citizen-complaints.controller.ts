@@ -1,4 +1,3 @@
-import { SignedUrlInterceptor } from '../../../shared/services/storage/interceptors/signed-url.interceptor';
 import { Body, Controller, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Protected } from '../../../common/decorators/protected.decorator';
@@ -7,6 +6,7 @@ import { Role } from '../../../common/enums/role.enum';
 import { CurrentUser } from '../../../common/guards/current-user.decorator';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
+import { SignedUrlInterceptor } from '../../../shared/services/storage/interceptors/signed-url.interceptor';
 import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import {
   CitizenComplaintFilterDto,
@@ -14,11 +14,12 @@ import {
   CreateComplaintDto,
   UpdateMyComplaintDto,
 } from '../dtos';
+import { CacheInterceptor } from '../interceptors/cache.interceptor';
 import { CitizenComplaintsService } from '../services/citizen-your-bucket-name.service';
 
 @Controller('citizen/your-bucket-name')
 @Protected(Role.CITIZEN)
-@UseInterceptors(SignedUrlInterceptor)
+@UseInterceptors(SignedUrlInterceptor, CacheInterceptor)
 export class CitizenComplaintsController {
   constructor(private readonly citizenComplaintsService: CitizenComplaintsService) {}
 

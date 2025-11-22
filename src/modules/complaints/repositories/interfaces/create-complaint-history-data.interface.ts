@@ -8,8 +8,8 @@ export interface ICreateComplaintHistoryData {
   description: string;
   status: ComplaintStatus;
 
-  location?: string | null;
-  attachments?: string[];
-
-  note: string | null;
+  location: string | null;
+  attachments: string[];
+  citizenNote: string | null;
+  internalUserNote: string | null;
 }

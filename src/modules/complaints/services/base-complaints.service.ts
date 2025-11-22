@@ -1,24 +1,70 @@
-import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import { BadRequestException, ConflictException } from '@nestjs/common';
+import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import { ComplaintEntity } from '../entities';
 import { ComplaintStatus } from '../enums';
 
 export abstract class BaseComplaintsService {
   protected constructor() {}
 
-  protected ensureNotClosed(status: ComplaintStatus) {
+  protected ensureNotTerminal(status: ComplaintStatus) {
     if (this.isTerminalStatus(status)) {
-      throw new BadRequestException('You cannot edit a terminal complaint.');
+      throw new BadRequestException(
+        'Cannot edit a complaint in terminal status (RESOLVED, REJECTED, or CANCELLED).',
+      );
     }
   }
 
-  private isTerminalStatus(status: ComplaintStatus): boolean {
+  protected isTerminalStatus(status: ComplaintStatus): boolean {
     return (
       status === ComplaintStatus.RESOLVED ||
       status === ComplaintStatus.REJECTED ||
-      status === ComplaintStatus.CANCELLED ||
-      status === ComplaintStatus.CLOSED
+      status === ComplaintStatus.CANCELLED
     );
+  }
+
+  protected validateStatusTransition(from: ComplaintStatus, to: ComplaintStatus) {
+    // If status is not changing, allow it
+    if (from === to) return;
+
+    // Define valid transitions
+    const validTransitions: Record<ComplaintStatus, ComplaintStatus[]> = {
+      [ComplaintStatus.NEW]: [
+        ComplaintStatus.IN_REVIEW,
+        ComplaintStatus.IN_PROGRESS,
+        ComplaintStatus.NEED_MORE_INFO,
+        ComplaintStatus.REJECTED,
+        ComplaintStatus.CANCELLED,
+      ],
+      [ComplaintStatus.IN_REVIEW]: [
+        ComplaintStatus.IN_PROGRESS,
+        ComplaintStatus.NEED_MORE_INFO,
+        ComplaintStatus.REJECTED,
+        ComplaintStatus.RESOLVED,
+        ComplaintStatus.CANCELLED,
+      ],
+      [ComplaintStatus.IN_PROGRESS]: [
+        ComplaintStatus.NEED_MORE_INFO,
+        ComplaintStatus.RESOLVED,
+        ComplaintStatus.REJECTED,
+        ComplaintStatus.CANCELLED,
+      ],
+      [ComplaintStatus.NEED_MORE_INFO]: [
+        ComplaintStatus.IN_PROGRESS,
+        ComplaintStatus.IN_REVIEW,
+        ComplaintStatus.REJECTED,
+        ComplaintStatus.CANCELLED,
+      ],
+      [ComplaintStatus.RESOLVED]: [],
+      [ComplaintStatus.REJECTED]: [],
+      [ComplaintStatus.CANCELLED]: [],
+    };
+
+    const allowedTransitions = validTransitions[from] || [];
+    if (!allowedTransitions.includes(to)) {
+      throw new BadRequestException(
+        `Invalid status transition from ${from} to ${to}. Allowed transitions: ${allowedTransitions.join(', ') || 'none'}.`,
+      );
+    }
   }
 
   protected isLockActive(lockedUntil: Date | null): boolean {

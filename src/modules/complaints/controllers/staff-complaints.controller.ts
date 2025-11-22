@@ -1,4 +1,3 @@
-import { SignedUrlInterceptor } from '../../../shared/services/storage/interceptors/signed-url.interceptor';
 import { Body, Controller, Get, Param, Patch, Query, UseInterceptors } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Protected } from '../../../common/decorators/protected.decorator';
@@ -7,13 +6,15 @@ import { Role } from '../../../common/enums/role.enum';
 import { CurrentUser } from '../../../common/guards/current-user.decorator';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
+import { SignedUrlInterceptor } from '../../../shared/services/storage/interceptors/signed-url.interceptor';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
-import { ComplaintResponseDto, StaffComplaintFilterDto, UpdateComplaintContentDto } from '../dtos';
+import { ComplaintResponseDto, StaffComplaintFilterDto, UpdateComplaintStaffDto } from '../dtos';
+import { CacheInterceptor } from '../interceptors/cache.interceptor';
 import { StaffComplaintsService } from '../services/staff-your-bucket-name.service';
 
 @Controller('staff/your-bucket-name')
 @Protected(Role.STAFF)
-@UseInterceptors(SignedUrlInterceptor)
+@UseInterceptors(SignedUrlInterceptor, CacheInterceptor)
 export class StaffComplaintsController {
   constructor(private readonly staffComplaintsService: StaffComplaintsService) {}
 
@@ -38,14 +39,14 @@ export class StaffComplaintsController {
     return this.staffComplaintsService.findOne(staff, id);
   }
 
-  @Patch(':id/content')
+  @Patch(':id')
   @SerializeResponse(ComplaintResponseDto)
-  updateContent(
+  updateComplaint(
     @CurrentUser() staff: InternalUserEntity,
     @Param('id', PositiveIntPipe) id: number,
-    @Body() dto: UpdateComplaintContentDto,
+    @Body() dto: UpdateComplaintStaffDto,
   ): Promise<ComplaintResponseDto> {
-    return this.staffComplaintsService.updateContent(staff, id, dto);
+    return this.staffComplaintsService.updateComplaint(staff, id, dto);
   }
 
   @Patch(':id/lock')

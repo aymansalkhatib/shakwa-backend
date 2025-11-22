@@ -14,6 +14,7 @@ import { ComplaintStatus } from '../enums';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
 import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
 import { BaseComplaintsService } from './base-your-bucket-name.service';
+import { CacheInvalidationService } from './cache-invalidation.service';
 
 @Injectable()
 export class CitizenComplaintsService extends BaseComplaintsService {
@@ -24,6 +25,7 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     private readonly historyRepo: IComplaintHistoryRepository,
     @InjectDataSource()
     private readonly dataSource: DataSource,
+    private readonly cacheInvalidation: CacheInvalidationService,
   ) {
     super();
   }
@@ -42,11 +44,16 @@ export class CitizenComplaintsService extends BaseComplaintsService {
           ...dto,
           complaintId: complaint.id,
           status: ComplaintStatus.NEW,
-          note: 'Complaint created by citizen.',
+          citizenNote: 'Complaint created by citizen.',
+          internalUserNote: null,
         }),
       );
 
       complaint.histories = [history];
+
+      // Invalidate cache
+      await this.cacheInvalidation.invalidateComplaintCaches();
+
       return complaint;
     });
   }
@@ -89,7 +96,17 @@ export class CitizenComplaintsService extends BaseComplaintsService {
       throw new BadRequestException('Complaint has no history to update.');
     }
 
-    this.ensureNotClosed(latestStatus);
+    this.ensureNotTerminal(latestStatus);
+
+    // If citizen is changing status, it can only be to CANCELLED
+    if (dto.status && dto.status !== ComplaintStatus.CANCELLED) {
+      throw new BadRequestException('Citizens can only change status to CANCELLED.');
+    }
+
+    // Validate status transition if status is being changed
+    if (dto.status) {
+      this.validateStatusTransition(latestStatus, dto.status);
+    }
 
     const history = await this.historyRepo.addEntry({
       complaintId: complaint.id,
@@ -99,10 +116,15 @@ export class CitizenComplaintsService extends BaseComplaintsService {
       status: dto.status ?? latestStatus,
       location: dto.location ?? latest?.location,
       attachments: dto.attachments ?? latest?.attachments,
-      note: 'Complaint updated by citizen.',
+      citizenNote: dto.citizenNote ?? latest?.citizenNote,
+      internalUserNote: latest?.internalUserNote, // Preserve internal user note
     });
 
     complaint.histories = [history];
+
+    // Invalidate cache
+    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
+
     return complaint;
   }
 }

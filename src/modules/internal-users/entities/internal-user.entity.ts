@@ -5,12 +5,16 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { InternalRole } from '../../../common/enums/role.enum';
 import { ComplaintAuthority } from '../../your-bucket-name/enums/complaint-authority.enum';
 
+@Index('idx_internal_user_email', ['email'])
+@Index('idx_internal_user_role', ['role'])
+@Index('idx_internal_user_authority', ['authority'])
 @Entity('internal_users')
 export class InternalUserEntity {
   @PrimaryGeneratedColumn()

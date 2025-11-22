@@ -1,4 +1,3 @@
-import { SignedUrlInterceptor } from '../../../shared/services/storage/interceptors/signed-url.interceptor';
 import { Body, Controller, Get, Param, Patch, Query, UseInterceptors } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Protected } from '../../../common/decorators/protected.decorator';
@@ -7,14 +6,16 @@ import { Role } from '../../../common/enums/role.enum';
 import { CurrentUser } from '../../../common/guards/current-user.decorator';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
+import { SignedUrlInterceptor } from '../../../shared/services/storage/interceptors/signed-url.interceptor';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
-import { AdminComplaintFilterDto, ComplaintResponseDto, UpdateComplaintContentDto } from '../dtos';
+import { AdminComplaintFilterDto, ComplaintResponseDto, UpdateComplaintStaffDto } from '../dtos';
 import { ComplaintStatisticsDto } from '../dtos/response/complaint-statistics.dto';
+import { CacheInterceptor } from '../interceptors/cache.interceptor';
 import { AdminComplaintsService } from '../services/admin-your-bucket-name.service';
 
 @Controller('admin/your-bucket-name')
 @Protected(Role.ADMIN)
-@UseInterceptors(SignedUrlInterceptor)
+@UseInterceptors(SignedUrlInterceptor, CacheInterceptor)
 export class AdminComplaintsController {
   constructor(private readonly adminComplaintsService: AdminComplaintsService) {}
 
@@ -40,14 +41,14 @@ export class AdminComplaintsController {
     return this.adminComplaintsService.findOne(id);
   }
 
-  @Patch(':id/content')
+  @Patch(':id')
   @SerializeResponse(ComplaintResponseDto)
-  updateContent(
+  updateComplaint(
     @CurrentUser() admin: InternalUserEntity,
     @Param('id', PositiveIntPipe) id: number,
-    @Body() dto: UpdateComplaintContentDto,
+    @Body() dto: UpdateComplaintStaffDto,
   ): Promise<ComplaintResponseDto> {
-    return this.adminComplaintsService.updateContent(admin, id, dto);
+    return this.adminComplaintsService.updateComplaint(admin, id, dto);
   }
 
   @Patch(':id/lock')

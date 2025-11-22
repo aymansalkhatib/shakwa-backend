@@ -14,6 +14,9 @@ import { ComplaintHistoryEntity } from './complaint-history.entity';
 
 @Entity('your-bucket-name')
 @Index('idx_complaint_authority', ['authority'])
+@Index('idx_complaint_citizen_id', ['citizenId'])
+@Index('idx_complaint_category', ['category'])
+@Index('idx_complaint_created_at', ['createdAt'])
 export class ComplaintEntity {
   @PrimaryGeneratedColumn()
   id: number;

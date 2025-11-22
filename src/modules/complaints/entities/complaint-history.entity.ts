@@ -10,7 +10,9 @@ import {
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import { ComplaintStatus } from '../enums/complaint-status.enum';
 import { ComplaintEntity } from './complaint.entity';
-@Index('idx_complaint_status', ['status'])
+@Index('idx_complaint_history_complaint_id', ['complaintId'])
+@Index('idx_complaint_history_internal_user_id', ['internalUserId'])
+@Index('idx_complaint_history_created_at', ['createdAt'])
 @Entity('complaint_histories')
 export class ComplaintHistoryEntity {
   @PrimaryGeneratedColumn()
@@ -46,8 +48,11 @@ export class ComplaintHistoryEntity {
   @Column('text', { array: true, default: '{}' })
   attachments: string[];
 
-  @Column({ type: 'text', nullable: true })
-  note: string | null;
+  @Column({ name: 'citizen_note', type: 'text', nullable: true })
+  citizenNote: string | null;
+
+  @Column({ name: 'internal_user_note', type: 'text', nullable: true })
+  internalUserNote: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

@@ -20,8 +20,9 @@ export class UpdateComplaintContentDto {
   @IsArray()
   attachments?: string[];
 
+  @IsOptional()
   @IsEnum(ComplaintStatus)
-  status: ComplaintStatus;
+  status?: ComplaintStatus;
 
   @IsOptional()
   @IsString()

@@ -58,4 +58,10 @@ export class CitizensAdminService {
 
     return updatedCitizen;
   }
+
+  //TODO
+  async update(id: number, data: Partial<CitizenEntity>): Promise<CitizenEntity> {
+    const citizen = await this.findOneOrFail(id);
+    return await this.citizensRepository.update(citizen, data);
+  }
 }

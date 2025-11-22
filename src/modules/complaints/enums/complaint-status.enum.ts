@@ -22,7 +22,4 @@ export enum ComplaintStatus {
 
   /** Cancelled voluntarily by the citizen */
   CANCELLED = 'cancelled',
-
-  /** Closed by the authority (after resolution / rejection) */
-  CLOSED = 'closed',
 }

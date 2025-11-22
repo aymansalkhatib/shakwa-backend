@@ -1,16 +1,20 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
+import { NotificationService } from '../../../shared/services/notifications/notification.service';
+import { CitizensAdminService } from '../../citizens/services/citizens-admin.service';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import {
   COMPLAINTS_REPOSITORY_TOKEN,
   COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
-import { AdminComplaintFilterDto, UpdateComplaintContentDto } from '../dtos';
+import { AdminComplaintFilterDto, UpdateComplaintStaffDto } from '../dtos';
 import { ComplaintEntity } from '../entities';
+import { sendStatusChangeNotification } from '../helpers/send-status-notification.helper';
+import { IComplaintStatistics } from '../repositories';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
 import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
 import { BaseComplaintsService } from './base-your-bucket-name.service';
-import { IComplaintStatistics } from '../repositories';
+import { CacheInvalidationService } from './cache-invalidation.service';
 
 @Injectable()
 export class AdminComplaintsService extends BaseComplaintsService {
@@ -19,6 +23,9 @@ export class AdminComplaintsService extends BaseComplaintsService {
     private readonly your-bucket-nameRepo: IComplaintsRepository,
     @Inject(COMPLAINT_HISTORY_REPOSITORY_TOKEN)
     private readonly historyRepo: IComplaintHistoryRepository,
+    private readonly notificationService: NotificationService,
+    private readonly citizensService: CitizensAdminService,
+    private readonly cacheInvalidation: CacheInvalidationService,
   ) {
     super();
   }
@@ -42,39 +49,61 @@ export class AdminComplaintsService extends BaseComplaintsService {
     const latest = complaint.histories[complaint.histories.length - 1];
     const latestStatus = latest.status;
 
-    this.ensureNotClosed(latestStatus);
+    // Admin can lock even terminal your-bucket-name
+    // this.ensureNotTerminal(latestStatus);
 
     return this.your-bucket-nameRepo.lock(complaint.id, staff.id);
   }
 
-  async updateContent(
+  async updateComplaint(
     staff: InternalUserEntity,
     id: number,
-    dto: UpdateComplaintContentDto,
+    dto: UpdateComplaintStaffDto,
   ): Promise<ComplaintEntity> {
     const complaint = await this.findOne(id);
 
     const latest = complaint.histories[complaint.histories.length - 1];
     const latestStatus = latest.status;
 
-    this.ensureNotClosed(latestStatus);
+    // Admin can update terminal your-bucket-name (only status and note)
+    // No ensureNotTerminal check here
 
     this.ensureLockOwner(complaint.lockedByInternalUserId, complaint.lockedUntil, staff.id);
+
+    // Validate status transition if status is being changed
+    if (dto.status && dto.status !== latestStatus) {
+      this.validateStatusTransition(latestStatus, dto.status);
+    }
 
     const history = await this.historyRepo.addEntry({
       complaintId: id,
       internalUserId: staff.id,
-      title: dto.title ?? latest.title,
-      description: dto.description ?? latest?.description,
+      title: latest.title,
+      description: latest.description,
       status: dto.status ?? latestStatus,
-      location: dto.location ?? latest?.location,
-      attachments: dto.attachments ?? latest.attachments,
-      note: dto.note ?? 'Content updated by staff.',
+      location: latest.location,
+      attachments: latest.attachments,
+      citizenNote: latest.citizenNote, // Preserve citizen note
+      internalUserNote: dto.internalUserNote ?? latest.internalUserNote,
     });
 
     complaint.histories = [history];
 
     await this.your-bucket-nameRepo.releaseLock(complaint.id, staff.id);
+
+    // Send notification if status changed
+    if (dto.status && dto.status !== latestStatus) {
+      await sendStatusChangeNotification(
+        this.notificationService,
+        this.citizensService,
+        complaint.citizenId,
+        complaint.id,
+        dto.status,
+      );
+    }
+
+    // Invalidate cache
+    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
 
     return complaint;
   }
