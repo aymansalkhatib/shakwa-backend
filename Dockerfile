@@ -19,11 +19,11 @@ COPY . .
 RUN npm run build
 
 
-########## Stage 2: Production Runner ##########
+########## Stage 2: Development Runner ##########
 FROM node:22-alpine AS runner
 
 # Set environment
-ARG NODE_ENV=production
+ARG NODE_ENV=development
 ENV NODE_ENV=${NODE_ENV}
 
 # Set working directory
