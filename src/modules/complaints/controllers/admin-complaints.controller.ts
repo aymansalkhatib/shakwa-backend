@@ -25,7 +25,8 @@ export class AdminComplaintsController {
 
   @Get('/statistics')
   async getStatistics(): Promise<ComplaintStatisticsDto> {
-    return this.adminComplaintsService.getStatistics();
+    const result = await this.adminComplaintsService.getStatistics();
+    return result;
   }
 
   @Get()

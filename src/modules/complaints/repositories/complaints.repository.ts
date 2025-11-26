@@ -35,7 +35,9 @@ export class ComplaintsRepository implements IComplaintsRepository {
         'complaint.histories',
         'lastHistory',
         'lastHistory.id = (SELECT h.id FROM complaint_histories h WHERE h.complaint_id = complaint.id ORDER BY h.created_at DESC LIMIT 1)',
-      );
+      )
+      .leftJoinAndSelect('complaint.citizen', 'citizen')
+      .leftJoinAndSelect('lastHistory.internalUser', 'internalUser');
 
     this.applyFilters(qb, filter);
     qb.orderBy('complaint.createdAt', 'DESC');
