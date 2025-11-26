@@ -8,6 +8,7 @@ import {
   COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
 import { StaffComplaintFilterDto, UpdateComplaintInternalUserDto } from '../dtos';
+import { ComplaintStatisticsDto } from '../dtos/response/complaint-statistics.dto';
 import { ComplaintEntity } from '../entities';
 import { ComplaintLockerRole } from '../enums/complaint-locker-role.enum';
 import { sendStatusChangeNotification } from '../helpers/send-status-notification.helper';
@@ -127,5 +128,9 @@ export class StaffComplaintsService extends BaseComplaintsService {
     await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
 
     return complaint;
+  }
+
+  async getStatistics(staff: InternalUserEntity): Promise<ComplaintStatisticsDto> {
+    return this.your-bucket-nameRepo.getStatistics(staff.authority);
   }
 }

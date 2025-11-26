@@ -23,7 +23,7 @@ import { AdminComplaintsService } from '../services/admin-your-bucket-name.servi
 export class AdminComplaintsController {
   constructor(private readonly adminComplaintsService: AdminComplaintsService) {}
 
-  @Get('statistics')
+  @Get('/statistics')
   async getStatistics(): Promise<ComplaintStatisticsDto> {
     return this.adminComplaintsService.getStatistics();
   }

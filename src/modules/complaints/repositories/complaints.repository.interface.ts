@@ -1,7 +1,7 @@
 import { EntityManager } from 'typeorm';
 import { IPaginatedResponse } from '../../../common/pagination/interfaces/paginated-response.interface';
 import { ComplaintEntity } from '../entities/complaint.entity';
-import { ComplaintLockerRole } from '../enums/complaint-locker-role.enum';
+import { ComplaintAuthority, ComplaintLockerRole } from '../enums';
 import {
   IComplaintFilter,
   IComplaintStatistics,
@@ -22,7 +22,7 @@ export interface IComplaintsRepository {
 
   exists(id: number): Promise<boolean>;
 
-  getStatistics(): Promise<IComplaintStatistics>;
+  getStatistics(authority?: ComplaintAuthority): Promise<IComplaintStatistics>;
 
   lock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<ComplaintEntity>;
 
