@@ -1,4 +1,5 @@
 import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { PositiveIntegerId } from '../../../../common/decorators/positive-integer-id.decorator';
 import { StrictBoolean } from '../../../../common/decorators/strict-boolean.decorator';
 import { PaginationQueryDto } from '../../../../common/pagination/dto/pagination-query.dto';
 
@@ -24,4 +25,8 @@ export class CitizenFilterDto extends PaginationQueryDto {
   @IsOptional()
   @StrictBoolean()
   blocked?: boolean;
+
+  @PositiveIntegerId()
+  @IsOptional()
+  id?: number;
 }
