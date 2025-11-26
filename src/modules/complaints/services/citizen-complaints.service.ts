@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
@@ -97,13 +97,6 @@ export class CitizenComplaintsService extends BaseComplaintsService {
 
     const latest = complaint.histories[0];
     const latestStatus = latest.status;
-
-    const now = new Date();
-    const hoursSinceCreation = (now.getTime() - complaint.createdAt.getTime()) / (1000 * 60 * 60);
-
-    if (hoursSinceCreation > 24) {
-      throw new BadRequestException('You can only edit a complaint within 24 hours of creation.');
-    }
 
     this.ensureNotTerminal(latestStatus);
 
