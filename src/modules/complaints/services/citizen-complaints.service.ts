@@ -61,8 +61,8 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     });
   }
 
-  async findOne(citizen: CitizenEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id);
+  async findByIdWithHistory(citizen: CitizenEntity, id: number): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
     if (!complaint || complaint.citizenId !== citizen.id) {
       throw new NotFoundException('Complaint not found');
     }

@@ -48,7 +48,7 @@ export class StaffComplaintsController {
     @CurrentUser() staff: InternalUserEntity,
     @Param('id', PositiveIntPipe) id: number,
   ): Promise<ComplaintResponseDto> {
-    return this.staffComplaintsService.findOne(staff, id);
+    return this.staffComplaintsService.findByIdWithHistory(staff, id);
   }
 
   @Patch(':id')

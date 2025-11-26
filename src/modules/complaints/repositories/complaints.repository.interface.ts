@@ -12,11 +12,11 @@ import {
 export interface IComplaintsRepository {
   create(data: ICreateComplaintData): Promise<ComplaintEntity>;
 
-  findAll(filter: IComplaintFilter): Promise<IPaginatedResponse<ComplaintEntity>>;
+  findAll(filter: IComplaintFilter, relations?: string[]): Promise<IPaginatedResponse<ComplaintEntity>>;
 
-  findByIdWithHistory(id: number): Promise<ComplaintEntity | null>;
+  findByIdWithHistory(id: number, relations?: string[]): Promise<ComplaintEntity | null>;
 
-  findByIdWithLatestHistory(id: number): Promise<ComplaintEntity | null>;
+  findByIdWithLatestHistory(id: number, relations?: string[]): Promise<ComplaintEntity | null>;
 
   update(complaint: ComplaintEntity, data: IUpdateComplaintData): Promise<ComplaintEntity>;
 

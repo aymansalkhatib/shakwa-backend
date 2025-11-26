@@ -34,11 +34,14 @@ export class AdminComplaintsService extends BaseComplaintsService {
   async findAll(
     filterDto: AdminComplaintFilterDto,
   ): Promise<PaginationResponseDto<ComplaintEntity>> {
-    return await this.your-bucket-nameRepo.findAll(filterDto as any);
+    return await this.your-bucket-nameRepo.findAll(filterDto, ['citizen', 'internalUser']);
   }
 
-  async findOne(id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id);
+  async findByIdWithHistory(id: number): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id, [
+      'citizen',
+      'internalUser',
+    ]);
     if (!complaint) throw new NotFoundException('Complaint not found');
     return complaint;
   }

@@ -43,7 +43,7 @@ export class AdminComplaintsController {
   @Get(':id')
   @SerializeResponse(ComplaintResponseDto)
   findOne(@Param('id', PositiveIntPipe) id: number): Promise<ComplaintResponseDto> {
-    return this.adminComplaintsService.findOne(id);
+    return this.adminComplaintsService.findByIdWithHistory(id);
   }
 
   @Patch(':id')

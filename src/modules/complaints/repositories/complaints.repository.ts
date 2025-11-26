@@ -28,16 +28,24 @@ export class ComplaintsRepository implements IComplaintsRepository {
     return await this.complaintRepo.save(e);
   }
 
-  async findAll(filter: IComplaintFilter): Promise<IPaginatedResponse<ComplaintEntity>> {
+  async findAll(
+    filter: IComplaintFilter,
+    relations?: string[],
+  ): Promise<IPaginatedResponse<ComplaintEntity>> {
     const qb = this.complaintRepo
       .createQueryBuilder('complaint')
       .leftJoinAndSelect(
         'complaint.histories',
         'lastHistory',
         'lastHistory.id = (SELECT h.id FROM complaint_histories h WHERE h.complaint_id = complaint.id ORDER BY h.created_at DESC LIMIT 1)',
-      )
-      .leftJoinAndSelect('complaint.citizen', 'citizen')
-      .leftJoinAndSelect('lastHistory.internalUser', 'internalUser');
+      );
+
+    if (relations?.includes('citizen')) {
+      qb.leftJoinAndSelect('complaint.citizen', 'citizen');
+    }
+    if (relations?.includes('internalUser')) {
+      qb.leftJoinAndSelect('lastHistory.internalUser', 'internalUser');
+    }
 
     this.applyFilters(qb, filter);
     qb.orderBy('complaint.createdAt', 'DESC');
@@ -45,16 +53,26 @@ export class ComplaintsRepository implements IComplaintsRepository {
     return await paginate(qb, filter);
   }
 
-  async findByIdWithHistory(id: number): Promise<ComplaintEntity | null> {
+  async findByIdWithHistory(id: number, relations?: string[]): Promise<ComplaintEntity | null> {
     const qb = this.complaintRepo
       .createQueryBuilder('complaint')
       .where('complaint.id = :id', { id })
       .leftJoinAndSelect('complaint.histories', 'histories');
 
+    if (relations?.includes('citizen')) {
+      qb.leftJoinAndSelect('complaint.citizen', 'citizen');
+    }
+    if (relations?.includes('internalUser')) {
+      qb.leftJoinAndSelect('histories.internalUser', 'internalUser');
+    }
+
     return await qb.getOne();
   }
 
-  async findByIdWithLatestHistory(id: number): Promise<ComplaintEntity | null> {
+  async findByIdWithLatestHistory(
+    id: number,
+    relations?: string[],
+  ): Promise<ComplaintEntity | null> {
     const qb = this.complaintRepo
       .createQueryBuilder('complaint')
       .where('complaint.id = :id', { id })
@@ -63,6 +81,13 @@ export class ComplaintsRepository implements IComplaintsRepository {
         'lastHistory',
         'lastHistory.id = (SELECT h.id FROM complaint_histories h WHERE h.complaint_id = complaint.id ORDER BY h.created_at DESC LIMIT 1)',
       );
+
+    if (relations?.includes('citizen')) {
+      qb.leftJoinAndSelect('complaint.citizen', 'citizen');
+    }
+    if (relations?.includes('internalUser')) {
+      qb.leftJoinAndSelect('lastHistory.internalUser', 'internalUser');
+    }
 
     return await qb.getOne();
   }

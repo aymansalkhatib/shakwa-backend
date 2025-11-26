@@ -36,14 +36,20 @@ export class StaffComplaintsService extends BaseComplaintsService {
     staff: InternalUserEntity,
     filterDto: StaffComplaintFilterDto,
   ): Promise<PaginationResponseDto<ComplaintEntity>> {
-    return await this.your-bucket-nameRepo.findAll({
-      ...filterDto,
-      authority: staff.authority,
-    });
+    return await this.your-bucket-nameRepo.findAll(
+      {
+        ...filterDto,
+        authority: staff.authority,
+      },
+      ['citizen', 'internalUser'],
+    );
   }
 
-  async findOne(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id);
+  async findByIdWithHistory(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id, [
+      'citizen',
+      'internalUser',
+    ]);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
     if (complaint.authority !== staff.authority) {
