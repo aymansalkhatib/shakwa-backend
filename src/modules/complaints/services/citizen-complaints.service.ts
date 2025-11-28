@@ -110,12 +110,12 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     const history = await this.historyRepo.addEntry({
       complaintId: id,
       internalUserId: null,
-      title: latest.title,
-      description: latest.description,
+      title: dto.title ?? latest.title,
+      description: dto.description ?? latest.description,
       status: dto.status ?? latestStatus,
       location: dto.location ?? latest?.location,
       attachments: dto.attachments ?? latest?.attachments,
-      citizenNote: dto.citizenNote,
+      citizenNote: dto.citizenNote ?? latest.citizenNote,
       internalUserNote: null,
     });
 
