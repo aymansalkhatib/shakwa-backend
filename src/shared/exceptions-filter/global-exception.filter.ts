@@ -34,47 +34,38 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const errorResponse = handler.handle(exception, requestId);
 
       // Add stack trace in development
-      if (developerMode && errorResponse.context) {
+      if (errorResponse.context) {
         errorResponse.context.stack = exception.stack;
       }
 
       // Log the error with request context
       this.logError(errorResponse, exception, request);
 
+      if (!developerMode) {
+        errorResponse.context = undefined;
+      }
+
       // Send responses
       response.status(errorResponse.statusCode).json(errorResponse);
 
-      console.error(exception);
       //
     } catch (error: any) {
-      this.logError(
-        {
-          statusCode: 500,
-          errors: 'Internal Server Error',
-          message: 'An unexpected error occurred',
-          context: {
-            requestId,
-            timestamp: new Date().toISOString(),
-            details: error?.message,
-          },
-        },
-        exception,
-        request,
-      );
-
+      //
       const fallbackResponse: ErrorResponse = {
         statusCode: 500,
         errors: 'Internal Server Error',
         message: 'An unexpected error occurred',
-        context: {
-          requestId,
-          timestamp: new Date().toISOString(),
-          details: error?.message,
-          ...(developerMode && { stack: error?.stack }),
-        },
+        ...(developerMode && {
+          context: {
+            requestId,
+            timestamp: new Date().toISOString(),
+            details: error?.message,
+            stack: error?.stack,
+          },
+        }),
       };
 
-      console.error(error);
+      this.logError(fallbackResponse, exception, request);
 
       response.status(500).json(fallbackResponse);
     }
