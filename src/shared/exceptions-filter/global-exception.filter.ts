@@ -22,7 +22,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     const requestId = request.requestId;
 
-    // ✅ Determine developer mode based on environment and headers
+    // Determine developer mode based on environment and headers
     const isDevelopment = process.env.NODE_ENV === 'development';
     const devModeHeader = request.headers['x-developer-mode'] === 'true';
     const developerMode = isDevelopment && devModeHeader;
