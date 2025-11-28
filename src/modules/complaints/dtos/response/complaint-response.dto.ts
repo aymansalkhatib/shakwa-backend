@@ -1,5 +1,6 @@
 import { Exclude, Expose, Type } from 'class-transformer';
 import { ComplaintAuthority, ComplaintCategory, ComplaintHistoryResponseDto } from '../..';
+import { CitizenResponseDto } from '../../../citizens/dtos';
 
 @Exclude()
 export class ComplaintResponseDto {
@@ -24,4 +25,8 @@ export class ComplaintResponseDto {
   @Expose()
   @Type(() => ComplaintHistoryResponseDto)
   histories: ComplaintHistoryResponseDto[];
+
+  @Expose()
+  @Type(() => CitizenResponseDto)
+  citizen: CitizenResponseDto | null;
 }

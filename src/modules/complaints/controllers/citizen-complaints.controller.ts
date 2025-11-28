@@ -50,7 +50,7 @@ export class CitizenComplaintsController {
     @CurrentUser() citizen: CitizenEntity,
     @Param('id', PositiveIntPipe) id: number,
   ): Promise<ComplaintResponseDto> {
-    return this.citizenComplaintsService.findOne(citizen, id);
+    return this.citizenComplaintsService.findByIdWithHistory(citizen, id);
   }
 
   @Patch(':id')

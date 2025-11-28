@@ -23,9 +23,10 @@ import { AdminComplaintsService } from '../services/admin-your-bucket-name.servi
 export class AdminComplaintsController {
   constructor(private readonly adminComplaintsService: AdminComplaintsService) {}
 
-  @Get('statistics')
+  @Get('/statistics')
   async getStatistics(): Promise<ComplaintStatisticsDto> {
-    return this.adminComplaintsService.getStatistics();
+    const result = await this.adminComplaintsService.getStatistics();
+    return result;
   }
 
   @Get()
@@ -42,7 +43,7 @@ export class AdminComplaintsController {
   @Get(':id')
   @SerializeResponse(ComplaintResponseDto)
   findOne(@Param('id', PositiveIntPipe) id: number): Promise<ComplaintResponseDto> {
-    return this.adminComplaintsService.findOne(id);
+    return this.adminComplaintsService.findByIdWithHistory(id);
   }
 
   @Patch(':id')

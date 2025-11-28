@@ -1,6 +1,7 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
 import { SignedUrl } from '../../../../shared/services/storage/decorators/signed-url.decorator';
-import { ComplaintStatus } from '../../enums';
+import { InternalUserResponseDto } from '../../../internal-users/dtos/response/internal-user-response.dto';
+import { ComplaintStatus } from '../../enums/complaint-status.enum';
 
 @Exclude()
 export class ComplaintHistoryResponseDto {
@@ -40,4 +41,9 @@ export class ComplaintHistoryResponseDto {
 
   @Expose()
   createdAt: Date;
+
+  //
+  @Expose()
+  @Type(() => InternalUserResponseDto)
+  internalUser: InternalUserResponseDto | null;
 }

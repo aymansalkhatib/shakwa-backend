@@ -13,6 +13,7 @@ import {
   StaffComplaintFilterDto,
   UpdateComplaintInternalUserDto,
 } from '../dtos';
+import { ComplaintStatisticsDto } from '../dtos/response/complaint-statistics.dto';
 import { CacheInterceptor } from '../interceptors/cache.interceptor';
 import { StaffComplaintsService } from '../services/staff-your-bucket-name.service';
 
@@ -21,6 +22,13 @@ import { StaffComplaintsService } from '../services/staff-your-bucket-name.servi
 @UseInterceptors(SignedUrlInterceptor, CacheInterceptor)
 export class StaffComplaintsController {
   constructor(private readonly staffComplaintsService: StaffComplaintsService) {}
+
+  @Get('statistics')
+  async getStatistics(@CurrentUser() staff: InternalUserEntity): Promise<ComplaintStatisticsDto> {
+    const result = await this.staffComplaintsService.getStatistics(staff);
+    delete result.your-bucket-nameByAuthority;
+    return result;
+  }
 
   @Get()
   async findAll(
@@ -40,7 +48,7 @@ export class StaffComplaintsController {
     @CurrentUser() staff: InternalUserEntity,
     @Param('id', PositiveIntPipe) id: number,
   ): Promise<ComplaintResponseDto> {
-    return this.staffComplaintsService.findOne(staff, id);
+    return this.staffComplaintsService.findByIdWithHistory(staff, id);
   }
 
   @Patch(':id')

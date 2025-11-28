@@ -61,8 +61,8 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     });
   }
 
-  async findOne(citizen: CitizenEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id);
+  async findByIdWithHistory(citizen: CitizenEntity, id: number): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
     if (!complaint || complaint.citizenId !== citizen.id) {
       throw new NotFoundException('Complaint not found');
     }
@@ -98,6 +98,8 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     const latest = complaint.histories[0];
     const latestStatus = latest.status;
 
+    this.ensureNotTerminal(latestStatus);
+
     // Validate status transition if status is being changed
     if (dto.status && dto.status !== latestStatus) {
       this.validateStatusTransition(latestStatus, dto.status);
@@ -108,12 +110,12 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     const history = await this.historyRepo.addEntry({
       complaintId: id,
       internalUserId: null,
-      title: latest.title,
-      description: latest.description,
+      title: dto.title ?? latest.title,
+      description: dto.description ?? latest.description,
       status: dto.status ?? latestStatus,
       location: dto.location ?? latest?.location,
       attachments: dto.attachments ?? latest?.attachments,
-      citizenNote: dto.citizenNote,
+      citizenNote: dto.citizenNote ?? latest.citizenNote,
       internalUserNote: null,
     });
 

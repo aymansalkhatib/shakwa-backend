@@ -11,4 +11,5 @@ export interface IInternalUserFilter extends IPaginationOptions {
   email?: string;
   role?: InternalRole;
   authority: ComplaintAuthority;
+  id?: number;
 }

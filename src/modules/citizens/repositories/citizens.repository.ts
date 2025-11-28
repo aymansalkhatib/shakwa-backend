@@ -91,6 +91,11 @@ export class CitizensRepository implements ICitizensRepository {
     queryBuilder: SelectQueryBuilder<CitizenEntity>,
     filter: ICitizenFilter,
   ): void {
+    // ID filter
+    if (filter.id) {
+      queryBuilder.andWhere('citizen.id = :id', { id: filter.id });
+    }
+
     // Search filter (searches in email, phone, and fullName)
     if (filter.search) {
       queryBuilder.andWhere(

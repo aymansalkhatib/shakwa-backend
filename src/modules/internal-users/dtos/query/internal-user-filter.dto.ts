@@ -2,6 +2,8 @@ import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length } from 'class
 import { InternalRole } from '../../../../common/enums/role.enum';
 import { PaginationQueryDto } from '../../../../common/pagination/dto/pagination-query.dto';
 import { ComplaintAuthority } from '../../../your-bucket-name';
+import { PositiveIntPipe } from '../../../../common/pipes/positive-int.pipe';
+import { PositiveIntegerId } from '../../../../common/decorators/positive-integer-id.decorator';
 
 export class InternalUserFilterDto extends PaginationQueryDto {
   @IsOptional()
@@ -21,4 +23,8 @@ export class InternalUserFilterDto extends PaginationQueryDto {
   @IsNotEmpty({ message: 'Authority is required' })
   @IsEnum(ComplaintAuthority)
   authority: ComplaintAuthority;
+
+  @IsOptional()
+  @PositiveIntegerId()
+  id?: number;
 }

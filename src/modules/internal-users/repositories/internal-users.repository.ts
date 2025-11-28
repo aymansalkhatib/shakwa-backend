@@ -103,6 +103,11 @@ export class InternalUsersRepository implements IInternalUsersRepository {
     queryBuilder: SelectQueryBuilder<InternalUserEntity>,
     filter: IInternalUserFilter,
   ): void {
+    // ID filter
+    if (filter.id) {
+      queryBuilder.andWhere('internalUser.id = :id', { id: filter.id });
+    }
+
     // Full name filter
     if (filter.fullName) {
       queryBuilder.andWhere('internalUser.fullName LIKE :fullName', {

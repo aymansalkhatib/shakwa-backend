@@ -8,6 +8,7 @@ import {
   COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
 import { StaffComplaintFilterDto, UpdateComplaintInternalUserDto } from '../dtos';
+import { ComplaintStatisticsDto } from '../dtos/response/complaint-statistics.dto';
 import { ComplaintEntity } from '../entities';
 import { ComplaintLockerRole } from '../enums/complaint-locker-role.enum';
 import { sendStatusChangeNotification } from '../helpers/send-status-notification.helper';
@@ -35,14 +36,20 @@ export class StaffComplaintsService extends BaseComplaintsService {
     staff: InternalUserEntity,
     filterDto: StaffComplaintFilterDto,
   ): Promise<PaginationResponseDto<ComplaintEntity>> {
-    return await this.your-bucket-nameRepo.findAll({
-      ...filterDto,
-      authority: staff.authority,
-    });
+    return await this.your-bucket-nameRepo.findAll(
+      {
+        ...filterDto,
+        authority: staff.authority,
+      },
+      ['citizen', 'internalUser'],
+    );
   }
 
-  async findOne(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id);
+  async findByIdWithHistory(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id, [
+      'citizen',
+      'internalUser',
+    ]);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
     if (complaint.authority !== staff.authority) {
@@ -127,5 +134,9 @@ export class StaffComplaintsService extends BaseComplaintsService {
     await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
 
     return complaint;
+  }
+
+  async getStatistics(staff: InternalUserEntity): Promise<ComplaintStatisticsDto> {
+    return this.your-bucket-nameRepo.getStatistics(staff.authority);
   }
 }
