@@ -46,7 +46,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
     return complaint;
   }
 
-  async lockComplaint(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
+  async lockComplaint(admin: InternalUserEntity, id: number): Promise<ComplaintEntity> {
     const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
@@ -56,11 +56,14 @@ export class AdminComplaintsService extends BaseComplaintsService {
     // Admin can lock even terminal your-bucket-name
     this.ensureNotTerminal(latestStatus);
 
-    return this.your-bucket-nameRepo.lock(complaint.id, staff.id, ComplaintLockerRole.INTERNAL_USER);
+    // Release any previous locks held by this admin member before locking the new complaint
+    await this.releaseAllLocksForUser(admin.id);
+
+    return this.your-bucket-nameRepo.lock(complaint.id, admin.id, ComplaintLockerRole.INTERNAL_USER);
   }
 
   async update(
-    staff: InternalUserEntity,
+    admin: InternalUserEntity,
     id: number,
     dto: UpdateComplaintInternalUserDto,
   ): Promise<ComplaintEntity> {
@@ -72,7 +75,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
     // Admin can update terminal your-bucket-name (only status and note)
     // No ensureNotTerminal check here
 
-    this.ensureLockOwner(complaint, staff.id, ComplaintLockerRole.INTERNAL_USER);
+    this.ensureLockOwner(complaint, admin.id, ComplaintLockerRole.INTERNAL_USER);
 
     // Validate status transition if status is being changed
     if (dto.status && dto.status !== latestStatus) {
@@ -81,7 +84,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
 
     const history = await this.historyRepo.addEntry({
       complaintId: id,
-      internalUserId: staff.id,
+      internalUserId: admin.id,
       title: latest.title,
       description: latest.description,
       status: dto.status ?? latestStatus,
@@ -95,7 +98,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
 
     await this.your-bucket-nameRepo.releaseLock(
       complaint.id,
-      staff.id,
+      admin.id,
       ComplaintLockerRole.INTERNAL_USER,
     );
 
@@ -118,5 +121,9 @@ export class AdminComplaintsService extends BaseComplaintsService {
 
   async getStatistics(): Promise<IComplaintStatistics> {
     return await this.your-bucket-nameRepo.getStatistics();
+  }
+
+  async releaseAllLocksForUser(userId: number): Promise<void> {
+    await this.your-bucket-nameRepo.releaseAllLocksForUser(userId, ComplaintLockerRole.INTERNAL_USER);
   }
 }

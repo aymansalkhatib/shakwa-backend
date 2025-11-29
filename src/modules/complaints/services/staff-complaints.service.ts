@@ -73,7 +73,7 @@ export class StaffComplaintsService extends BaseComplaintsService {
     this.ensureNotTerminal(latestStatus);
 
     // Release any previous locks held by this staff member before locking the new complaint
-    await this.your-bucket-nameRepo.releaseAllUserLocks(staff.id, ComplaintLockerRole.INTERNAL_USER);
+    await this.your-bucket-nameRepo.releaseAllLocksForUser(staff.id, ComplaintLockerRole.INTERNAL_USER);
 
     return this.your-bucket-nameRepo.lock(complaint.id, staff.id, ComplaintLockerRole.INTERNAL_USER);
   }
@@ -143,11 +143,7 @@ export class StaffComplaintsService extends BaseComplaintsService {
     return this.your-bucket-nameRepo.getStatistics(staff.authority);
   }
 
-  /**
-   * Release all complaint locks held by a specific internal user
-   * Used for cleanup when user locks a new complaint or logs out
-   */
   async releaseAllLocksForUser(userId: number): Promise<void> {
-    await this.your-bucket-nameRepo.releaseAllUserLocks(userId, ComplaintLockerRole.INTERNAL_USER);
+    await this.your-bucket-nameRepo.releaseAllLocksForUser(userId, ComplaintLockerRole.INTERNAL_USER);
   }
 }

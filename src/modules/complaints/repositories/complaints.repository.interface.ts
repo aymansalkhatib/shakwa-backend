@@ -31,7 +31,7 @@ export interface IComplaintsRepository {
 
   releaseLock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<void>;
 
-  releaseAllUserLocks(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number>;
+  releaseAllLocksForUser(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number>;
 
   withManager(manager: EntityManager): IComplaintsRepository;
 }

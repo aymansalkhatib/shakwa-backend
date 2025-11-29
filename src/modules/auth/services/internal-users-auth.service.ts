@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { plainToInstance } from 'class-transformer';
 import { InternalRole } from '../../../common/enums/role.enum';
+import { AdminComplaintsService } from '../../../modules/your-bucket-name/services/admin-your-bucket-name.service';
 import { StaffComplaintsService } from '../../../modules/your-bucket-name/services/staff-your-bucket-name.service';
 import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
@@ -29,6 +30,7 @@ export class InternalUsersAuthService {
     private readonly authCodeService: AuthCodeService,
     private readonly loginAttemptService: LoginAttemptService,
     private readonly staffComplaintsService: StaffComplaintsService,
+    private readonly adminComplaintsService: AdminComplaintsService,
   ) {
     this.passwordResetTtlSeconds = this.configService.getOrThrow<number>(
       'JWT_SECURITY_EXPIRES_IN_S',
@@ -79,8 +81,12 @@ export class InternalUsersAuthService {
   }
 
   async logout(internalUser: InternalUserEntity) {
-    // Release all complaint locks held by this user via service layer
-    await this.staffComplaintsService.releaseAllLocksForUser(internalUser.id);
+    // Release all complaint locks held by this user via the appropriate service layer
+    if (internalUser.role === InternalRole.ADMIN) {
+      await this.adminComplaintsService.releaseAllLocksForUser(internalUser.id);
+    } else if (internalUser.role === InternalRole.STAFF) {
+      await this.staffComplaintsService.releaseAllLocksForUser(internalUser.id);
+    }
 
     // Update last logout timestamp
     await this.internalUsersService.updateLastLogoutAt(internalUser);

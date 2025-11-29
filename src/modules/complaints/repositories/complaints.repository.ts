@@ -142,7 +142,7 @@ export class ComplaintsRepository implements IComplaintsRepository {
     });
   }
 
-  async releaseAllUserLocks(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number> {
+  async releaseAllLocksForUser(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number> {
     const result = await this.complaintRepo.update(
       {
         lockedById: lockerId,
