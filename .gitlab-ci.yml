@@ -1,10 +1,8 @@
 stages:
   - build-and-push
 
-# Use Docker CLI inside GitLab CI
 image: docker:24.0.5
 
-# Enable Docker-in-Docker service
 services:
   - name: docker:24.0.5-dind
     command: ['--tls=false']
@@ -13,27 +11,38 @@ variables:
   DOCKER_TLS_CERTDIR: ''
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
+  DOCKER_BUILDKIT: 1   # Enable BuildKit (faster and better cache)
 
 before_script:
-  # Ensure Docker is accessible
+  - apk add --no-cache curl
   - docker info
-  # Login to Docker Hub using CI/CD variables
   - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
 build_and_push_image:
   stage: build-and-push
   rules:
-    # Run only on docker branch (you can change it)
     - if: '$CI_COMMIT_BRANCH == "docker"'
   script:
     - IMAGE_NAME="$DOCKERHUB_USERNAME/shakwa-api"
 
-    # Build Docker image
-    - docker build -t "$IMAGE_NAME:latest" .
+    # 1) Pull the latest image to use its layers as cache (if exists)
+    - docker pull "$IMAGE_NAME:latest" || echo "No existing cache image"
 
-    # Tag with commit short SHA
+    # 2) Build using cache-from
+    - docker build --cache-from "$IMAGE_NAME:latest" -t "$IMAGE_NAME:latest" .
+
+    # 3) Tag for the commit
     - docker tag "$IMAGE_NAME:latest" "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
 
-    # Push to Docker Hub
+    # 4) Push
     - docker push "$IMAGE_NAME:latest"
     - docker push "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
+
+    # 5) Trigger Koyeb
+    - echo "Triggering Koyeb redeploy..."
+    - |
+      curl -X POST "https://app.koyeb.com/v1/services/$KOYEB_SERVICE_ID/redeploy" \
+        -H "Authorization: Bearer $KOYEB_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '{}'
+    - echo "Koyeb redeploy triggered successfully"
