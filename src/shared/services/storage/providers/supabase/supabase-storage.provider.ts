@@ -98,23 +98,8 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
   }
 
   async exists(filePath: string): Promise<boolean> {
-    const sanitizedPath = this.sanitizePath(filePath);
-    const lastSlashIndex = sanitizedPath.lastIndexOf('/');
-    const folder = lastSlashIndex !== -1 ? sanitizedPath.substring(0, lastSlashIndex) : '';
-    const fileName =
-      lastSlashIndex !== -1 ? sanitizedPath.substring(lastSlashIndex + 1) : sanitizedPath;
-
-    const { data, error } = await this.supabase.storage.from(this.bucket).list(folder, {
-      search: fileName,
-    });
-
-    if (error) {
-      // If error occurs, we assume it doesn't exist or we can't verify, so return false or throw
-      // Returning false is safer for "verification" logic usually, but logging would be good.
-      return false;
-    }
-
-    // Check if any file in the list matches exactly
-    return data && data.some((file) => file.name === fileName);
+    const path = this.sanitizePath(filePath);
+    const { data } = await this.supabase.storage.from(this.bucket).exists(path);
+    return data;
   }
 }
