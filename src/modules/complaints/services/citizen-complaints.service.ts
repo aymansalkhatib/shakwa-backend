@@ -81,6 +81,9 @@ export class CitizenComplaintsService extends BaseComplaintsService {
 
     this.ensureNotTerminal(latestStatus);
 
+    // Release any previous locks held by this citizen before locking the new complaint
+    await this.your-bucket-nameRepo.releaseAllUserLocks(citizen.id, ComplaintLockerRole.CITIZEN);
+
     return this.your-bucket-nameRepo.lock(complaint.id, citizen.id, ComplaintLockerRole.CITIZEN);
   }
 
@@ -127,5 +130,13 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
 
     return complaint;
+  }
+
+  /**
+   * Release all complaint locks held by a specific citizen
+   * Used for cleanup when citizen locks a new complaint or logs out
+   */
+  async releaseAllLocksForUser(userId: number): Promise<void> {
+    await this.your-bucket-nameRepo.releaseAllUserLocks(userId, ComplaintLockerRole.CITIZEN);
   }
 }

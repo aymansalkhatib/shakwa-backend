@@ -142,6 +142,22 @@ export class ComplaintsRepository implements IComplaintsRepository {
     });
   }
 
+  async releaseAllUserLocks(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number> {
+    const result = await this.complaintRepo.update(
+      {
+        lockedById: lockerId,
+        lockedByRole: lockerRole,
+      },
+      {
+        lockedById: null,
+        lockedByRole: null,
+        lockedUntil: null,
+      },
+    );
+
+    return result.affected ?? 0;
+  }
+
   async exists(id: number): Promise<boolean> {
     const count = await this.complaintRepo.count({ where: { id } });
     return count > 0;

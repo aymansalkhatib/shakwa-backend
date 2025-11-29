@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { plainToInstance } from 'class-transformer';
 import { Role } from '../../../common/enums/role.enum';
+import { CitizenComplaintsService } from '../../../modules/your-bucket-name/services/citizen-your-bucket-name.service';
 import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
 import { CitizenResponseDto } from '../../citizens/dtos';
@@ -31,6 +32,7 @@ export class CitizensAuthService {
     private readonly authCodeService: AuthCodeService,
     private readonly configService: ConfigService<EnvironmentConfig>,
     private readonly loginAttemptService: LoginAttemptService,
+    private readonly citizenComplaintsService: CitizenComplaintsService,
   ) {
     this.securityTokenTtlSeconds = this.configService.getOrThrow<number>(
       'JWT_SECURITY_EXPIRES_IN_S',
@@ -162,6 +164,10 @@ export class CitizensAuthService {
   }
 
   async logout(citizen: CitizenEntity) {
+    // Release all complaint locks held by this citizen via service layer
+    await this.citizenComplaintsService.releaseAllLocksForUser(citizen.id);
+
+    // Update last logout timestamp
     await this.citizensService.updateLastLogoutAt(citizen);
   }
 

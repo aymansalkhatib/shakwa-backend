@@ -12,7 +12,10 @@ import {
 export interface IComplaintsRepository {
   create(data: ICreateComplaintData): Promise<ComplaintEntity>;
 
-  findAll(filter: IComplaintFilter, relations?: string[]): Promise<IPaginatedResponse<ComplaintEntity>>;
+  findAll(
+    filter: IComplaintFilter,
+    relations?: string[],
+  ): Promise<IPaginatedResponse<ComplaintEntity>>;
 
   findByIdWithHistory(id: number, relations?: string[]): Promise<ComplaintEntity | null>;
 
@@ -27,6 +30,8 @@ export interface IComplaintsRepository {
   lock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<ComplaintEntity>;
 
   releaseLock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<void>;
+
+  releaseAllUserLocks(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number>;
 
   withManager(manager: EntityManager): IComplaintsRepository;
 }

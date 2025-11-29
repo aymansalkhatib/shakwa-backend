@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { plainToInstance } from 'class-transformer';
 import { InternalRole } from '../../../common/enums/role.enum';
+import { StaffComplaintsService } from '../../../modules/your-bucket-name/services/staff-your-bucket-name.service';
 import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
 import { InternalUserResponseDto } from '../../internal-users/dtos/response/internal-user-response.dto';
@@ -27,6 +28,7 @@ export class InternalUsersAuthService {
     private readonly configService: ConfigService<EnvironmentConfig>,
     private readonly authCodeService: AuthCodeService,
     private readonly loginAttemptService: LoginAttemptService,
+    private readonly staffComplaintsService: StaffComplaintsService,
   ) {
     this.passwordResetTtlSeconds = this.configService.getOrThrow<number>(
       'JWT_SECURITY_EXPIRES_IN_S',
@@ -77,6 +79,10 @@ export class InternalUsersAuthService {
   }
 
   async logout(internalUser: InternalUserEntity) {
+    // Release all complaint locks held by this user via service layer
+    await this.staffComplaintsService.releaseAllLocksForUser(internalUser.id);
+
+    // Update last logout timestamp
     await this.internalUsersService.updateLastLogoutAt(internalUser);
   }
 
