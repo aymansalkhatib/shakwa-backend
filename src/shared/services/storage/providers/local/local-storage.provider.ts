@@ -63,7 +63,6 @@ export class LocalStorageProvider extends AbstractStorageProvider {
   async delete(filePath: string): Promise<void> {
     const fullPath = path.join(this.basePath, this.sanitizePath(filePath));
     try {
-      console.log(filePath);
       await fs.unlink(fullPath);
     } catch (error: any) {
       throw error;
