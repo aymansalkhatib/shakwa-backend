@@ -4,7 +4,8 @@ import { CustomRateLimitModule } from '../../shared/modules/custom-rate-limit/cu
 import { MailModule } from '../../shared/services/mail';
 import { RedisModule } from '../../shared/services/redis';
 import { CitizensModule } from '../citizens/citizens.module';
-import { ComplaintsModule } from '../your-bucket-name/your-bucket-name.module';
+
+import { ComplaintsModule } from '../your-bucket-name';
 import { InternalUsersModule } from '../internal-users/internal-users.module';
 import { CitizensAuthController } from './controllers/citizens-auth.controller';
 import { InternalUsersAuthController } from './controllers/internal-users-auth.controller';
