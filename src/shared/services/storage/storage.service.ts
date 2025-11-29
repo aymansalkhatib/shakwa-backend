@@ -33,4 +33,8 @@ export class StorageService {
   async getUrls(paths: string[]): Promise<string[]> {
     return this.storageProvider.getUrls(paths);
   }
+
+  async exists(path: string): Promise<boolean> {
+    return this.storageProvider.exists(path);
+  }
 }

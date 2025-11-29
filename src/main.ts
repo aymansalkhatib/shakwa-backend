@@ -60,12 +60,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-
-// create completint check is images found
-//
-// unlocke
-//
-// max size 25 mb
-//
-// 
-

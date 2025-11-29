@@ -1,7 +1,8 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
+import { StorageService } from '../../../shared/services/storage/storage.service';
 import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import {
   COMPLAINTS_REPOSITORY_TOKEN,
@@ -25,15 +26,19 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     @InjectDataSource()
     private readonly dataSource: DataSource,
     private readonly cacheInvalidation: CacheInvalidationService,
+    private readonly storageService: StorageService,
   ) {
     super();
   }
 
   async create(citizen: CitizenEntity, dto: CreateComplaintDto): Promise<any> {
+    if (dto.attachments && dto.attachments.length > 0) {
+      await this.verifyAttachments(dto.attachments);
+    }
+
     return this.dataSource.transaction(async (manager) => {
       const complaintRepo = this.your-bucket-nameRepo.withManager(manager);
       const historyRepo = this.historyRepo.withManager(manager);
-
       const complaint = await complaintRepo.create({ ...dto, citizenId: citizen.id });
       const history = await historyRepo.addEntry({
         ...dto,
@@ -108,6 +113,10 @@ export class CitizenComplaintsService extends BaseComplaintsService {
       this.validateStatusTransition(latestStatus, dto.status);
     }
 
+    if (dto.attachments && dto.attachments.length > 0) {
+      await this.verifyAttachments(dto.attachments);
+    }
+
     this.ensureLockOwner(complaint, citizen.id, ComplaintLockerRole.CITIZEN);
 
     const history = await this.historyRepo.addEntry({
@@ -134,5 +143,16 @@ export class CitizenComplaintsService extends BaseComplaintsService {
 
   async releaseAllLocksForUser(userId: number): Promise<void> {
     await this.your-bucket-nameRepo.releaseAllLocksForUser(userId, ComplaintLockerRole.CITIZEN);
+  }
+
+  private async verifyAttachments(attachments: string[]): Promise<void> {
+    const checkPromises = attachments.map(async (path) => {
+      const exists = await this.storageService.exists(path);
+      if (!exists) {
+        throw new BadRequestException(`Attachment not found: ${path}`);
+      }
+    });
+
+    await Promise.all(checkPromises);
   }
 }

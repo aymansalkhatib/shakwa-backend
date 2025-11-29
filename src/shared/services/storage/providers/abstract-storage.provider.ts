@@ -13,6 +13,7 @@ export abstract class AbstractStorageProvider implements IStorageProvider {
   abstract delete(path: string): Promise<void>;
   abstract getUrl(path: string): Promise<string>;
   abstract deleteMultiple(options: MultiDeleteOptions): Promise<void>;
+  abstract exists(path: string): Promise<boolean>;
 
   protected validateFile(file: Buffer): void {
     if (!file || file.length === 0) {

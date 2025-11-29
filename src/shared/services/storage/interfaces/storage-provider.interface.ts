@@ -47,4 +47,11 @@ export interface IStorageProvider {
    * @returns Array of public URLs to access the files
    */
   getUrls(paths: string[]): Promise<string[]>;
+
+  /**
+   * Check if a file exists in storage
+   * @param path - The path of the file
+   * @returns True if file exists, false otherwise
+   */
+  exists(path: string): Promise<boolean>;
 }

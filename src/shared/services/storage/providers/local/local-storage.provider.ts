@@ -89,4 +89,14 @@ export class LocalStorageProvider extends AbstractStorageProvider {
     const fullPath = path.join(this.basePath, filePath);
     return fullPath;
   }
+
+  async exists(filePath: string): Promise<boolean> {
+    const fullPath = path.join(this.basePath, this.sanitizePath(filePath));
+    try {
+      await fs.access(fullPath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }

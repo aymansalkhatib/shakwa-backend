@@ -76,6 +76,6 @@ export const FORMAT_PRIORITIES: ImageFormat[] = ['webp', 'jpeg', 'png'];
 export const DEFAULT_FILE_VALIDATION_OPTIONS: FileValidationOptions = {
   isFileRequired: true, // By default, a file is required
   allowedFileTypes: IMAGE_FILE_TYPES, // Default allowed file types (images)
-  globalMaxFileSize: '5MB', // Default max file size for all file types
+  globalMaxFileSize: '25MB', // Default max file size for all file types
   perTypeSizeLimits: FILE_SIZE_LIMITS, // specific limits by type by default
 };
