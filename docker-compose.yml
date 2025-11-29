@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: shakwa_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pg_password
+      POSTGRES_DB: shakwa
+    # ports:
+    #   - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: shakwa_redis
+    # ports:
+    #   - '6379:6379'
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  api:
+    container_name: shakwa_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ./env/.env.development
+      - ./env/.env
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pg_password
+      POSTGRES_DATABASE: shakwa
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - db
+      - redis
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: shakwa_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - '5050:80'
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
