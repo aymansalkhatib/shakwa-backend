@@ -231,9 +231,7 @@ export class CitizensAuthService {
     });
 
     // Update password
-    await this.citizensService.updateMyAccount(citizen, {
-      password: dto.newPassword,
-    });
+    await this.citizensService.updatePassword(citizen, dto.newPassword);
 
     // Clean up Redis reset data
     await this.authCodeService.clearCode(

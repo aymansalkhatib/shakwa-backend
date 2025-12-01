@@ -84,6 +84,10 @@ export class CitizensService {
     });
   }
 
+  async updatePassword(citizen: CitizenEntity, password: string): Promise<CitizenEntity> {
+    return await this.citizensRepository.update(citizen, { password });
+  }
+
   async updateLastLogoutAt(citizen: CitizenEntity): Promise<CitizenEntity> {
     return await this.citizensRepository.update(citizen, {
       lastLogoutAt: new Date(),
