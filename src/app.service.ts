@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentConfig } from './shared/modules/app-config';
 import { RedisService } from './shared/services/redis';
@@ -15,9 +15,9 @@ export class AppService {
   }
 
   async cleanRedis() {
-    if (this.configService.getOrThrow('NODE_ENV') !== 'development') {
-      throw new ForbiddenException('cleanRedis can only be run in development environment');
-    }
+    // if (this.configService.getOrThrow('NODE_ENV') !== 'development') {
+    //   throw new ForbiddenException('cleanRedis can only be run in development environment');
+    // }
 
     await this.redisService.flushAll();
     return {
