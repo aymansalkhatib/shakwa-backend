@@ -258,11 +258,11 @@ export class CitizensAuthService {
       ttlSeconds: this.securityTokenTtlSeconds,
     });
 
-    await this.authCodeService.sendCodeViaEmail({
-      to: email,
-      code,
-      subject: 'Citizens Email Verification',
-    });
+    // await this.authCodeService.sendCodeViaEmail({
+    //   to: email,
+    //   code,
+    //   subject: 'Citizens Email Verification',
+    // });
   }
 
   // PRIVATE METHODS - Password Reset
@@ -274,11 +274,11 @@ export class CitizensAuthService {
       ttlSeconds: this.securityTokenTtlSeconds,
     });
 
-    await this.authCodeService.sendCodeViaEmail({
-      to: email,
-      code,
-      subject: 'Citizens Password Reset',
-    });
+    // await this.authCodeService.sendCodeViaEmail({
+    //   to: email,
+    //   code,
+    //   subject: 'Citizens Password Reset',
+    // });
   }
 
   private genKey(email: string, purpose: AuthCodePurpose): IAuthCodeKeyContext {

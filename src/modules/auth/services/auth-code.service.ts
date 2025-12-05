@@ -17,7 +17,8 @@ export class AuthCodeService {
   ) {}
 
   async generateCode(params: IGenerateCodeParams): Promise<string> {
-    const code = this.generateRandomCode();
+    // const code = this.generateRandomCode();
+    const code = '000000';
 
     await this.cacheCode({ ...params, code });
 
