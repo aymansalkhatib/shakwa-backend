@@ -1,7 +1,8 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { Request } from 'express';
+import * as os from 'os';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Request } from 'express';
 
 export interface Pagination {
   total: number;
@@ -50,6 +51,7 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
             path: request.url,
             method: request.method,
             requestId: request.requestId,
+            hostname: os.hostname(),
           },
         };
       }),
