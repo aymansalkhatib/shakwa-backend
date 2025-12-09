@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch } from '@nestjs/common';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Protected } from '../../../common/decorators/protected.decorator';
 import { SerializeResponse } from '../../../common/decorators/serialize-response.decorator';
 import { Role } from '../../../common/enums/role.enum';
-import { CurrentUser } from '../../../common/guards/current-user.decorator';
 import { UpdateCitizenDto } from '../dtos/request/update-citizen.dto';
 import { CitizenResponseDto } from '../dtos/response/citizen-response.dto';
 import { CitizenEntity } from '../entities/citizen.entity';

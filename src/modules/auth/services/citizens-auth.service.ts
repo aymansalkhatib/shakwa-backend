@@ -122,7 +122,7 @@ export class CitizensAuthService {
     // Set up login attempt options for this citizen by email
     const loginAttemptOptions: ILoginAttemptOptions = {
       key: `citizen:login:${email.toLowerCase()}`,
-      maxAttempts: 5,
+      maxAttempts: 8,
       blockSeconds: 2 * 60 * 60, // 2h
       windowSeconds: 3 * 60 * 60, // 3h
       ipAddress: ip,

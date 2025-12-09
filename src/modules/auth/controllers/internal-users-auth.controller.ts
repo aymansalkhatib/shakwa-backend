@@ -1,12 +1,12 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import {
   CodeVerificationRateLimit,
   PasswordResetRateLimit,
 } from '../../../common/decorators/custom-rate-limit.decorator';
 import { Protected } from '../../../common/decorators/protected.decorator';
 import { Role } from '../../../common/enums/role.enum';
-import { CurrentUser } from '../../../common/guards/current-user.decorator';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import { InternalUserForgotPasswordDto } from '../dtos/request/internal-users/forgot-password.dto';
 import { InternalUserLoginDto } from '../dtos/request/internal-users/internal-user-login.dto';

@@ -28,13 +28,6 @@ export interface RateLimitOptions {
 }
 
 /**
- * Decorator to attach custom rate limit metadata to a route handler.
- * Only sets metadata; the actual enforcement is handled by CustomRateLimitGuard.
- */
-export const CustomRateLimit = (options: RateLimitOptions): MethodDecorator =>
-  SetMetadata(CUSTOM_RATE_LIMIT_METADATA_KEY, options);
-
-/**
  * Combines:
  * - SkipThrottle() - Skip global throttler to avoid conflicts
  * - UseGuards(CustomRateLimitGuard)
@@ -44,7 +37,18 @@ export const CustomRateLimit = (options: RateLimitOptions): MethodDecorator =>
  * @RateLimited(RateLimitKey.EMAIL_VERIFICATION)
  */
 export const RateLimited = (key: RateLimitKey): MethodDecorator =>
-  applyDecorators(SkipThrottle(), UseGuards(CustomRateLimitGuard), CustomRateLimit({ key }));
+  applyDecorators(
+    SkipThrottle(),
+    UseGuards(CustomRateLimitGuard),
+    AttachCustomKeyMetadata({ key }),
+  );
+
+/**
+ * Decorator to attach custom rate limit metadata to a route handler.
+ * Only sets metadata; the actual enforcement is handled by CustomRateLimitGuard.
+ */
+export const AttachCustomKeyMetadata = (options: RateLimitOptions): MethodDecorator =>
+  SetMetadata(CUSTOM_RATE_LIMIT_METADATA_KEY, options);
 
 /**
  * Shortcut decorator for email verification rate limiting.

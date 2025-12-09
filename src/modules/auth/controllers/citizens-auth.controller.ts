@@ -1,5 +1,6 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import {
   CodeVerificationRateLimit,
   EmailVerificationRateLimit,
@@ -7,7 +8,6 @@ import {
 } from '../../../common/decorators/custom-rate-limit.decorator';
 import { Protected } from '../../../common/decorators/protected.decorator';
 import { Role } from '../../../common/enums/role.enum';
-import { CurrentUser } from '../../../common/guards/current-user.decorator';
 import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import { CitizenLoginDto } from '../dtos/request/citizens/citizen-login.dto';
 import { CitizenRegisterDto } from '../dtos/request/citizens/citizen-register.dto';
