@@ -1,9 +1,14 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import {
+  CodeVerificationRateLimit,
   EmailVerificationRateLimit,
   PasswordResetRateLimit,
 } from '../../../common/decorators/custom-rate-limit.decorator';
+import { Protected } from '../../../common/decorators/protected.decorator';
+import { Role } from '../../../common/enums/role.enum';
+import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import { CitizenLoginDto } from '../dtos/request/citizens/citizen-login.dto';
 import { CitizenRegisterDto } from '../dtos/request/citizens/citizen-register.dto';
 import { ForgotPasswordDto } from '../dtos/request/citizens/forgot-password.dto';
@@ -27,6 +32,7 @@ export class CitizensAuthController {
   }
 
   @Post('verify-code')
+  @CodeVerificationRateLimit()
   async verifyCode(@Body() dto: VerifyEmailCodeDto) {
     const result = await this.citizensAuthService.verifyEmailCode(dto);
     return {
@@ -50,6 +56,13 @@ export class CitizensAuthController {
     return await this.citizensAuthService.login(dto, ip);
   }
 
+  @Post('logout')
+  @Protected(Role.CITIZEN)
+  async logout(@CurrentUser() user: CitizenEntity) {
+    await this.citizensAuthService.logout(user);
+    return { message: 'Logged out successfully' };
+  }
+
   @Post('forgot-password')
   @PasswordResetRateLimit()
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
@@ -60,6 +73,7 @@ export class CitizensAuthController {
   }
 
   @Post('verify-reset-code')
+  @CodeVerificationRateLimit()
   async verifyResetPassword(@Body() dto: VerifyResetPasswordDto) {
     const result = await this.citizensAuthService.verifyResetPassword(dto);
     return {

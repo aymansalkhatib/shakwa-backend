@@ -1,11 +1,19 @@
 // File: notification.module.ts
-import { Global, Module } from '@nestjs/common';
-import { FirebaseNotificationService } from './firebase-notification.service';
-import { FirebaseAdminProvider } from './firebase.provider';
+import { Module } from '@nestjs/common';
+import { FirebaseAdminProvider } from './providers/firebase/firebase.provider';
+import { NotificationService } from './notification.service';
+import { FirebaseNotificationProvider } from './providers/firebase/firebase-notification.provider';
+import { NOTIFICATION_PROVIDER } from './interfaces/notification-provider.interface';
 
-@Global()
 @Module({
-  providers: [FirebaseAdminProvider, FirebaseNotificationService],
-  exports: [FirebaseNotificationService],
+  providers: [
+    FirebaseAdminProvider,
+    {
+      provide: NOTIFICATION_PROVIDER,
+      useClass: FirebaseNotificationProvider,
+    },
+    NotificationService,
+  ],
+  exports: [NotificationService],
 })
 export class NotificationModule {}

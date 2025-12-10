@@ -10,6 +10,6 @@ export interface ICreateComplaintHistoryData {
 
   location?: string | null;
   attachments?: string[];
-
-  note: string | null;
+  citizenNote?: string | null;
+  internalUserNote?: string | null;
 }

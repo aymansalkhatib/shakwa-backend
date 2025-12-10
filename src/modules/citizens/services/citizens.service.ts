@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { CITIZENS_REPOSITORY_TOKEN } from '../constants/citizens.tokens';
 import { CreateCitizenDto } from '../dtos/request/create-citizen.dto';
 import { UpdateCitizenDto } from '../dtos/request/update-citizen.dto';
@@ -36,14 +37,7 @@ export class CitizensService {
     citizen: CitizenEntity,
     updateCitizenDto: UpdateCitizenDto,
   ): Promise<CitizenEntity> {
-    // Check if email is being updated and already exists
-    if (updateCitizenDto.email) {
-      const existingCitizen = await this.citizensRepository.findByEmail(updateCitizenDto.email);
-      if (existingCitizen && existingCitizen.id !== citizen.id) {
-        throw new BadRequestException('Citizen with this email already exists');
-      }
-    }
-
+    //
     // Check if phone is being updated and already exists
     if (updateCitizenDto.phone) {
       const existingCitizen = await this.citizensRepository.findByPhone(updateCitizenDto.phone);
@@ -52,7 +46,18 @@ export class CitizensService {
       }
     }
 
-    return await this.citizensRepository.update(citizen, updateCitizenDto);
+    //
+    // Check if password is being updated
+    if (updateCitizenDto.password) {
+      const isPasswordValid = await bcrypt.compare(updateCitizenDto.oldPassword, citizen.password);
+      if (!isPasswordValid) {
+        throw new BadRequestException('Invalid old password');
+      }
+    }
+
+    //
+    const { oldPassword, ...updateData } = updateCitizenDto;
+    return await this.citizensRepository.update(citizen, updateData);
   }
 
   async deleteMyAccount(id: number): Promise<void> {
@@ -77,6 +82,10 @@ export class CitizensService {
       fcmToken,
       lastLoginIp,
     });
+  }
+
+  async updatePassword(citizen: CitizenEntity, password: string): Promise<CitizenEntity> {
+    return await this.citizensRepository.update(citizen, { password });
   }
 
   async updateLastLogoutAt(citizen: CitizenEntity): Promise<CitizenEntity> {

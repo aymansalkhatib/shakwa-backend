@@ -11,10 +11,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Protected } from '../../../common/decorators/protected.decorator';
 import { SerializeResponse } from '../../../common/decorators/serialize-response.decorator';
 import { Role } from '../../../common/enums/role.enum';
-import { CurrentUser } from '../../../common/guards/current-user.decorator';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
 import { InternalUserFilterDto } from '../dtos/query/internal-user-filter.dto';
@@ -80,7 +80,7 @@ export class InternalUsersController {
   @Protected(Role.ADMIN)
   @SerializeResponse(InternalUserResponseDto)
   findOne(@Param('id', PositiveIntPipe) id: number): Promise<InternalUserResponseDto> {
-    return this.internalUsersService.findOne(id);
+    return this.internalUsersService.findOneOrFail(id);
   }
 
   @Get()

@@ -1,5 +1,6 @@
 // File: custom-rate-limit.decorator.ts
 import { SetMetadata, UseGuards, applyDecorators } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { CustomRateLimitGuard } from '../guards/custom-rate-limit.guard';
 
 export const CUSTOM_RATE_LIMIT_METADATA_KEY = 'custom_rate_limit';
@@ -11,6 +12,7 @@ export const CUSTOM_RATE_LIMIT_METADATA_KEY = 'custom_rate_limit';
 export enum RateLimitKey {
   EMAIL_VERIFICATION = 'email:verification',
   PASSWORD_RESET = 'email:password:reset',
+  CODE_VERIFICATION = 'code:verification',
 }
 
 /**
@@ -26,14 +28,8 @@ export interface RateLimitOptions {
 }
 
 /**
- * Decorator to attach custom rate limit metadata to a route handler.
- * Only sets metadata; the actual enforcement is handled by CustomRateLimitGuard.
- */
-export const CustomRateLimit = (options: RateLimitOptions): MethodDecorator =>
-  SetMetadata(CUSTOM_RATE_LIMIT_METADATA_KEY, options);
-
-/**
  * Combines:
+ * - SkipThrottle() - Skip global throttler to avoid conflicts
  * - UseGuards(CustomRateLimitGuard)
  * - CustomRateLimit({ key })
  *
@@ -41,7 +37,18 @@ export const CustomRateLimit = (options: RateLimitOptions): MethodDecorator =>
  * @RateLimited(RateLimitKey.EMAIL_VERIFICATION)
  */
 export const RateLimited = (key: RateLimitKey): MethodDecorator =>
-  applyDecorators(UseGuards(CustomRateLimitGuard), CustomRateLimit({ key }));
+  applyDecorators(
+    SkipThrottle(),
+    UseGuards(CustomRateLimitGuard),
+    AttachCustomKeyMetadata({ key }),
+  );
+
+/**
+ * Decorator to attach custom rate limit metadata to a route handler.
+ * Only sets metadata; the actual enforcement is handled by CustomRateLimitGuard.
+ */
+export const AttachCustomKeyMetadata = (options: RateLimitOptions): MethodDecorator =>
+  SetMetadata(CUSTOM_RATE_LIMIT_METADATA_KEY, options);
 
 /**
  * Shortcut decorator for email verification rate limiting.
@@ -60,3 +67,12 @@ export const EmailVerificationRateLimit = (): MethodDecorator =>
  */
 export const PasswordResetRateLimit = (): MethodDecorator =>
   RateLimited(RateLimitKey.PASSWORD_RESET);
+
+/**
+ * Shortcut decorator for code verification rate limiting.
+ *
+ * Usage:
+ * @CodeVerificationRateLimit()
+ */
+export const CodeVerificationRateLimit = (): MethodDecorator =>
+  RateLimited(RateLimitKey.CODE_VERIFICATION);

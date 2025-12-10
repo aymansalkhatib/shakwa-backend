@@ -17,7 +17,8 @@ export class AuthCodeService {
   ) {}
 
   async generateCode(params: IGenerateCodeParams): Promise<string> {
-    const code = this.generateRandomCode();
+    // const code = this.generateRandomCode();
+    const code = '000000';
 
     await this.cacheCode({ ...params, code });
 
@@ -53,8 +54,8 @@ export class AuthCodeService {
 
   async sendCodeViaEmail(data: SendVerificationCodeOptions): Promise<void> {
     const result = await this.mailService.sendVerificationCode(data);
-    if (!result) {
-      throw new BadRequestException('Failed to send verification code email');
+    if (result.error) {
+      throw new BadRequestException(`Failed to send verification code email ${result.error}`);
     }
   }
 

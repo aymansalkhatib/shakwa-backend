@@ -1,19 +1,34 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query, UseInterceptors } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Protected } from '../../../common/decorators/protected.decorator';
 import { SerializeResponse } from '../../../common/decorators/serialize-response.decorator';
 import { Role } from '../../../common/enums/role.enum';
-import { CurrentUser } from '../../../common/guards/current-user.decorator';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
+import { SignedUrlInterceptor } from '../../../shared/services/storage/interceptors/signed-url.interceptor';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
-import { ComplaintResponseDto, StaffComplaintFilterDto, UpdateComplaintContentDto } from '../dtos';
+import {
+  ComplaintResponseDto,
+  StaffComplaintFilterDto,
+  UpdateComplaintInternalUserDto,
+} from '../dtos';
+import { ComplaintStatisticsDto } from '../dtos/response/complaint-statistics.dto';
+import { CacheInterceptor } from '../interceptors/cache.interceptor';
 import { StaffComplaintsService } from '../services/staff-your-bucket-name.service';
 
 @Controller('staff/your-bucket-name')
 @Protected(Role.STAFF)
+@UseInterceptors(SignedUrlInterceptor, CacheInterceptor)
 export class StaffComplaintsController {
   constructor(private readonly staffComplaintsService: StaffComplaintsService) {}
+
+  @Get('statistics')
+  async getStatistics(@CurrentUser() staff: InternalUserEntity): Promise<ComplaintStatisticsDto> {
+    const result = await this.staffComplaintsService.getStatistics(staff);
+    delete result.your-bucket-nameByAuthority;
+    return result;
+  }
 
   @Get()
   async findAll(
@@ -33,17 +48,17 @@ export class StaffComplaintsController {
     @CurrentUser() staff: InternalUserEntity,
     @Param('id', PositiveIntPipe) id: number,
   ): Promise<ComplaintResponseDto> {
-    return this.staffComplaintsService.findOne(staff, id);
+    return this.staffComplaintsService.findByIdWithHistory(staff, id);
   }
 
-  @Patch(':id/content')
+  @Patch(':id')
   @SerializeResponse(ComplaintResponseDto)
-  updateContent(
+  updateComplaint(
     @CurrentUser() staff: InternalUserEntity,
     @Param('id', PositiveIntPipe) id: number,
-    @Body() dto: UpdateComplaintContentDto,
+    @Body() dto: UpdateComplaintInternalUserDto,
   ): Promise<ComplaintResponseDto> {
-    return this.staffComplaintsService.updateContent(staff, id, dto);
+    return this.staffComplaintsService.update(staff, id, dto);
   }
 
   @Patch(':id/lock')

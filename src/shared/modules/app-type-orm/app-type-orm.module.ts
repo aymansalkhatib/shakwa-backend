@@ -8,63 +8,94 @@ import { EnvironmentConfig } from '../app-config/env.schema';
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
-      async useFactory(
+      inject: [ConfigService],
+      useFactory: async (
         configService: ConfigService<EnvironmentConfig>,
-      ): Promise<TypeOrmModuleOptions> {
-        await createDatabaseIfNotExists(configService);
+      ): Promise<TypeOrmModuleOptions> => {
+        const isProduction = configService.get<string>('NODE_ENV') === Environment.PRODUCTION;
+        const isDevelopment = !isProduction;
 
-        const isDev = configService.get<string>('NODE_ENV') !== Environment.PRODUCTION;
+        // Dev-only: create DB if it does not exist
+        if (isDevelopment) {
+          await createDatabaseIfNotExists(configService);
+        }
+
+        const host = configService.getOrThrow<string>('POSTGRES_HOST');
+        const port = configService.getOrThrow<number>('POSTGRES_PORT');
+        const username = configService.getOrThrow<string>('POSTGRES_USER');
+        const password = configService.getOrThrow<string>('POSTGRES_PASSWORD');
+        const database = configService.getOrThrow<string>('POSTGRES_DATABASE');
 
         return {
+          // Basic connection
           type: 'postgres',
-          host: configService.getOrThrow<string>('POSTGRES_HOST'),
-          port: configService.getOrThrow<number>('POSTGRES_PORT'),
-          username: configService.getOrThrow<string>('POSTGRES_USER'),
-          password: configService.getOrThrow<string>('POSTGRES_PASSWORD'),
-          database: configService.getOrThrow<string>('POSTGRES_DATABASE'),
-          entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
+          host,
+          port,
+          username,
+          password,
+          database,
+
+          // Entity discovery (Nest auto-load + glob for CLI/migrations)
           autoLoadEntities: true,
+          entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
 
-          logging: isDev ? ['error', 'warn', 'migration'] : ['error'],
+          // Schema management
+          synchronize: isDevelopment,
+          migrationsRun: isProduction,
+          migrations: [__dirname + '/../../migrations/**/*{.ts,.js}'],
+          migrationsTableName: 'migrations',
 
-          extra: {
-            max: 10,
-            min: 2,
-            idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: 5000,
-          },
+          // Logging
+          logging: isDevelopment ? ['error', 'warn', 'migration'] : ['error'],
 
-          ssl: isDev
+          // SSL: off in dev, on in prod (accept self-signed)
+          ssl: isDevelopment
             ? false
             : {
                 rejectUnauthorized: false,
               },
 
-          synchronize: isDev,
-          migrationsRun: !isDev,
-          migrations: [__dirname + '/../../migrations/**/*{.ts,.js}'],
-          migrationsTableName: 'migrations',
+          // pg pool options
+          extra: {
+            max: 10,
+            min: 1,
+            // Close idle clients after 30s, but keep at least 1 warm connection
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 5000,
+            keepAlive: true,
+            keepAliveInitialDelayMillis: 10000,
+          },
+
+          // Retry DB connection on startup (cold-start / restart)
+          retryAttempts: 3,
+          retryDelay: 5000,
         };
       },
-      inject: [ConfigService],
     }),
   ],
 })
 export class AppTypeOrmModule {}
 
-async function createDatabaseIfNotExists(configService: ConfigService<EnvironmentConfig>) {
+// Dev-only helper: ensure target database exists
+async function createDatabaseIfNotExists(
+  configService: ConfigService<EnvironmentConfig>,
+): Promise<void> {
+  const host = configService.getOrThrow<string>('POSTGRES_HOST');
+  const port = configService.getOrThrow<number>('POSTGRES_PORT');
+  const user = configService.getOrThrow<string>('POSTGRES_USER');
+  const password = configService.getOrThrow<string>('POSTGRES_PASSWORD');
+  const dbName = configService.getOrThrow<string>('POSTGRES_DATABASE');
+
   const client = new Client({
-    host: configService.getOrThrow('POSTGRES_HOST'),
-    port: configService.getOrThrow<number>('POSTGRES_PORT'),
-    user: configService.getOrThrow('POSTGRES_USER'),
-    password: configService.getOrThrow('POSTGRES_PASSWORD'),
+    host,
+    port,
+    user,
+    password,
     database: 'postgres',
   });
 
   try {
     await client.connect();
-
-    const dbName = configService.getOrThrow('POSTGRES_DATABASE');
 
     const result = await client.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
 
@@ -72,10 +103,10 @@ async function createDatabaseIfNotExists(configService: ConfigService<Environmen
       await client.query(`CREATE DATABASE "${dbName}"`);
       console.log(`✅ Database "${dbName}" created successfully.`);
     } else {
-      console.log(`ℹ️  Database "${dbName}" already exists.`);
+      console.log(`ℹ️ Database "${dbName}" already exists.`);
     }
-  } catch (error) {
-    console.error('❌ Error checking/creating database:', error);
+  } catch (error: any) {
+    console.error('❌ Error checking/creating database:', error?.message ?? error);
     throw error;
   } finally {
     await client.end();

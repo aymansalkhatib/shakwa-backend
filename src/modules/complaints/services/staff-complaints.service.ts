@@ -1,15 +1,21 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
+import { NotificationService } from '../../../shared/services/notifications/notification.service';
+import { CitizensAdminService } from '../../citizens/services/citizens-admin.service';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import {
   COMPLAINTS_REPOSITORY_TOKEN,
   COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
-import { StaffComplaintFilterDto, UpdateComplaintContentDto } from '../dtos';
+import { StaffComplaintFilterDto, UpdateComplaintInternalUserDto } from '../dtos';
+import { ComplaintStatisticsDto } from '../dtos/response/complaint-statistics.dto';
 import { ComplaintEntity } from '../entities';
+import { ComplaintLockerRole } from '../enums/complaint-locker-role.enum';
+import { sendStatusChangeNotification } from '../helpers/send-status-notification.helper';
 import { IComplaintHistoryRepository } from '../repositories/complaint-history.repository.interface';
 import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
 import { BaseComplaintsService } from './base-your-bucket-name.service';
+import { CacheInvalidationService } from './cache-invalidation.service';
 
 @Injectable()
 export class StaffComplaintsService extends BaseComplaintsService {
@@ -18,6 +24,10 @@ export class StaffComplaintsService extends BaseComplaintsService {
     private readonly your-bucket-nameRepo: IComplaintsRepository,
     @Inject(COMPLAINT_HISTORY_REPOSITORY_TOKEN)
     private readonly historyRepo: IComplaintHistoryRepository,
+    //
+    private readonly notificationService: NotificationService,
+    private readonly citizensService: CitizensAdminService,
+    private readonly cacheInvalidation: CacheInvalidationService,
   ) {
     super();
   }
@@ -26,14 +36,20 @@ export class StaffComplaintsService extends BaseComplaintsService {
     staff: InternalUserEntity,
     filterDto: StaffComplaintFilterDto,
   ): Promise<PaginationResponseDto<ComplaintEntity>> {
-    return await this.your-bucket-nameRepo.findAll({
-      ...filterDto,
-      authority: staff.authority,
-    });
+    return await this.your-bucket-nameRepo.findAll(
+      {
+        ...filterDto,
+        authority: staff.authority,
+      },
+      ['citizen', 'internalUser'],
+    );
   }
 
-  async findOne(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id);
+  async findByIdWithHistory(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
+    const complaint = await this.your-bucket-nameRepo.findByIdWithHistory(id, [
+      'citizen',
+      'internalUser',
+    ]);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
     if (complaint.authority !== staff.authority) {
@@ -44,55 +60,90 @@ export class StaffComplaintsService extends BaseComplaintsService {
   }
 
   async lockComplaint(staff: InternalUserEntity, id: number): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findById(id, ['histories']);
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
     if (complaint.authority !== staff.authority) {
       throw new ForbiddenException('You are not allowed to update this complaint');
     }
 
-    const latest = complaint.histories[complaint.histories.length - 1];
+    const latest = complaint.histories[0];
     const latestStatus = latest.status;
 
-    this.ensureNotClosed(latestStatus);
+    this.ensureNotTerminal(latestStatus);
 
-    return this.your-bucket-nameRepo.lock(complaint.id, staff.id);
+    // Release any previous locks held by this staff member before locking the new complaint
+    await this.your-bucket-nameRepo.releaseAllLocksForUser(staff.id, ComplaintLockerRole.INTERNAL_USER);
+
+    return this.your-bucket-nameRepo.lock(complaint.id, staff.id, ComplaintLockerRole.INTERNAL_USER);
   }
 
-  async updateContent(
+  async update(
     staff: InternalUserEntity,
     id: number,
-    dto: UpdateComplaintContentDto,
+    dto: UpdateComplaintInternalUserDto,
   ): Promise<ComplaintEntity> {
-    const complaint = await this.your-bucket-nameRepo.findById(id, ['histories']);
+    const complaint = await this.your-bucket-nameRepo.findByIdWithLatestHistory(id);
     if (!complaint) throw new NotFoundException('Complaint not found');
 
     if (complaint.authority !== staff.authority) {
       throw new ForbiddenException('You are not allowed to update this complaint');
     }
 
-    const latest = complaint.histories[complaint.histories.length - 1];
+    const latest = complaint.histories[0];
     const latestStatus = latest.status;
 
-    this.ensureNotClosed(latestStatus);
+    this.ensureNotTerminal(latestStatus);
 
-    this.ensureLockOwner(complaint.lockedByInternalUserId, complaint.lockedUntil, staff.id);
+    // Validate status transition if status is being changed
+    if (dto.status && dto.status !== latestStatus) {
+      this.validateStatusTransition(latestStatus, dto.status);
+    }
+
+    this.ensureLockOwner(complaint, staff.id, ComplaintLockerRole.INTERNAL_USER);
 
     const history = await this.historyRepo.addEntry({
       complaintId: id,
       internalUserId: staff.id,
-      title: dto.title ?? latest.title,
-      description: dto.description ?? latest?.description,
+      title: latest.title,
+      description: latest.description,
       status: dto.status ?? latestStatus,
-      location: dto.location ?? latest?.location,
-      attachments: dto.attachments ?? latest.attachments,
-      note: dto.note ?? 'Content updated by staff.',
+      location: latest.location,
+      attachments: latest.attachments,
+      citizenNote: null,
+      internalUserNote: dto.internalUserNote,
     });
 
     complaint.histories = [history];
 
-    await this.your-bucket-nameRepo.releaseLock(complaint.id, staff.id);
+    await this.your-bucket-nameRepo.releaseLock(
+      complaint.id,
+      staff.id,
+      ComplaintLockerRole.INTERNAL_USER,
+    );
+
+    // Send notification if status changed
+    if (dto.status && dto.status !== latestStatus) {
+      await sendStatusChangeNotification(
+        this.notificationService,
+        this.citizensService,
+        complaint.citizenId,
+        complaint.id,
+        dto.status,
+      );
+    }
+
+    // Invalidate cache
+    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
 
     return complaint;
+  }
+
+  async getStatistics(staff: InternalUserEntity): Promise<ComplaintStatisticsDto> {
+    return this.your-bucket-nameRepo.getStatistics(staff.authority);
+  }
+
+  async releaseAllLocksForUser(userId: number): Promise<void> {
+    await this.your-bucket-nameRepo.releaseAllLocksForUser(userId, ComplaintLockerRole.INTERNAL_USER);
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Protected } from '../../../common/decorators/protected.decorator';
 import { SerializeResponse } from '../../../common/decorators/serialize-response.decorator';
@@ -6,7 +6,6 @@ import { Role } from '../../../common/enums/role.enum';
 import { PaginationResponseDto } from '../../../common/pagination/dto/pagination-response.dto';
 import { PositiveIntPipe } from '../../../common/pipes/positive-int.pipe';
 import { CitizenFilterDto } from '../dtos/query/citizen-filter.dto';
-import { UpdateCitizenDto } from '../dtos/request/update-citizen.dto';
 import { CitizenResponseDto } from '../dtos/response/citizen-response.dto';
 import { CitizensAdminService } from '../services/citizens-admin.service';
 
@@ -29,7 +28,7 @@ export class CitizensAdminController {
   @Get(':id')
   @SerializeResponse(CitizenResponseDto)
   findOne(@Param('id', PositiveIntPipe) id: number): Promise<CitizenResponseDto> {
-    return this.citizensAdminService.findOne(id);
+    return this.citizensAdminService.findOneOrFail(id);
   }
 
   @Post(':id/block')

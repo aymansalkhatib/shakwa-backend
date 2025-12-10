@@ -43,13 +43,18 @@ export class InternalUsersService {
     return await this.internalUsersRepository.findAll(filterInternalUserDto);
   }
 
-  async findOne(id: number): Promise<InternalUserEntity> {
+  async findOneOrFail(id: number): Promise<InternalUserEntity> {
     const internalUser = await this.internalUsersRepository.findOne(id);
 
     if (!internalUser) {
       throw new NotFoundException('Internal user not found');
     }
 
+    return internalUser;
+  }
+
+  async findOne(id: number): Promise<InternalUserEntity|null> {
+    const internalUser = await this.internalUsersRepository.findOne(id);
     return internalUser;
   }
 

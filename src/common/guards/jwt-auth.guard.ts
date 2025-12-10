@@ -10,6 +10,7 @@ import { Request } from 'express';
 import { CITIZENS_REPOSITORY_TOKEN } from '../../modules/citizens/constants/citizens.tokens';
 import { CitizenEntity } from '../../modules/citizens/entities/citizen.entity';
 import { ICitizensRepository } from '../../modules/citizens/repositories/citizens.repository.interface';
+import { CitizensAdminService } from '../../modules/citizens/services/citizens-admin.service';
 import { InternalUserEntity } from '../../modules/internal-users/entities/internal-user.entity';
 import { InternalUsersService } from '../../modules/internal-users/services/internal-users.service';
 import { AppJwtService } from '../../shared/modules/app-jwt/app-jwt.service';
@@ -65,7 +66,9 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     if (!user) {
-      throw new UnauthorizedException('User not found.');
+      throw new UnauthorizedException(
+        'The account associated with this request no longer exists in the system.',
+      );
     }
 
     request.user = user;
@@ -80,10 +83,9 @@ export class JwtAuthGuard implements CanActivate {
   }
 
   private async validateCitizen(payload: DecodedAccessTokenPayload): Promise<CitizenEntity | null> {
-    const citizensRepository = this.moduleRef.get<ICitizensRepository>(CITIZENS_REPOSITORY_TOKEN, {
-      strict: false,
-    });
-    const citizen = await citizensRepository.findOne(payload.userId);
+    const citizensService = this.moduleRef.get(CitizensAdminService, { strict: false });
+
+    const citizen = await citizensService.findOne(payload.userId);
 
     if (!citizen) {
       return null;
@@ -102,6 +104,11 @@ export class JwtAuthGuard implements CanActivate {
     // Check if token was issued before password was changed
     if (this.isTokenIssuedBeforeEvent(payload.iat, citizen.passwordChangedAt)) {
       throw new UnauthorizedException('Token was issued before the last password change.');
+    }
+
+    // Check if token was issued before the last logout (invalidate tokens after logout)
+    if (this.isTokenIssuedBeforeEvent(payload.iat, citizen.lastLogoutAt)) {
+      throw new UnauthorizedException('Token expired due to user logout.');
     }
 
     return citizen;
@@ -155,7 +162,7 @@ export class JwtAuthGuard implements CanActivate {
     // Try internal user
     try {
       const internalUsersService = this.moduleRef.get(InternalUsersService, { strict: false });
-      const internalUser = await internalUsersService.findOne(payload.userId);
+      const internalUser = await internalUsersService.findOneOrFail(payload.userId);
       if (internalUser) {
         return await this.validateInternalUser(payload);
       }

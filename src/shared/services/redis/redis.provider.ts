@@ -1,4 +1,4 @@
-import { EnvironmentConfig } from '@app/shared/modules/app-config';
+import { EnvironmentConfig } from '../../modules/app-config';
 import { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import RedisLib from 'ioredis';

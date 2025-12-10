@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository, SelectQueryBuilder } from 'typeorm';
 import { IPaginatedResponse } from '../../../common/pagination/interfaces/paginated-response.interface';
 import { paginate } from '../../../common/pagination/paginate.service';
 import { ComplaintHistoryEntity } from '../entities/complaint-history.entity';
 import { ComplaintEntity } from '../entities/complaint.entity';
-import { ComplaintAuthority, ComplaintStatus } from '../enums';
+import { ComplaintAuthority, ComplaintLockerRole, ComplaintStatus } from '../enums';
 import { IComplaintsRepository } from './your-bucket-name.repository.interface';
 import {
   IComplaintFilter,
@@ -28,7 +28,10 @@ export class ComplaintsRepository implements IComplaintsRepository {
     return await this.complaintRepo.save(e);
   }
 
-  async findAll(filter: IComplaintFilter): Promise<IPaginatedResponse<ComplaintEntity>> {
+  async findAll(
+    filter: IComplaintFilter,
+    relations?: string[],
+  ): Promise<IPaginatedResponse<ComplaintEntity>> {
     const qb = this.complaintRepo
       .createQueryBuilder('complaint')
       .leftJoinAndSelect(
@@ -37,24 +40,56 @@ export class ComplaintsRepository implements IComplaintsRepository {
         'lastHistory.id = (SELECT h.id FROM complaint_histories h WHERE h.complaint_id = complaint.id ORDER BY h.created_at DESC LIMIT 1)',
       );
 
+    if (relations?.includes('citizen')) {
+      qb.leftJoinAndSelect('complaint.citizen', 'citizen');
+    }
+    if (relations?.includes('internalUser')) {
+      qb.leftJoinAndSelect('lastHistory.internalUser', 'internalUser');
+    }
+
     this.applyFilters(qb, filter);
     qb.orderBy('complaint.createdAt', 'DESC');
 
     return await paginate(qb, filter);
   }
 
-  async findByIdWithHistory(id: number): Promise<ComplaintEntity | null> {
+  async findByIdWithHistory(id: number, relations?: string[]): Promise<ComplaintEntity | null> {
     const qb = this.complaintRepo
       .createQueryBuilder('complaint')
       .where('complaint.id = :id', { id })
-      .leftJoinAndSelect('complaint.histories', 'histories')
-      .leftJoinAndSelect('histories.internalUser', 'staff');
+      .leftJoinAndSelect('complaint.histories', 'histories');
+
+    if (relations?.includes('citizen')) {
+      qb.leftJoinAndSelect('complaint.citizen', 'citizen');
+    }
+    if (relations?.includes('internalUser')) {
+      qb.leftJoinAndSelect('histories.internalUser', 'internalUser');
+    }
 
     return await qb.getOne();
   }
 
-  async findById(id: number, relations?: string[]): Promise<ComplaintEntity | null> {
-    return await this.complaintRepo.findOne({ where: { id }, ...(relations ? { relations } : {}) });
+  async findByIdWithLatestHistory(
+    id: number,
+    relations?: string[],
+  ): Promise<ComplaintEntity | null> {
+    const qb = this.complaintRepo
+      .createQueryBuilder('complaint')
+      .where('complaint.id = :id', { id })
+      .leftJoinAndSelect(
+        'complaint.histories',
+        'lastHistory',
+        'lastHistory.id = (SELECT h.id FROM complaint_histories h WHERE h.complaint_id = complaint.id ORDER BY h.created_at DESC LIMIT 1)',
+      );
+
+    if (relations?.includes('citizen')) {
+      qb.leftJoinAndSelect('complaint.citizen', 'citizen');
+    }
+    if (relations?.includes('internalUser')) {
+      qb.leftJoinAndSelect('lastHistory.internalUser', 'internalUser');
+    }
+
+    return await qb.getOne();
   }
 
   async update(complaint: ComplaintEntity, data: IUpdateComplaintData): Promise<ComplaintEntity> {
@@ -62,117 +97,70 @@ export class ComplaintsRepository implements IComplaintsRepository {
     return await this.complaintRepo.save(merged);
   }
 
-  async lock(compalintId: number, internalUserId: number): Promise<ComplaintEntity> {
+  async lock(
+    id: number,
+    lockerId: number,
+    lockerRole: ComplaintLockerRole,
+  ): Promise<ComplaintEntity> {
     return await this.complaintRepo.manager.transaction(async (manager) => {
       const complaint = await manager.findOne(ComplaintEntity, {
-        where: { id: compalintId },
+        where: { id },
         lock: { mode: 'pessimistic_write' },
       });
 
-      if (complaint.lockedUntil > new Date()) {
-        if (complaint.lockedByInternalUserId === internalUserId) {
-          throw new BadRequestException('You are already locking this complaint');
-        } else {
-          throw new BadRequestException('Another staff is locking this complaint');
+      if (!complaint) throw new NotFoundException('Complaint not found');
+
+      if (complaint.lockedById && complaint.lockedUntil && complaint.lockedUntil > new Date()) {
+        if (complaint.lockedById !== lockerId || complaint.lockedByRole !== lockerRole) {
+          throw new ConflictException('Complaint is already locked by another user');
         }
       }
 
-      complaint.lockedByInternalUserId = internalUserId;
-      complaint.lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
+      complaint.lockedById = lockerId;
+      complaint.lockedByRole = lockerRole;
+      complaint.lockedUntil = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes lock
 
       return manager.save(complaint);
     });
   }
 
-  async releaseLock(complaintId: number, internalUserId: number): Promise<ComplaintEntity> {
-    return await this.complaintRepo.manager.transaction(async (manager) => {
+  async releaseLock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<void> {
+    await this.complaintRepo.manager.transaction(async (manager) => {
       const complaint = await manager.findOne(ComplaintEntity, {
-        where: { id: complaintId },
+        where: { id },
         lock: { mode: 'pessimistic_write' },
       });
 
-      if (!complaint) {
-        throw new BadRequestException('Complaint not found');
+      if (!complaint) return;
+
+      if (complaint.lockedById === lockerId && complaint.lockedByRole === lockerRole) {
+        complaint.lockedById = null;
+        complaint.lockedByRole = null;
+        complaint.lockedUntil = null;
+        await manager.save(complaint);
       }
-
-      const now = new Date();
-      if (
-        complaint.lockedUntil &&
-        complaint.lockedUntil > now &&
-        complaint.lockedByInternalUserId !== internalUserId
-      ) {
-        throw new BadRequestException('Another staff is locking this complaint');
-      }
-
-      complaint.lockedByInternalUserId = null;
-      complaint.lockedUntil = null;
-
-      return manager.save(complaint);
     });
+  }
+
+  async releaseAllLocksForUser(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number> {
+    const result = await this.complaintRepo.update(
+      {
+        lockedById: lockerId,
+        lockedByRole: lockerRole,
+      },
+      {
+        lockedById: null,
+        lockedByRole: null,
+        lockedUntil: null,
+      },
+    );
+
+    return result.affected ?? 0;
   }
 
   async exists(id: number): Promise<boolean> {
     const count = await this.complaintRepo.count({ where: { id } });
     return count > 0;
-  }
-
-  async getStatistics(): Promise<IComplaintStatistics> {
-    /**
-     * Step 1: Subquery to get the latest history entry for each complaint
-     */
-    const latestHistorySubquery = this.historyRepo
-      .createQueryBuilder('h')
-      .select('h.complaint_id', 'complaintId')
-      .addSelect('h.status', 'status')
-      .addSelect(
-        `ROW_NUMBER() OVER (PARTITION BY h.complaint_id ORDER BY h.created_at DESC)`,
-        'rn',
-      );
-
-    /**
-     * Step 2: Wrap subquery, filter rn = 1 (latest)
-     */
-    const latestHistories = await this.historyRepo
-      .createQueryBuilder()
-      .select('t.status', 'status')
-      .from('(' + latestHistorySubquery.getQuery() + ')', 't')
-      .where('t.rn = 1')
-      .getRawMany<{ status: ComplaintStatus }>();
-
-    /**
-     * Step 3: Count by status
-     */
-    const your-bucket-nameByStatus: Record<ComplaintStatus, number> = {} as any;
-    Object.values(ComplaintStatus).forEach((s) => (your-bucket-nameByStatus[s] = 0));
-
-    latestHistories.forEach((row) => {
-      your-bucket-nameByStatus[row.status]++;
-    });
-
-    const totalComplaints = latestHistories.length;
-
-    /**
-     * Step 4: Count by authority directly from your-bucket-name table
-     */
-    const byAuthority = await this.complaintRepo
-      .createQueryBuilder('c')
-      .select('c.authority', 'authority')
-      .addSelect('COUNT(c.id)', 'total')
-      .groupBy('c.authority')
-      .getRawMany<{ authority: ComplaintAuthority; total: string }>();
-
-    const your-bucket-nameByAuthority: Record<ComplaintAuthority, number> = {} as any;
-    Object.values(ComplaintAuthority).forEach((a) => (your-bucket-nameByAuthority[a] = 0));
-
-    byAuthority.forEach((row) => {
-      your-bucket-nameByAuthority[row.authority] = Number(row.total);
-    });
-
-    return {
-      totalComplaints,
-      your-bucket-nameByStatus,
-      your-bucket-nameByAuthority,
-    };
   }
 
   /**
@@ -207,4 +195,94 @@ export class ComplaintsRepository implements IComplaintsRepository {
     const historyRepo = manager.getRepository(ComplaintHistoryEntity);
     return new ComplaintsRepository(complaintRepo, historyRepo);
   }
+
+  async getStatistics(authority?: ComplaintAuthority): Promise<IComplaintStatistics> {
+    // 1. Initialize result objects with zero values to ensure all keys exist for the frontend
+    const your-bucket-nameByStatus = this.initEnumCounter(ComplaintStatus);
+    const your-bucket-nameByAuthority = this.initEnumCounter(ComplaintAuthority);
+
+    // 2. Execute all queries in parallel to minimize latency
+    const [statusStatsRaw, authorityStatsRaw, totalComplaints] = await Promise.all([
+      this.fetchStatusStatistics(authority),
+      this.fetchAuthorityStatistics(authority),
+      authority ? this.complaintRepo.count({ where: { authority } }) : this.complaintRepo.count(), // Fast count of total rows
+    ]);
+
+    // 3. Map raw DB results to the structured response objects
+    statusStatsRaw.forEach((row) => {
+      if (your-bucket-nameByStatus[row.status] != undefined) {
+        your-bucket-nameByStatus[row.status] = Number(row.count);
+      }
+    });
+
+    authorityStatsRaw.forEach((row) => {
+      if (your-bucket-nameByAuthority[row.authority] != undefined) {
+        your-bucket-nameByAuthority[row.authority] = Number(row.count);
+      }
+    });
+
+    return {
+      totalComplaints,
+      your-bucket-nameByStatus,
+      your-bucket-nameByAuthority,
+    };
+  }
+
+  /**
+   * Fetches the count of your-bucket-name grouped by their *latest* status.
+   * Uses a Window Function to find the latest history without fetching all data.
+   */
+  private async fetchStatusStatistics(authority?: ComplaintAuthority) {
+    // Inner Query: Rank histories by creation date for each complaint
+    const subQuery = this.historyRepo
+      .createQueryBuilder('h')
+      .select('h.status', 'status')
+      .addSelect(
+        'ROW_NUMBER() OVER (PARTITION BY h.complaint_id ORDER BY h.created_at DESC)',
+        'rn',
+      );
+
+    if (authority) {
+      subQuery.innerJoin('h.complaint', 'c').where('c.authority = :authority', { authority });
+    }
+
+    // Outer Query: Filter for rank 1 (latest), Group by Status, and Count
+    return await this.historyRepo.manager
+      .createQueryBuilder()
+      .select('ranked.status', 'status')
+      .addSelect('COUNT(ranked.status)', 'count')
+      .from('(' + subQuery.getQuery() + ')', 'ranked') // Wrap subquery
+      .setParameters(subQuery.getParameters()) // Pass parameters from subquery
+      .where('ranked.rn = 1') // Only consider the latest entry
+      .groupBy('ranked.status')
+      .getRawMany<{ status: ComplaintStatus; count: string }>();
+  }
+
+  /**
+   * Fetches the count of your-bucket-name grouped by authority.
+   * Performed directly on the your-bucket-name table.
+   */
+  private async fetchAuthorityStatistics(authority?: ComplaintAuthority) {
+    const qb = this.complaintRepo
+      .createQueryBuilder('c')
+      .select('c.authority', 'authority')
+      .addSelect('COUNT(c.id)', 'count')
+      .groupBy('c.authority');
+
+    if (authority) {
+      qb.where('c.authority = :authority', { authority });
+    }
+
+    return await qb.getRawMany<{ authority: ComplaintAuthority; count: string }>();
+  }
+
+  /**
+   * Helper to create an object with all Enum keys set to 0.
+   * Prevents "undefined" values in the response.
+   */
+  private initEnumCounter = <T extends Record<string, any>>(enumObj: T) => {
+    const counter: any = {};
+    Object.values(enumObj).forEach((v) => (counter[v] = 0));
+    return counter as Record<T[keyof T], number>;
+  };
 }

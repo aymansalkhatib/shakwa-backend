@@ -1,62 +1,63 @@
-# ==========================================
-# Stage 1: Build Stage
-# ==========================================
-FROM node:20-alpine AS builder
+########## Stage 1: Builder (compile TypeScript → dist) ##########
+FROM node:22-alpine AS builder
+
+# Install basic system libraries (needed by some native Node modules)
+RUN apk add --no-cache libc6-compat
+
+# Development environment for building
+ENV NODE_ENV=development
 
 # Set working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copy package files
+# Copy npm manifests first for better layer caching
 COPY package*.json ./
 
-# Install all dependencies (including dev dependencies for building)
+# Install all dependencies including devDependencies (for build tools)
 RUN npm ci
 
-# Copy source code
+# Copy the rest of the source code
 COPY . .
 
-# Build the application
+# Build NestJS (TypeScript → dist)
 RUN npm run build
 
-# ==========================================
-# Stage 2: Production Stage
-# ==========================================
-FROM node:20-alpine AS production
+
+########## Stage 2: Runner (production) ##########
+FROM node:22-alpine AS runner
+
+# Production environment
+ENV NODE_ENV=production
+
+# Install basic system libraries (same as builder if needed by runtime deps)
+RUN apk add --no-cache libc6-compat
 
 # Set working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Install dumb-init to handle signals properly
-RUN apk add --no-cache dumb-init
-
-# Copy package files
+# Copy only npm manifests
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install production dependencies only (no devDependencies)
+RUN npm ci --omit=dev
 
-# Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
+# Copy compiled build artifacts from the builder stage
+COPY --from=builder /usr/src/app/dist ./dist
 
-# Copy necessary runtime files
-COPY --from=builder /app/env ./env
-COPY --from=builder /app/nest-cli.json ./
+# Create non-root user for better security
+RUN addgroup -S app && adduser -S app -G app
 
-# Create uploads directory
-RUN mkdir -p uploads && chown -R node:node uploads
+# Ensure proper ownership of the app directory
+RUN chown -R app:app /usr/src/app
 
-# Use non-root user for security
-USER node
+# Switch to non-root user
+USER app
 
-# Expose application port
+# Default application port (can be overridden by the platform)
+ENV PORT=3000
+
+# Expose the application port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
-
-# Use dumb-init to handle signals
-ENTRYPOINT ["dumb-init", "--"]
-
-# Start the application
+# Start the NestJS application
 CMD ["node", "dist/main.js"]

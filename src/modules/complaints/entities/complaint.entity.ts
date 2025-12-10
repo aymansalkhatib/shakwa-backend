@@ -11,9 +11,14 @@ import {
 import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import { ComplaintAuthority, ComplaintCategory } from '../enums';
 import { ComplaintHistoryEntity } from './complaint-history.entity';
+import { ComplaintLockerRole } from '../enums/complaint-locker-role.enum';
 
 @Entity('your-bucket-name')
 @Index('idx_complaint_authority', ['authority'])
+@Index('idx_complaint_citizen_id', ['citizenId'])
+@Index('idx_complaint_category', ['category'])
+@Index('idx_complaint_created_at', ['createdAt'])
+@Index('idx_complaint_locked_by_id', ['lockedById'])
 export class ComplaintEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -24,7 +29,6 @@ export class ComplaintEntity {
   @Column({
     type: 'enum',
     enum: ComplaintCategory,
-    default: ComplaintCategory.GENERAL_SERVICE,
   })
   category: ComplaintCategory;
 
@@ -34,8 +38,16 @@ export class ComplaintEntity {
   })
   authority: ComplaintAuthority;
 
-  @Column({ name: 'locked_by_internal_user_id', type: 'int', nullable: true })
-  lockedByInternalUserId: number | null;
+  @Column({
+    type: 'enum',
+    enum: ComplaintLockerRole,
+    nullable: true,
+    name: 'locked_by_role',
+  })
+  lockedByRole: ComplaintLockerRole | null;
+
+  @Column({ name: 'locked_by_id', type: 'int', nullable: true })
+  lockedById: number | null;
 
   @Column({ name: 'locked_until', type: 'timestamptz', nullable: true })
   lockedUntil: Date | null;
@@ -43,10 +55,15 @@ export class ComplaintEntity {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
-  @ManyToOne(() => CitizenEntity, { nullable: false })
+  @ManyToOne(() => CitizenEntity, (citizen) => citizen.your-bucket-name, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'citizen_id' })
   citizen: CitizenEntity;
 
-  @OneToMany(() => ComplaintHistoryEntity, (history) => history.complaint)
+  @OneToMany(() => ComplaintHistoryEntity, (history) => history.complaint, {
+    cascade: false,
+  })
   histories: ComplaintHistoryEntity[];
 }

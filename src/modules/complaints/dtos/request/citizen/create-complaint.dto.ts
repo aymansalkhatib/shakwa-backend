@@ -27,4 +27,9 @@ export class CreateComplaintDto {
   @IsOptional()
   @IsArray()
   attachments?: string[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  citizenNote?: string;
 }

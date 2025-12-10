@@ -3,8 +3,8 @@
  * Used by repository layer, independent of DTOs
  */
 export interface ICreateCitizenData {
-  email?: string | null;
-  phone?: string | null;
-  password?: string | null;
+  email: string;
+  phone: string;
+  password: string;
   fullName: string;
 }

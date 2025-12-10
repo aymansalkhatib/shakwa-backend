@@ -3,9 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { plainToInstance } from 'class-transformer';
 import { Role } from '../../../common/enums/role.enum';
+import { CitizenComplaintsService } from '../../../modules/your-bucket-name/services/citizen-your-bucket-name.service';
 import { EnvironmentConfig } from '../../../shared/modules/app-config';
 import { AppJwtService } from '../../../shared/modules/app-jwt/app-jwt.service';
 import { CitizenResponseDto } from '../../citizens/dtos';
+import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import { CitizensService } from '../../citizens/services/citizens.service';
 import { CitizenLoginDto } from '../dtos/request/citizens/citizen-login.dto';
 import { CitizenRegisterDto } from '../dtos/request/citizens/citizen-register.dto';
@@ -30,6 +32,7 @@ export class CitizensAuthService {
     private readonly authCodeService: AuthCodeService,
     private readonly configService: ConfigService<EnvironmentConfig>,
     private readonly loginAttemptService: LoginAttemptService,
+    private readonly citizenComplaintsService: CitizenComplaintsService,
   ) {
     this.securityTokenTtlSeconds = this.configService.getOrThrow<number>(
       'JWT_SECURITY_EXPIRES_IN_S',
@@ -65,7 +68,7 @@ export class CitizensAuthService {
     return { token };
   }
 
-  async register(registerDto: CitizenRegisterDto): Promise<void> {
+  async register(registerDto: CitizenRegisterDto) {
     // 1. Verify token and extract data
     const decodedToken = this.jwtService.verifySecurityToken(registerDto.token);
 
@@ -119,7 +122,7 @@ export class CitizensAuthService {
     // Set up login attempt options for this citizen by email
     const loginAttemptOptions: ILoginAttemptOptions = {
       key: `citizen:login:${email.toLowerCase()}`,
-      maxAttempts: 5,
+      maxAttempts: 8,
       blockSeconds: 2 * 60 * 60, // 2h
       windowSeconds: 3 * 60 * 60, // 3h
       ipAddress: ip,
@@ -158,6 +161,14 @@ export class CitizensAuthService {
       token,
       user: plainToInstance(CitizenResponseDto, citizen),
     };
+  }
+
+  async logout(citizen: CitizenEntity) {
+    // Release all complaint locks held by this citizen via service layer
+    await this.citizenComplaintsService.releaseAllLocksForUser(citizen.id);
+
+    // Update last logout timestamp
+    await this.citizensService.updateLastLogoutAt(citizen);
   }
 
   async handleForgotPasswordRequest(dto: ForgotPasswordDto) {
@@ -220,9 +231,7 @@ export class CitizensAuthService {
     });
 
     // Update password
-    await this.citizensService.updateMyAccount(citizen, {
-      password: dto.newPassword,
-    });
+    await this.citizensService.updatePassword(citizen, dto.newPassword);
 
     // Clean up Redis reset data
     await this.authCodeService.clearCode(
@@ -249,11 +258,11 @@ export class CitizensAuthService {
       ttlSeconds: this.securityTokenTtlSeconds,
     });
 
-    await this.authCodeService.sendCodeViaEmail({
-      to: email,
-      code,
-      subject: 'Citizens Email Verification',
-    });
+    // await this.authCodeService.sendCodeViaEmail({
+    //   to: email,
+    //   code,
+    //   subject: 'Citizens Email Verification',
+    // });
   }
 
   // PRIVATE METHODS - Password Reset
@@ -265,11 +274,11 @@ export class CitizensAuthService {
       ttlSeconds: this.securityTokenTtlSeconds,
     });
 
-    await this.authCodeService.sendCodeViaEmail({
-      to: email,
-      code,
-      subject: 'Citizens Password Reset',
-    });
+    // await this.authCodeService.sendCodeViaEmail({
+    //   to: email,
+    //   code,
+    //   subject: 'Citizens Password Reset',
+    // });
   }
 
   private genKey(email: string, purpose: AuthCodePurpose): IAuthCodeKeyContext {

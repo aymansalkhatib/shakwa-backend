@@ -1,6 +1,13 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
-import { PasswordResetRateLimit } from '../../../common/decorators/custom-rate-limit.decorator';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import {
+  CodeVerificationRateLimit,
+  PasswordResetRateLimit,
+} from '../../../common/decorators/custom-rate-limit.decorator';
+import { Protected } from '../../../common/decorators/protected.decorator';
+import { Role } from '../../../common/enums/role.enum';
+import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import { InternalUserForgotPasswordDto } from '../dtos/request/internal-users/forgot-password.dto';
 import { InternalUserLoginDto } from '../dtos/request/internal-users/internal-user-login.dto';
 import { InternalUserResetPasswordDto } from '../dtos/request/internal-users/reset-password.dto';
@@ -17,6 +24,13 @@ export class InternalUsersAuthController {
     return await this.internalUsersAuthService.login(loginDto, ip);
   }
 
+  @Post('logout')
+  @Protected(Role.STAFF, Role.ADMIN)
+  async logout(@CurrentUser() internalUser: InternalUserEntity) {
+    await this.internalUsersAuthService.logout(internalUser);
+    return { message: 'Logged out successfully' };
+  }
+
   @Post('forgot-password')
   @PasswordResetRateLimit()
   async forgotPassword(@Body() dto: InternalUserForgotPasswordDto) {
@@ -27,6 +41,7 @@ export class InternalUsersAuthController {
   }
 
   @Post('verify-reset-code')
+  @CodeVerificationRateLimit()
   async verifyResetPassword(@Body() dto: InternalUserVerifyResetPasswordDto) {
     const result = await this.internalUsersAuthService.verifyResetPassword(dto);
     return {

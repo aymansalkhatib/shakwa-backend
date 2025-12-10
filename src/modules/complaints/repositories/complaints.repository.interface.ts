@@ -1,6 +1,7 @@
 import { EntityManager } from 'typeorm';
 import { IPaginatedResponse } from '../../../common/pagination/interfaces/paginated-response.interface';
 import { ComplaintEntity } from '../entities/complaint.entity';
+import { ComplaintAuthority, ComplaintLockerRole } from '../enums';
 import {
   IComplaintFilter,
   IComplaintStatistics,
@@ -11,21 +12,26 @@ import {
 export interface IComplaintsRepository {
   create(data: ICreateComplaintData): Promise<ComplaintEntity>;
 
-  findAll(filter: IComplaintFilter): Promise<IPaginatedResponse<ComplaintEntity>>;
+  findAll(
+    filter: IComplaintFilter,
+    relations?: string[],
+  ): Promise<IPaginatedResponse<ComplaintEntity>>;
 
-  findById(id: number, relations?: string[]): Promise<ComplaintEntity | null>;
+  findByIdWithHistory(id: number, relations?: string[]): Promise<ComplaintEntity | null>;
 
-  findByIdWithHistory(id: number): Promise<ComplaintEntity | null>;
+  findByIdWithLatestHistory(id: number, relations?: string[]): Promise<ComplaintEntity | null>;
 
   update(complaint: ComplaintEntity, data: IUpdateComplaintData): Promise<ComplaintEntity>;
 
   exists(id: number): Promise<boolean>;
 
-  getStatistics(): Promise<IComplaintStatistics>;
+  getStatistics(authority?: ComplaintAuthority): Promise<IComplaintStatistics>;
 
-  lock(complaintId: number, internalUserId: number): Promise<ComplaintEntity>;
+  lock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<ComplaintEntity>;
 
-  releaseLock(complaintId: number, internalUserId: number): Promise<ComplaintEntity>;
+  releaseLock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<void>;
+
+  releaseAllLocksForUser(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number>;
 
   withManager(manager: EntityManager): IComplaintsRepository;
 }

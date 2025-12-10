@@ -1,7 +1,7 @@
-import { Exclude, Expose } from 'class-transformer';
-import { ComplaintStatus } from '../../enums';
-import { InternalUserResponseDto } from '@app/modules/internal-users/dtos';
-import { PublicInternalUserResponseDto } from '@app/modules/internal-users/dtos/response/public-internal-user-response';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { SignedUrl } from '../../../../shared/services/storage/decorators/signed-url.decorator';
+import { InternalUserResponseDto } from '../../../internal-users/dtos/response/internal-user-response.dto';
+import { ComplaintStatus } from '../../enums/complaint-status.enum';
 
 @Exclude()
 export class ComplaintHistoryResponseDto {
@@ -13,9 +13,6 @@ export class ComplaintHistoryResponseDto {
 
   @Expose()
   internalUserId: number | null;
-
-  @Expose()
-  internalUser: PublicInternalUserResponseDto;
 
   @Expose()
   title: string;
@@ -30,11 +27,23 @@ export class ComplaintHistoryResponseDto {
   location: string | null;
 
   @Expose()
+  @SignedUrl({ isList: true, targetField: 'attachmentUrls' })
   attachments: string[];
 
   @Expose()
-  note: string | null;
+  attachmentUrls?: string[];
+
+  @Expose()
+  citizenNote: string | null;
+
+  @Expose()
+  internalUserNote: string | null;
 
   @Expose()
   createdAt: Date;
+
+  //
+  @Expose()
+  @Type(() => InternalUserResponseDto)
+  internalUser: InternalUserResponseDto | null;
 }
