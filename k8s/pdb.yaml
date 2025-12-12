@@ -1,0 +1,36 @@
+# =============================================================================
+# Shakwa Backend - Pod Disruption Budget
+# =============================================================================
+# Ensures minimum availability during voluntary disruptions:
+# - Node maintenance
+# - Cluster upgrades
+# - Deployment updates
+# =============================================================================
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: shakwa-backend-pdb
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: availability
+    app.kubernetes.io/part-of: shakwa-platform
+  annotations:
+    description: "Pod Disruption Budget for Shakwa Backend - ensures HA during maintenance"
+spec:
+  # Minimum number of pods that must be available
+  # With 3 replicas, this ensures at least 2 are always running
+  minAvailable: 2
+
+  # Alternative: Maximum number of pods that can be unavailable
+  # maxUnavailable: 1
+
+  # Pod selector (must match deployment labels)
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: shakwa-backend
+
+  # Unhealthy pod eviction policy (Kubernetes 1.27+)
+  # Options: IfHealthyBudget, AlwaysAllow
+  # unhealthyPodEvictionPolicy: IfHealthyBudget

@@ -1,7 +1,49 @@
+# =============================================================================
+# Shakwa Backend - Kubernetes Namespace
+# =============================================================================
+# This namespace isolates all Shakwa Backend resources and provides:
+# - Resource isolation and quota management
+# - Network policy boundaries
+# - RBAC scope for access control
+# - Monitoring and observability grouping
+# =============================================================================
+
 apiVersion: v1
 kind: Namespace
 metadata:
   name: shakwa
   labels:
-    name: shakwa
+    # Application identification
+    app.kubernetes.io/name: shakwa
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: shakwa-platform
+    app.kubernetes.io/managed-by: kubectl
+
+    # Environment classification
     environment: production
+    tier: backend
+
+    # Monitoring labels (for Prometheus service discovery)
+    prometheus.io/monitor: "true"
+
+    # Network policy labels
+    network-policy: enabled
+
+    # Cost allocation and tracking
+    cost-center: shakwa-backend
+
+  annotations:
+    # Documentation and ownership
+    description: "Shakwa Backend API - Production Namespace"
+    owner: "platform-team"
+    contact: "platform@shakwa.com"
+
+    # Creation metadata
+    created-by: "k8s-manifests"
+
+    # Monitoring configuration
+    prometheus.io/scrape: "true"
+
+    # Network policy documentation
+    network-policy.kubernetes.io/ingress: "restricted"
+    network-policy.kubernetes.io/egress: "restricted"

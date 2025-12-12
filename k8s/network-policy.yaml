@@ -1,0 +1,172 @@
+# =============================================================================
+# Shakwa Backend - Network Policies
+# =============================================================================
+# Zero-trust network security:
+# - Default deny all traffic
+# - Explicit allow for required connections
+# - Ingress only from Ingress controller
+# - Egress only to required services
+# =============================================================================
+
+---
+# ===========================================
+# Default Deny All Traffic
+# ===========================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa
+    app.kubernetes.io/component: network-security
+  annotations:
+    description: "Default deny all ingress and egress traffic"
+spec:
+  podSelector: {}  # Applies to all pods in namespace
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+# ===========================================
+# Allow Ingress from NGINX Ingress Controller
+# ===========================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: network-security
+  annotations:
+    description: "Allow traffic from NGINX Ingress Controller"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: shakwa-backend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # Allow from ingress-nginx namespace
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+        # Or from pods with ingress controller label
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000
+
+---
+# ===========================================
+# Allow Egress to External Services
+# ===========================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-egress
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: network-security
+  annotations:
+    description: "Allow egress to external services (DB, Redis, APIs)"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: shakwa-backend
+  policyTypes:
+    - Egress
+  egress:
+    # DNS resolution (required)
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+    # PostgreSQL (Supabase) - Port 5432
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 5432
+        - protocol: TCP
+          port: 5432  ***REMOVED*** pooler port
+
+    ***REMOVED*** - Port 6379
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 6379
+        - protocol: TCP
+          port: 16064  ***REMOVED*** Cloud port
+
+    # HTTPS for external APIs (Supabase, Resend, Firebase)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+
+---
+# ===========================================
+# Allow Prometheus Scraping
+# ===========================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scraping
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: network-security
+  annotations:
+    description: "Allow Prometheus to scrape metrics"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: shakwa-backend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # Allow from monitoring namespace
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 3000
+

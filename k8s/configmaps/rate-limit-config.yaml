@@ -1,0 +1,70 @@
+# =============================================================================
+# Shakwa Backend - Rate Limiting ConfigMap
+# =============================================================================
+# Contains rate limiting and throttling configuration
+# Adjust these values based on your traffic patterns and security requirements
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shakwa-rate-limit-config
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: shakwa-platform
+    config-type: rate-limiting
+  annotations:
+    description: "Rate limiting configuration for Shakwa Backend"
+data:
+  # ===========================================
+  # Global Rate Limiting
+  # ===========================================
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_TTL: "60"          # Time window in seconds
+  RATE_LIMIT_MAX: "100"         # Max requests per window (general)
+
+  # ===========================================
+  # Authentication Rate Limiting
+  # ===========================================
+  AUTH_RATE_LIMIT_TTL: "300"    # 5 minute window for auth
+  AUTH_RATE_LIMIT_MAX: "5"      # Max 5 login attempts per 5 minutes
+
+  # ===========================================
+  # API Rate Limiting by Endpoint Type
+  # ===========================================
+  # Read operations (GET)
+  READ_RATE_LIMIT_TTL: "60"
+  READ_RATE_LIMIT_MAX: "200"
+
+  # Write operations (POST, PUT, PATCH)
+  WRITE_RATE_LIMIT_TTL: "60"
+  WRITE_RATE_LIMIT_MAX: "50"
+
+  # Delete operations
+  DELETE_RATE_LIMIT_TTL: "60"
+  DELETE_RATE_LIMIT_MAX: "20"
+
+  # ===========================================
+  # Upload Rate Limiting
+  # ===========================================
+  UPLOAD_RATE_LIMIT_TTL: "3600"   # 1 hour window
+  UPLOAD_RATE_LIMIT_MAX: "50"     # Max 50 uploads per hour
+
+  # ===========================================
+  # Rate Limit Response
+  # ===========================================
+  RATE_LIMIT_SKIP_SUCCESSFUL: "false"
+  RATE_LIMIT_SKIP_FAILED: "false"
+
+  # ===========================================
+  # IP-based vs User-based Limiting
+  # ===========================================
+  RATE_LIMIT_BY_IP: "true"
+  RATE_LIMIT_BY_USER: "true"
+
+  # ===========================================
+  # Whitelist (comma-separated IPs)
+  # ===========================================
+  RATE_LIMIT_WHITELIST: ""

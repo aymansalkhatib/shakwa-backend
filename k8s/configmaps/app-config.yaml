@@ -1,0 +1,64 @@
+# =============================================================================
+# Shakwa Backend - Application ConfigMap
+# =============================================================================
+# Contains core application configuration settings
+# These are non-sensitive values that can be safely stored in version control
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shakwa-app-config
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: shakwa-platform
+    config-type: application
+  annotations:
+    description: "Core application configuration for Shakwa Backend"
+# immutable: true  # Uncomment for production to prevent accidental changes
+data:
+  # ===========================================
+  # Application Environment
+  # ===========================================
+  NODE_ENV: "production"
+  PORT: "3000"
+
+  # ===========================================
+  # Database Configuration (non-sensitive)
+  # ===========================================
+  # Note: Sensitive values (password, host) are in database-secret
+  POSTGRES_PORT: "5432"
+  POSTGRES_DATABASE: "shakwa"
+  POSTGRES_SSL: "true"
+  POSTGRES_POOL_MIN: "2"
+  POSTGRES_POOL_MAX: "10"
+
+  # ===========================================
+  # File Storage Configuration
+  # ===========================================
+  BASE_PATH: "/app/uploads"
+  STORAGE_BUCKET: "shakwa-uploads"
+  MAX_FILE_SIZE: "10485760"  # 10MB in bytes
+  ALLOWED_FILE_TYPES: "image/jpeg,image/png,image/gif,application/pdf"
+
+  # ===========================================
+  # Email Configuration
+  # ===========================================
+  SMTP_FROM: "noreply@shakwa.com"
+  EMAIL_ENABLED: "true"
+
+  # ===========================================
+  # Application Features
+  # ===========================================
+  ENABLE_SWAGGER: "false"
+  ENABLE_CORS: "true"
+  CORS_ORIGINS: "*"
+
+  # ===========================================
+  # Health Check Configuration
+  # ===========================================
+  HEALTH_CHECK_PATH: "/api/health"
+  READINESS_CHECK_PATH: "/api/health/ready"
+  LIVENESS_CHECK_PATH: "/api/health/live"
