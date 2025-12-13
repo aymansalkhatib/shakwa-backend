@@ -1,8 +1,19 @@
 # =============================================================================
 # Shakwa Backend - Limit Range
 # =============================================================================
-# Sets default resource requests/limits for containers
+# Sets default and limit values for container resources
 # Ensures all pods have resource constraints
+#
+# Benefits:
+# - Prevent unlimited resource consumption
+# - Ensure appropriate QoS for pods
+# - Automatically apply resource policies
+#
+# Note: These values apply to containers that don't specify resources
+# Containers that explicitly specify resources override these values
+#
+# To verify LimitRange:
+# kubectl describe limitrange -n shakwa
 # =============================================================================
 
 apiVersion: v1

@@ -2,11 +2,22 @@
 # Shakwa Backend - Kubernetes Deployment
 # =============================================================================
 # Production-grade deployment with:
-# - Pod Anti-Affinity for high availability
-# - Startup, Liveness, and Readiness probes
-# - Enhanced security context
+# - Pod Anti-Affinity for high availability (distribute across nodes)
+# - Startup, Liveness, Readiness probes for health monitoring
+# - Enhanced Security Context (non-root, read-only filesystem)
 # - Resource management for Guaranteed QoS
-# - Prometheus metrics annotations
+# - Prometheus annotations for metrics collection
+#
+# Before deployment:
+# 1. Update image registry: your-registry/shakwa-backend:latest
+# 2. Ensure Secrets and ConfigMaps are created first
+# 3. Ensure PVC is created for storage
+#
+# To deploy:
+# kubectl apply -f namespace.yaml
+# kubectl apply -f secrets/ -f configmaps/
+# kubectl apply -f pvc.yaml
+# kubectl apply -f deployment.yaml
 # =============================================================================
 
 apiVersion: apps/v1
@@ -22,6 +33,7 @@ metadata:
     app.kubernetes.io/managed-by: kubectl
   annotations:
     description: "Shakwa Backend API Deployment"
+    # Change cause - appears in rollout history
     kubernetes.io/change-cause: "Initial deployment"
 spec:
   replicas: 3
@@ -164,6 +176,17 @@ spec:
                 secretKeyRef:
                   name: shakwa-database-secret
                   key: POSTGRES_USER
+            # Added PORT and DATABASE from Secret for consistency
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-database-secret
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-database-secret
+                  key: POSTGRES_DATABASE
 
             # JWT secrets
             - name: JWT_ACCESS_SECRET

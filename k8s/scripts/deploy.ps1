@@ -1,13 +1,25 @@
 # =============================================================================
 # Shakwa Backend - Kubernetes Deployment Script (Windows PowerShell)
 # =============================================================================
-# This script deploys all Kubernetes resources in the correct order
+# Deploys all Kubernetes resources in the correct order
 # with validation and rollback capabilities
+#
+# Usage:
+#   .\deploy.ps1 deploy    - Deploy all resources
+#   .\deploy.ps1 validate  - Validate manifest files only
+#   .\deploy.ps1 status    - Show deployment status
+#   .\deploy.ps1 rollback  - Rollback to previous version
+#   .\deploy.ps1 delete    - Delete all resources
+#
+# Requirements:
+#   - kubectl installed and configured
+#   - Connection to Kubernetes cluster
+#   - Update Secret values before deployment
 # =============================================================================
 
 param(
     [Parameter(Position=0)]
-    [ValidateSet("deploy", "validate", "status", "delete")]
+    [ValidateSet("deploy", "validate", "status", "delete", "rollback")]
     [string]$Action = "deploy"
 )
 
@@ -18,7 +30,10 @@ $NAMESPACE = "shakwa"
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 $K8S_DIR = Split-Path -Parent $SCRIPT_DIR
 $KUBECTL = "kubectl"
+# Deployment readiness timeout (5 minutes)
 $TIMEOUT = "300s"
+# Main deployment name
+$DEPLOYMENT_NAME = "shakwa-backend"
 
 # ===========================================
 # Helper Functions
@@ -223,19 +238,50 @@ function Start-Deployment {
 }
 
 # ===========================================
+# Rollback Function
+# ===========================================
+function Start-Rollback {
+    Write-Info "Starting rollback to previous version..."
+
+    # Show deployment history
+    Write-Host ""
+    Write-Host "=== Deployment History ===" -ForegroundColor Cyan
+    & kubectl rollout history deployment/$DEPLOYMENT_NAME -n $NAMESPACE
+
+    Write-Host ""
+    $revision = Read-Host "Enter revision number to rollback to (leave empty for previous version)"
+
+    if ([string]::IsNullOrEmpty($revision)) {
+        & kubectl rollout undo deployment/$DEPLOYMENT_NAME -n $NAMESPACE
+    } else {
+        & kubectl rollout undo deployment/$DEPLOYMENT_NAME -n $NAMESPACE --to-revision=$revision
+    }
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Success "Rollback successful"
+        Wait-ForDeployment
+    } else {
+        Write-Error "Rollback failed"
+    }
+}
+
+# ===========================================
 # Main Script Execution
 # ===========================================
 switch ($Action) {
     "deploy" { Start-Deployment }
     "validate" { Test-Prerequisites; Test-Manifests }
     "status" { Show-Status }
+    "rollback" { Start-Rollback }
     "delete" {
-        Write-Warning "Deleting all resources in namespace $NAMESPACE..."
+        Write-Warning "This will delete all resources in namespace $NAMESPACE..."
+        Write-Warning "This action cannot be undone!"
         $confirm = Read-Host "Are you sure? (y/N)"
         if ($confirm -eq "y" -or $confirm -eq "Y") {
             & kubectl delete namespace $NAMESPACE
             Write-Success "Namespace deleted"
+        } else {
+            Write-Info "Operation cancelled"
         }
     }
 }
-

@@ -2,7 +2,13 @@
 # Shakwa Backend - ServiceMonitor (Prometheus Operator)
 # =============================================================================
 # Enables automatic Prometheus metrics scraping
-# Requires Prometheus Operator to be installed in the cluster
+# Requirements: Prometheus Operator must be installed in the cluster
+#
+# To verify Prometheus Operator is installed:
+# kubectl get crd | grep monitoring.coreos.com
+#
+# To verify ServiceMonitor discovery:
+# kubectl get servicemonitor -n shakwa
 # =============================================================================
 
 apiVersion: monitoring.coreos.com/v1
@@ -14,7 +20,8 @@ metadata:
     app.kubernetes.io/name: shakwa-backend
     app.kubernetes.io/component: monitoring
     app.kubernetes.io/part-of: shakwa-platform
-    # Label for Prometheus Operator to discover this ServiceMonitor
+    # Label required for Prometheus Operator to discover this ServiceMonitor
+    # Ensure this matches serviceMonitorSelector in Prometheus CR
     release: prometheus
   annotations:
     description: "Prometheus ServiceMonitor for Shakwa Backend"
@@ -22,6 +29,7 @@ spec:
   # ===========================================
   # Selector for target Service
   # ===========================================
+  # Must match labels in the Service
   selector:
     matchLabels:
       app.kubernetes.io/name: shakwa-backend
@@ -29,6 +37,7 @@ spec:
   # ===========================================
   # Namespace selector
   # ===========================================
+  # Specify the namespace containing the Service
   namespaceSelector:
     matchNames:
       - shakwa
@@ -38,29 +47,36 @@ spec:
   # ===========================================
   endpoints:
     - port: http
+      # Metrics endpoint path in the application
       path: /api/metrics
+      # Metrics collection interval (every 30 seconds)
       interval: 30s
+      # Connection timeout
       scrapeTimeout: 10s
       scheme: http
 
       # Honor labels from the target
       honorLabels: true
 
-      # Relabeling configuration
+      # Label relabeling - to add useful information
       relabelings:
+        # Add Pod name
         - sourceLabels: [__meta_kubernetes_pod_name]
           targetLabel: pod
+        # Add Namespace name
         - sourceLabels: [__meta_kubernetes_namespace]
           targetLabel: namespace
+        # Add Service name
         - sourceLabels: [__meta_kubernetes_service_name]
           targetLabel: service
 
       # Metric relabeling (optional)
-      metricRelabelings:
-        # Drop high-cardinality metrics if needed
-        - sourceLabels: [__name__]
-          regex: 'go_.*'
-          action: drop
+      # Note: Commented out go_* drop since NestJS doesn't use Go metrics
+      # You can add rules to drop unwanted metrics
+      # metricRelabelings:
+      #   - sourceLabels: [__name__]
+      #     regex: 'unwanted_metric_.*'
+      #     action: drop
 
 ---
 # ===========================================
@@ -173,4 +189,3 @@ spec:
           annotations:
             summary: "Shakwa Backend pod restarting frequently"
             description: "Pod {{ $labels.pod }} has restarted more than 3 times in the last hour"
-

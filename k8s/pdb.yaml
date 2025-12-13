@@ -5,6 +5,14 @@
 # - Node maintenance
 # - Cluster upgrades
 # - Deployment updates
+#
+# Important note:
+# - minAvailable must be less than the number of replicas
+# - With 3 replicas and minAvailable: 2, only one pod can be stopped at a time
+# - This ensures service continuity during maintenance
+#
+# To check PDB status:
+# kubectl get pdb -n shakwa
 # =============================================================================
 
 apiVersion: policy/v1
@@ -19,11 +27,12 @@ metadata:
   annotations:
     description: "Pod Disruption Budget for Shakwa Backend - ensures HA during maintenance"
 spec:
-  # Minimum number of pods that must be available
+  # Minimum number of pods that must remain available
   # With 3 replicas, this ensures at least 2 are always running
   minAvailable: 2
 
   # Alternative: Maximum number of pods that can be unavailable
+  # Use this if you prefer to specify how many pods can be stopped
   # maxUnavailable: 1
 
   # Pod selector (must match deployment labels)
@@ -32,5 +41,6 @@ spec:
       app.kubernetes.io/name: shakwa-backend
 
   # Unhealthy pod eviction policy (Kubernetes 1.27+)
-  # Options: IfHealthyBudget, AlwaysAllow
+  # IfHealthyBudget: Evict only if there are enough healthy pods
+  # AlwaysAllow: Always allow eviction
   # unhealthyPodEvictionPolicy: IfHealthyBudget

@@ -3,15 +3,27 @@
 # =============================================================================
 # Zero-trust network security:
 # - Default deny all traffic
-# - Explicit allow for required connections
-# - Ingress only from Ingress controller
+# - Explicit allow for required connections only
+# - Ingress only from Ingress Controller
 # - Egress only to required services
+#
+# Requirements:
+# - Your CNI must support Network Policies
+# - Examples: Calico, Cilium, Weave Net
+#
+# To verify policies are applied:
+# kubectl get networkpolicy -n shakwa
+#
+# Warning: Applying default-deny may break connectivity if
+# other policies are not configured correctly
 # =============================================================================
 
 ---
 # ===========================================
 # Default Deny All Traffic
 # ===========================================
+# This policy denies all incoming and outgoing traffic
+# Other policies must be added to allow required connections
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -23,7 +35,8 @@ metadata:
   annotations:
     description: "Default deny all ingress and egress traffic"
 spec:
-  podSelector: {}  # Applies to all pods in namespace
+  # Empty podSelector = applies to all pods in namespace
+  podSelector: {}
   policyTypes:
     - Ingress
     - Egress
@@ -169,4 +182,3 @@ spec:
       ports:
         - protocol: TCP
           port: 3000
-

@@ -3,6 +3,13 @@
 # =============================================================================
 # Storage for uploaded files
 # Supports multiple cloud providers with appropriate storage classes
+#
+# Important note: Choose the appropriate StorageClass for your environment
+# If left empty, the cluster will use the default StorageClass
+# Ensure StorageClass supports ReadWriteMany if using replicas > 1
+#
+# To check available StorageClasses:
+# kubectl get storageclass
 # =============================================================================
 
 apiVersion: v1
@@ -67,11 +74,14 @@ spec:
   # storageClassName: standard
 
   # Default - uses cluster default storage class
-  storageClassName: ""
+  # storageClassName: ""  # Uncomment and use this for default
+  storageClassName: standard  # Change this based on your environment
 
   # ===========================================
   # Volume Mode
   # ===========================================
+  # Filesystem: For regular filesystem access (most common)
+  # Block: For raw block device access
   volumeMode: Filesystem
 
 ---

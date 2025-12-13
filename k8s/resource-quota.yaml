@@ -2,7 +2,17 @@
 # Shakwa Backend - Resource Quota
 # =============================================================================
 # Limits total resource consumption in the namespace
-# Prevents runaway resource usage and ensures fair sharing
+# Prevents excessive resource usage and ensures fair distribution
+#
+# Important notes:
+# - Ensure quotas are sufficient for the required number of replicas
+# - With 3 replicas and 1Gi memory per pod, you need at least 3Gi
+# - Leave headroom for HPA scaling
+#
+# To check quota usage:
+# kubectl describe resourcequota -n shakwa
+#
+# Warning: If quota is exceeded, new pods will not be created
 # =============================================================================
 
 apiVersion: v1

@@ -3,6 +3,13 @@
 # =============================================================================
 # Contains rate limiting and throttling configuration
 # Adjust these values based on your traffic patterns and security requirements
+#
+# Important notes:
+# - AUTH_RATE_LIMIT: Protection against brute force attacks
+# - UPLOAD_RATE_LIMIT: Prevent storage abuse
+# - RATE_LIMIT_WHITELIST: Trusted IPs (e.g., monitoring servers)
+#
+# Warning: Values that are too low may affect legitimate users
 # =============================================================================
 
 apiVersion: v1

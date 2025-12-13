@@ -3,6 +3,14 @@
 # =============================================================================
 # Contains core application configuration settings
 # These are non-sensitive values that can be safely stored in version control
+#
+# Note: Sensitive values (passwords, API keys) should be in Secrets
+#
+# To apply:
+# kubectl apply -f configmaps/app-config.yaml
+#
+# To verify:
+# kubectl get configmap shakwa-app-config -n shakwa -o yaml
 # =============================================================================
 
 apiVersion: v1
@@ -17,7 +25,7 @@ metadata:
     config-type: application
   annotations:
     description: "Core application configuration for Shakwa Backend"
-# immutable: true  # Uncomment for production to prevent accidental changes
+# immutable: true  # Uncomment in production to prevent accidental changes
 data:
   # ===========================================
   # Application Environment

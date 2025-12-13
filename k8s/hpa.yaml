@@ -3,9 +3,16 @@
 # =============================================================================
 # Production-grade HPA with:
 # - CPU and Memory based scaling
-# - Optimized stabilization windows
+# - Optimized stabilization windows to avoid flapping
 # - Conservative scale-down policies
 # - Aggressive scale-up for traffic spikes
+#
+# Requirements:
+# - Metrics Server must be installed in the cluster
+# - To verify: kubectl top pods -n shakwa
+#
+# Note: Resource requests/limits in Deployment must match
+# HPA expectations for accurate results
 # =============================================================================
 
 apiVersion: autoscaling/v2
@@ -98,4 +105,3 @@ spec:
           periodSeconds: 120
       # Use the policy that removes fewer pods (conservative)
       selectPolicy: Min
-

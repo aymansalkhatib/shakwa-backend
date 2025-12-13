@@ -6,6 +6,13 @@
 # - Network policy boundaries
 # - RBAC scope for access control
 # - Monitoring and observability grouping
+#
+# This is the first file to apply:
+# kubectl apply -f namespace.yaml
+#
+# To verify:
+# kubectl get namespace shakwa
+# kubectl describe namespace shakwa
 # =============================================================================
 
 apiVersion: v1
@@ -13,7 +20,7 @@ kind: Namespace
 metadata:
   name: shakwa
   labels:
-    # Application identification
+    # Application identification - Standard Kubernetes labels
     app.kubernetes.io/name: shakwa
     app.kubernetes.io/component: backend
     app.kubernetes.io/part-of: shakwa-platform
@@ -29,7 +36,7 @@ metadata:
     # Network policy labels
     network-policy: enabled
 
-    # Cost allocation and tracking
+    # Cost tracking
     cost-center: shakwa-backend
 
   annotations:

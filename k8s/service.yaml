@@ -2,7 +2,16 @@
 # Shakwa Backend - Kubernetes Service
 # =============================================================================
 # ClusterIP service for internal load balancing
-# External access is handled by Ingress controller
+# External access is handled by Ingress Controller
+#
+# Service types:
+# - ClusterIP (current): Internal access only, ideal with Ingress
+# - NodePort: Opens port on every node
+# - LoadBalancer: Creates external load balancer (additional cost)
+#
+# To verify the service:
+# kubectl get svc -n shakwa
+# kubectl describe svc shakwa-backend-service -n shakwa
 # =============================================================================
 
 apiVersion: v1
@@ -18,7 +27,7 @@ metadata:
     # Service description
     description: "Shakwa Backend API Service"
 
-    # Prometheus service discovery
+    # Prometheus service discovery - for automatic service discovery
     prometheus.io/scrape: "true"
     prometheus.io/port: "3000"
     prometheus.io/path: "/api/metrics"

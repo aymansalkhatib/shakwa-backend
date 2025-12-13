@@ -3,6 +3,12 @@
 # =============================================================================
 # Contains logging and observability configuration
 # Adjust these settings based on your monitoring requirements
+#
+# Tips:
+# - In production: Use LOG_LEVEL: "info" or "warn"
+# - In development: Use LOG_LEVEL: "debug"
+# - LOG_JSON: "true" is required for log aggregation systems (ELK, Loki)
+# - LOG_FILE: "false" in Kubernetes (use stdout instead)
 # =============================================================================
 
 apiVersion: v1
@@ -28,35 +34,35 @@ data:
   # Log Output Configuration
   # ===========================================
   LOG_DIR: "/app/logs"
-  LOG_CONSOLE: "true"           # Enable console output (for kubectl logs)
-  LOG_FILE: "false"             # Disable file logging in containers (use stdout)
-  LOG_JSON: "true"              # JSON format for log aggregation
+  LOG_CONSOLE: "true"
+  LOG_FILE: "false"
+  LOG_JSON: "true"
 
   # ===========================================
   # Log Rotation (if file logging enabled)
   # ===========================================
-  LOG_MAX_SIZE: "20m"           # Max size per log file
-  LOG_MAX_FILES: "7d"           # Keep logs for 7 days
-  LOG_ERROR_MAX_FILES: "14d"    # Keep error logs for 14 days
-  LOG_ZIP_ARCHIVE: "true"       # Compress old log files
+  LOG_MAX_SIZE: "20m"
+  LOG_MAX_FILES: "7d"
+  LOG_ERROR_MAX_FILES: "14d"
+  LOG_ZIP_ARCHIVE: "true"
 
   # ===========================================
   # HTTP Request Logging
   # ===========================================
-  LOG_HTTP: "true"              # Log HTTP requests
-  LOG_HTTP_BODY: "false"        # Don't log request bodies (security)
-  LOG_HTTP_HEADERS: "false"     # Don't log headers (security)
+  LOG_HTTP: "true"
+  LOG_HTTP_BODY: "false"
+  LOG_HTTP_HEADERS: "false"
 
   # ===========================================
   # Performance Logging
   # ===========================================
   LOG_SLOW_REQUESTS: "true"
-  LOG_SLOW_REQUEST_THRESHOLD: "1000"  # Log requests taking > 1000ms
-  LOG_QUERY_TIME: "true"              # Log database query times
-  LOG_QUERY_THRESHOLD: "500"          # Log queries taking > 500ms
+  LOG_SLOW_REQUEST_THRESHOLD: "1000"
+  LOG_QUERY_TIME: "true"
+  LOG_QUERY_THRESHOLD: "500"
 
   # ===========================================
   # Error Tracking
   # ===========================================
-  LOG_STACK_TRACE: "true"       # Include stack traces in errors
-  LOG_ERROR_DETAILS: "true"     # Include detailed error info
+  LOG_STACK_TRACE: "true"
+  LOG_ERROR_DETAILS: "true"
