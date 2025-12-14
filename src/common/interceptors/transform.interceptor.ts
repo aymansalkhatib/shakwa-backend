@@ -1,39 +1,19 @@
+// File: transform.interceptor.ts
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Request } from 'express';
 import * as os from 'os';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-export interface Pagination {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  nextPage: number | null;
-  prevPage: number | null;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-}
-
-export interface Response<T> {
-  data: T | T[];
-  pagination?: Pagination;
-  meta: {
-    message: string;
-    statusCode: number;
-    timestamp: string;
-    status: 'success' | 'failure' | 'error';
-    path: string;
-    method: string;
-    requestId?: string;
-  };
-}
-
 @Injectable()
-export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<Response<T>> {
+export class TransformInterceptor<T> implements NestInterceptor<T, any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse();
+
+    const podName = process.env.POD_NAME ?? process.env.HOSTNAME ?? os.hostname();
+    const nodeName = process.env.NODE_NAME;
+    const namespace = process.env.POD_NAMESPACE;
 
     return next.handle().pipe(
       map((res: any) => {
@@ -50,8 +30,11 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
             status: this.getResponseStatus(response.statusCode),
             path: request.url,
             method: request.method,
-            requestId: request.requestId,
-            hostname: os.hostname(),
+            requestId: (request as any).requestId,
+            podName,
+            nodeName,
+            namespace,
+            "Who":"K8S"
           },
         };
       }),

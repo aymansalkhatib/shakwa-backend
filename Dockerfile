@@ -44,14 +44,14 @@ RUN npm ci --omit=dev
 # Copy compiled build artifacts from the builder stage
 COPY --from=builder /usr/src/app/dist ./dist
 
-# Create non-root user for better security
-RUN addgroup -S app && adduser -S app -G app
+# # Create non-root user for better security
+# RUN addgroup -S app && adduser -S app -G app
 
-# Ensure proper ownership of the app directory
-RUN chown -R app:app /usr/src/app
+# # Ensure proper ownership of the app directory
+# RUN chown -R app:app /usr/src/app
 
-# Switch to non-root user
-USER app
+# # Switch to non-root user
+# USER app
 
 # Default application port (can be overridden by the platform)
 ENV PORT=3000

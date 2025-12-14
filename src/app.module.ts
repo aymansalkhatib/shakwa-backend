@@ -157,10 +157,10 @@ import { StorageModule } from './shared/services/storage/storage.module';
     // ========================================
     // Global Guards
     // ========================================
-    {
-      provide: APP_GUARD,
-      useClass: CustomThrottlerGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: CustomThrottlerGuard,
+    // },
   ],
 })
 export class AppModule implements NestModule {
