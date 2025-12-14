@@ -173,6 +173,6 @@ import { StorageModule } from './shared/services/storage/storage.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggingMiddleware, ParseQueryMiddleware, CamelCaseMiddleware).forRoutes('*');
+    consumer.apply(LoggingMiddleware, ParseQueryMiddleware, CamelCaseMiddleware).forRoutes('/');
   }
 }

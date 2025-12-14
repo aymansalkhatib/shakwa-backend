@@ -35,8 +35,6 @@ data:
   # ===========================================
   LOG_DIR: "/app/logs"
   LOG_CONSOLE: "true"
-  LOG_FILE: "false"
-  LOG_JSON: "true"
 
   # ===========================================
   # Log Rotation (if file logging enabled)
@@ -50,19 +48,9 @@ data:
   # HTTP Request Logging
   # ===========================================
   LOG_HTTP: "true"
-  LOG_HTTP_BODY: "false"
-  LOG_HTTP_HEADERS: "false"
 
   # ===========================================
   # Performance Logging
   # ===========================================
   LOG_SLOW_REQUESTS: "true"
   LOG_SLOW_REQUEST_THRESHOLD: "1000"
-  LOG_QUERY_TIME: "true"
-  LOG_QUERY_THRESHOLD: "500"
-
-  # ===========================================
-  # Error Tracking
-  # ===========================================
-  LOG_STACK_TRACE: "true"
-  LOG_ERROR_DETAILS: "true"
