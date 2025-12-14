@@ -5,9 +5,9 @@
 # Adjust these values based on your traffic patterns and security requirements
 #
 # Important notes:
-# - AUTH_RATE_LIMIT: Protection against brute force attacks
-# - UPLOAD_RATE_LIMIT: Prevent storage abuse
-# - RATE_LIMIT_WHITELIST: Trusted IPs (e.g., monitoring servers)
+# - RATE_LIMIT_TTL: Time window in seconds for rate limiting
+# - RATE_LIMIT_MAX: Maximum requests allowed per time window
+# - Adjust values based on your traffic patterns and security requirements
 #
 # Warning: Values that are too low may affect legitimate users
 # =============================================================================
@@ -23,12 +23,12 @@ metadata:
     app.kubernetes.io/part-of: shakwa-platform
     config-type: rate-limiting
   annotations:
-    description: "Rate limiting configuration for Shakwa Backend"
+    description: 'Rate limiting configuration for Shakwa Backend'
 data:
   # ===========================================
   # Global Rate Limiting
   # ===========================================
-  RATE_LIMIT_ENABLED: "true"
-  RATE_LIMIT_TTL: "60"          # Time window in seconds
-  RATE_LIMIT_MAX: "20"          # Max requests per window (general)
+  RATE_LIMIT_ENABLED: 'true'
+  RATE_LIMIT_TTL: '60' # Time window in seconds
+  RATE_LIMIT_MAX: '20' # Max requests per window (general)
 
