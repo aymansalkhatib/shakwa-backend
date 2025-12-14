@@ -4,8 +4,8 @@ import { NotificationService } from '../../../shared/services/notifications/noti
 import { CitizensAdminService } from '../../citizens/services/citizens-admin.service';
 import { InternalUserEntity } from '../../internal-users/entities/internal-user.entity';
 import {
-  COMPLAINTS_REPOSITORY_TOKEN,
-  COMPLAINT_HISTORY_REPOSITORY_TOKEN,
+    COMPLAINTS_REPOSITORY_TOKEN,
+    COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
 import { StaffComplaintFilterDto, UpdateComplaintInternalUserDto } from '../dtos';
 import { ComplaintStatisticsDto } from '../dtos/response/complaint-statistics.dto';
@@ -73,9 +73,26 @@ export class StaffComplaintsService extends BaseComplaintsService {
     this.ensureNotTerminal(latestStatus);
 
     // Release any previous locks held by this staff member before locking the new complaint
-    await this.your-bucket-nameRepo.releaseAllLocksForUser(staff.id, ComplaintLockerRole.INTERNAL_USER);
+    const releasedComplaintIds = await this.your-bucket-nameRepo.releaseAllLocksForUser(
+      staff.id,
+      ComplaintLockerRole.INTERNAL_USER,
+    );
 
-    return this.your-bucket-nameRepo.lock(complaint.id, staff.id, ComplaintLockerRole.INTERNAL_USER);
+    // Invalidate cache for previously locked your-bucket-name
+    for (const releasedId of releasedComplaintIds) {
+      await this.cacheInvalidation.invalidateComplaintCaches(releasedId);
+    }
+
+    const lockedComplaint = await this.your-bucket-nameRepo.lock(
+      complaint.id,
+      staff.id,
+      ComplaintLockerRole.INTERNAL_USER,
+    );
+
+    // Invalidate cache for the newly locked complaint
+    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
+
+    return lockedComplaint;
   }
 
   async update(
@@ -144,6 +161,14 @@ export class StaffComplaintsService extends BaseComplaintsService {
   }
 
   async releaseAllLocksForUser(userId: number): Promise<void> {
-    await this.your-bucket-nameRepo.releaseAllLocksForUser(userId, ComplaintLockerRole.INTERNAL_USER);
+    const releasedComplaintIds = await this.your-bucket-nameRepo.releaseAllLocksForUser(
+      userId,
+      ComplaintLockerRole.INTERNAL_USER,
+    );
+
+    // Invalidate cache for all released your-bucket-name
+    for (const releasedId of releasedComplaintIds) {
+      await this.cacheInvalidation.invalidateComplaintCaches(releasedId);
+    }
   }
 }

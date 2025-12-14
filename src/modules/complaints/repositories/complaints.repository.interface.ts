@@ -3,10 +3,10 @@ import { IPaginatedResponse } from '../../../common/pagination/interfaces/pagina
 import { ComplaintEntity } from '../entities/complaint.entity';
 import { ComplaintAuthority, ComplaintLockerRole } from '../enums';
 import {
-  IComplaintFilter,
-  IComplaintStatistics,
-  ICreateComplaintData,
-  IUpdateComplaintData,
+    IComplaintFilter,
+    IComplaintStatistics,
+    ICreateComplaintData,
+    IUpdateComplaintData,
 } from './interfaces';
 
 export interface IComplaintsRepository {
@@ -31,7 +31,7 @@ export interface IComplaintsRepository {
 
   releaseLock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<void>;
 
-  releaseAllLocksForUser(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number>;
+  releaseAllLocksForUser(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number[]>;
 
   withManager(manager: EntityManager): IComplaintsRepository;
 }
