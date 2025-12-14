@@ -5,8 +5,8 @@ import { PaginationResponseDto } from '../../../common/pagination/dto/pagination
 import { StorageService } from '../../../shared/services/storage/storage.service';
 import { CitizenEntity } from '../../citizens/entities/citizen.entity';
 import {
-    COMPLAINTS_REPOSITORY_TOKEN,
-    COMPLAINT_HISTORY_REPOSITORY_TOKEN,
+  COMPLAINTS_REPOSITORY_TOKEN,
+  COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
 import { CitizenComplaintFilterDto, CreateComplaintDto, UpdateMyComplaintDto } from '../dtos';
 import { ComplaintEntity } from '../entities/complaint.entity';
@@ -87,21 +87,14 @@ export class CitizenComplaintsService extends BaseComplaintsService {
     this.ensureNotTerminal(latestStatus);
 
     // Release any previous locks held by this citizen before locking the new complaint
-    const releasedComplaintIds = await this.your-bucket-nameRepo.releaseAllLocksForUser(
-      citizen.id,
-      ComplaintLockerRole.CITIZEN,
-    );
+    const releasedCount = await this.your-bucket-nameRepo.releaseAllLocksForUser(citizen.id, ComplaintLockerRole.CITIZEN);
 
-    // Invalidate cache for previously locked your-bucket-name
-    for (const releasedId of releasedComplaintIds) {
-      await this.cacheInvalidation.invalidateComplaintCaches(releasedId);
+    // Invalidate cache for released locks
+    if (releasedCount > 0) {
+      await this.cacheInvalidation.invalidateComplaintCaches();
     }
 
-    const lockedComplaint = await this.your-bucket-nameRepo.lock(
-      complaint.id,
-      citizen.id,
-      ComplaintLockerRole.CITIZEN,
-    );
+    const lockedComplaint = await this.your-bucket-nameRepo.lock(complaint.id, citizen.id, ComplaintLockerRole.CITIZEN);
 
     // Invalidate cache for the newly locked complaint
     await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
@@ -159,14 +152,11 @@ export class CitizenComplaintsService extends BaseComplaintsService {
   }
 
   async releaseAllLocksForUser(userId: number): Promise<void> {
-    const releasedComplaintIds = await this.your-bucket-nameRepo.releaseAllLocksForUser(
-      userId,
-      ComplaintLockerRole.CITIZEN,
-    );
+    const releasedCount = await this.your-bucket-nameRepo.releaseAllLocksForUser(userId, ComplaintLockerRole.CITIZEN);
 
-    // Invalidate cache for all released your-bucket-name
-    for (const releasedId of releasedComplaintIds) {
-      await this.cacheInvalidation.invalidateComplaintCaches(releasedId);
+    // Invalidate cache if any locks were released
+    if (releasedCount > 0) {
+      await this.cacheInvalidation.invalidateComplaintCaches();
     }
   }
 

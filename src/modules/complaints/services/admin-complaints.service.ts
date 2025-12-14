@@ -57,9 +57,19 @@ export class AdminComplaintsService extends BaseComplaintsService {
     this.ensureNotTerminal(latestStatus);
 
     // Release any previous locks held by this admin member before locking the new complaint
-    await this.releaseAllLocksForUser(admin.id);
+    const releasedCount = await this.your-bucket-nameRepo.releaseAllLocksForUser(admin.id, ComplaintLockerRole.INTERNAL_USER);
 
-    return this.your-bucket-nameRepo.lock(complaint.id, admin.id, ComplaintLockerRole.INTERNAL_USER);
+    // Invalidate cache for released locks
+    if (releasedCount > 0) {
+      await this.cacheInvalidation.invalidateComplaintCaches();
+    }
+
+    const lockedComplaint = await this.your-bucket-nameRepo.lock(complaint.id, admin.id, ComplaintLockerRole.INTERNAL_USER);
+
+    // Invalidate cache for the newly locked complaint
+    await this.cacheInvalidation.invalidateComplaintCaches(complaint.id);
+
+    return lockedComplaint;
   }
 
   async update(
@@ -124,6 +134,11 @@ export class AdminComplaintsService extends BaseComplaintsService {
   }
 
   async releaseAllLocksForUser(userId: number): Promise<void> {
-    await this.your-bucket-nameRepo.releaseAllLocksForUser(userId, ComplaintLockerRole.INTERNAL_USER);
+    const releasedCount = await this.your-bucket-nameRepo.releaseAllLocksForUser(userId, ComplaintLockerRole.INTERNAL_USER);
+
+    // Invalidate cache if any locks were released
+    if (releasedCount > 0) {
+      await this.cacheInvalidation.invalidateComplaintCaches();
+    }
   }
 }

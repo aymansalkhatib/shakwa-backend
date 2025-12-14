@@ -8,10 +8,10 @@ import { ComplaintEntity } from '../entities/complaint.entity';
 import { ComplaintAuthority, ComplaintLockerRole, ComplaintStatus } from '../enums';
 import { IComplaintsRepository } from './your-bucket-name.repository.interface';
 import {
-    IComplaintFilter,
-    IComplaintStatistics,
-    ICreateComplaintData,
-    IUpdateComplaintData,
+  IComplaintFilter,
+  IComplaintStatistics,
+  ICreateComplaintData,
+  IUpdateComplaintData,
 } from './interfaces';
 
 @Injectable()
@@ -142,33 +142,20 @@ export class ComplaintsRepository implements IComplaintsRepository {
     });
   }
 
-  async releaseAllLocksForUser(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number[]> {
-    // First, find all your-bucket-name locked by this user to get their IDs
-    const lockedComplaints = await this.complaintRepo.find({
-      where: {
+  async releaseAllLocksForUser(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number> {
+    const result = await this.complaintRepo.update(
+      {
         lockedById: lockerId,
         lockedByRole: lockerRole,
       },
-      select: ['id'],
-    });
+      {
+        lockedById: null,
+        lockedByRole: null,
+        lockedUntil: null,
+      },
+    );
 
-    const complaintIds = lockedComplaints.map((c) => c.id);
-
-    if (complaintIds.length > 0) {
-      await this.complaintRepo.update(
-        {
-          lockedById: lockerId,
-          lockedByRole: lockerRole,
-        },
-        {
-          lockedById: null,
-          lockedByRole: null,
-          lockedUntil: null,
-        },
-      );
-    }
-
-    return complaintIds;
+    return result.affected ?? 0;
   }
 
   async exists(id: number): Promise<boolean> {
