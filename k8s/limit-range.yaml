@@ -26,7 +26,7 @@ metadata:
     app.kubernetes.io/component: resource-management
     app.kubernetes.io/part-of: shakwa-platform
   annotations:
-    description: "Default resource limits for Shakwa namespace"
+    description: 'Default resource limits for Shakwa namespace'
 spec:
   limits:
     # ===========================================
@@ -35,41 +35,41 @@ spec:
     - type: Container
       # Default values if not specified
       default:
-        cpu: "500m"
-        memory: "512Mi"
+        cpu: '400m'
+        memory: '512Mi'
       # Default requests if not specified
       defaultRequest:
-        cpu: "100m"
-        memory: "128Mi"
+        cpu: '100m'
+        memory: '128Mi'
       # Maximum allowed
       max:
-        cpu: "2"
-        memory: "2Gi"
+        cpu: '2'
+        memory: '2Gi'
       # Minimum allowed
       min:
-        cpu: "50m"
-        memory: "64Mi"
+        cpu: '50m'
+        memory: '64Mi'
       # Max ratio of limit to request
       maxLimitRequestRatio:
-        cpu: "4"
-        memory: "4"
+        cpu: '4'
+        memory: '4'
 
     # ===========================================
     # Pod Limits
     # ===========================================
     - type: Pod
       max:
-        cpu: "4"
-        memory: "4Gi"
+        cpu: '4'
+        memory: '4Gi'
       min:
-        cpu: "50m"
-        memory: "64Mi"
+        cpu: '50m'
+        memory: '64Mi'
 
     # ===========================================
     # PVC Limits
     # ===========================================
     - type: PersistentVolumeClaim
       max:
-        storage: "20Gi"
+        storage: '20Gi'
       min:
-        storage: "1Gi"
+        storage: '1Gi'

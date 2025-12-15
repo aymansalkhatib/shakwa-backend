@@ -69,4 +69,4 @@ spec:
     # Limit LoadBalancer services (cost control)
     services.loadbalancers: "0"
     # Limit NodePort services
-    services.nodeports: "2"
+    services.nodeports: "0"
