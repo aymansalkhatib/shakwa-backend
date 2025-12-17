@@ -1,0 +1,169 @@
+# =============================================================================
+# Shakwa Backend - Kubernetes Ingress
+# =============================================================================
+# Production-grade Ingress with:
+# - TLS/HTTPS with cert-manager
+# - Rate limiting for DDoS protection
+# - Security headers
+# - CORS configuration
+# - Optimized timeouts and body size limits
+#
+# Important notes:
+# - NGINX Ingress Controller must be installed in the cluster
+# - cert-manager must be installed for automatic TLS certificates
+# - Update domain names before deployment
+# =============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shakwa-backend-ingress
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: shakwa-platform
+  annotations:
+    # ===========================================
+    # Ingress Controller Configuration
+    # ===========================================
+    # Note: Removed deprecated kubernetes.io/ingress.class
+    # Using ingressClassName in spec instead
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+
+    # ===========================================
+    # TLS/SSL Configuration
+    # ===========================================
+    # Automatic redirect from HTTP to HTTPS
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # Use cert-manager for Let's Encrypt certificates
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+    # ===========================================
+    # Rate Limiting (DDoS Protection)
+    # ===========================================
+    # Maximum requests per second per IP address
+    nginx.ingress.kubernetes.io/limit-rps: "50"
+    # Maximum requests per minute
+    nginx.ingress.kubernetes.io/limit-rpm: "1000"
+    # Maximum concurrent connections
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+    # IPs excluded from rate limiting (empty by default)
+    nginx.ingress.kubernetes.io/limit-whitelist: ""
+
+    # ===========================================
+    # Security Headers
+    # ===========================================
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      # Prevent Clickjacking - only allow embedding from same origin
+      add_header X-Frame-Options "SAMEORIGIN" always;
+
+      # Prevent browser from guessing content type
+      add_header X-Content-Type-Options "nosniff" always;
+
+      # XSS Protection - enable browser XSS filter
+      add_header X-XSS-Protection "1; mode=block" always;
+
+      # Referrer Policy - send origin only when navigating to other sites
+      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+      # Content Security Policy - define allowed content sources
+      add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;" always;
+
+      # Permissions Policy - disable geolocation, microphone, and camera access
+      add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+
+      # HSTS - enforce HTTPS for one year
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+    # ===========================================
+    # CORS Configuration
+    # ===========================================
+    # Enable CORS
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    # Security warning: In production, replace "*" with allowed domains only
+    # Example: "https://app.shakwa.com,https://admin.shakwa.com"
+    # Note: Cannot use "*" with credentials: true for security reasons
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://app.shakwa.com,https://admin.shakwa.com"
+    # Allowed HTTP methods
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    # Allowed headers in requests
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,Accept,Origin,Accept-Language"
+    # Exposed headers in response
+    nginx.ingress.kubernetes.io/cors-expose-headers: "Content-Length,Content-Range,X-Total-Count"
+    # Allow sending Cookies and Authorization headers
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    # Preflight response cache duration (24 hours)
+    nginx.ingress.kubernetes.io/cors-max-age: "86400"
+
+    # ===========================================
+    # Proxy Configuration
+    # ===========================================
+    # Body size for file uploads (50MB)
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+
+    # Timeouts
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-next-upstream-timeout: "60"
+
+    # Buffer settings
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+
+    # ===========================================
+    # Load Balancing
+    # ===========================================
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+    nginx.ingress.kubernetes.io/load-balance: "round_robin"
+
+    # ===========================================
+    # Logging and Monitoring
+    # ===========================================
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    nginx.ingress.kubernetes.io/enable-rewrite-log: "false"
+
+spec:
+  # ===========================================
+  # Ingress Class
+  # ===========================================
+  ingressClassName: nginx
+
+  # ===========================================
+  # TLS Configuration
+  # ===========================================
+  tls:
+    - hosts:
+        - api.shakwa.com
+        - shakwa.yourdomain.com
+      secretName: shakwa-tls-secret
+
+  # ===========================================
+  # Routing Rules
+  # ===========================================
+  rules:
+    # Primary domain
+    - host: api.shakwa.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: shakwa-backend-service
+                port:
+                  number: 80
+
+    # Secondary/staging domain (update as needed)
+    - host: shakwa.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: shakwa-backend-service
+                port:
+                  number: 80

@@ -1,0 +1,109 @@
+# =============================================================================
+# Shakwa Backend - Persistent Volume Claim
+# =============================================================================
+# Storage for uploaded files
+# Supports multiple cloud providers with appropriate storage classes
+#
+# Important note: Choose the appropriate StorageClass for your environment
+# If left empty, the cluster will use the default StorageClass
+# Ensure StorageClass supports ReadWriteMany if using replicas > 1
+#
+# To check available StorageClasses:
+# kubectl get storageclass
+# =============================================================================
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shakwa-uploads-pvc
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: shakwa-platform
+  annotations:
+    description: "Persistent storage for Shakwa Backend file uploads"
+    # Volume expansion annotation (if supported by storage class)
+    volume.kubernetes.io/allow-expansion: "true"
+spec:
+  # ===========================================
+  # Access Modes
+  # ===========================================
+  # ReadWriteMany - Multiple pods can read/write (required for replicated deployment)
+  # Note: Not all storage classes support RWX. Alternatives:
+  # - Use cloud storage (S3, GCS, Azure Blob) instead of PVC
+  # - Use NFS-based storage class
+  # - Use ReadWriteOnce with a single replica
+  accessModes:
+    - ReadWriteMany
+
+  # ===========================================
+  # Storage Request
+  # ===========================================
+  resources:
+    requests:
+      storage: 20Gi
+
+  # ===========================================
+  # Storage Class Selection
+  # ===========================================
+  # Uncomment the appropriate storage class for your cloud provider:
+
+  # AWS EKS - EFS (supports ReadWriteMany)
+  # storageClassName: efs-sc
+
+  # AWS EKS - EBS (ReadWriteOnce only)
+  # storageClassName: gp3
+
+  # Google GKE - Filestore (supports ReadWriteMany)
+  # storageClassName: standard-rwx
+
+  # Google GKE - Persistent Disk (ReadWriteOnce only)
+  # storageClassName: standard
+
+  # Azure AKS - Azure Files (supports ReadWriteMany)
+  # storageClassName: azurefile-premium
+
+  # Azure AKS - Azure Disk (ReadWriteOnce only)
+  # storageClassName: managed-premium
+
+  # On-premise / NFS
+  # storageClassName: nfs-client
+
+  # Minikube / Local development
+  # storageClassName: standard
+
+  # Default - uses cluster default storage class
+  # storageClassName: ""  # Uncomment and use this for default
+  storageClassName: standard  # Change this based on your environment
+
+  # ===========================================
+  # Volume Mode
+  # ===========================================
+  # Filesystem: For regular filesystem access (most common)
+  # Block: For raw block device access
+  volumeMode: Filesystem
+
+---
+# =============================================================================
+# Alternative: Logs PVC (Optional)
+# =============================================================================
+# Uncomment if you need persistent logs storage instead of emptyDir
+
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: shakwa-logs-pvc
+#   namespace: shakwa
+#   labels:
+#     app.kubernetes.io/name: shakwa-backend
+#     app.kubernetes.io/component: logging
+#     app.kubernetes.io/part-of: shakwa-platform
+# spec:
+#   accessModes:
+#     - ReadWriteMany
+#   resources:
+#     requests:
+#       storage: 10Gi
+#   storageClassName: ""
+#   volumeMode: Filesystem

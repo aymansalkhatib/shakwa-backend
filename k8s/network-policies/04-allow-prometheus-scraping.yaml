@@ -1,0 +1,36 @@
+# =============================================================================
+# Allow Prometheus Scraping
+# =============================================================================
+# Allows Prometheus to scrape metrics from the backend application
+# Supports both namespace label formats for different monitoring setups
+# =============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scraping
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: network-security
+  annotations:
+    description: 'Allow Prometheus to scrape metrics'
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: shakwa-backend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # Allow from monitoring namespace (legacy label)
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+        # Allow from monitoring namespace (new label format)
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 3000

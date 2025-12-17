@@ -1,0 +1,26 @@
+# =============================================================================
+# Default Deny All Traffic Policy
+# =============================================================================
+# This policy denies all incoming and outgoing traffic by default
+# Other policies must be added to allow required connections
+#
+# Warning: Applying this policy may break connectivity if
+# other allow policies are not configured correctly
+# =============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa
+    app.kubernetes.io/component: network-security
+  annotations:
+    description: 'Default deny all ingress and egress traffic'
+spec:
+  # Empty podSelector = applies to all pods in namespace
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress

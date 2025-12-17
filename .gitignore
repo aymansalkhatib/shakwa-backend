@@ -60,3 +60,21 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 /upload
 /uploads
 merged_output.txt
+
+.kiro
+.vscode
+
+# Documentation (generated guides)
+/docs/
+K8S-COMPLETE-GUIDE.md
+DOCKER-K8S-README.md
+OBSERVABILITY-GUIDE.md
+VERIFICATION-RUNBOOK.md
+
+# Kubernetes secrets (NEVER commit real secrets)
+k8s/secrets/*.yaml
+!k8s/secrets/README.md
+
+# Monitoring values with sensitive data
+k8s/monitoring/values-*.yaml
+!k8s/monitoring/values-*.yaml.example

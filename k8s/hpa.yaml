@@ -1,0 +1,107 @@
+# =============================================================================
+# Shakwa Backend - Horizontal Pod Autoscaler
+# =============================================================================
+# Production-grade HPA with:
+# - CPU and Memory based scaling
+# - Optimized stabilization windows to avoid flapping
+# - Conservative scale-down policies
+# - Aggressive scale-up for traffic spikes
+#
+# Requirements:
+# - Metrics Server must be installed in the cluster
+# - To verify: kubectl top pods -n shakwa
+#
+# Note: Resource requests/limits in Deployment must match
+# HPA expectations for accurate results
+# =============================================================================
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: shakwa-backend-hpa
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: autoscaler
+    app.kubernetes.io/part-of: shakwa-platform
+  annotations:
+    description: "Horizontal Pod Autoscaler for Shakwa Backend"
+spec:
+  # ===========================================
+  # Target Reference
+  # ===========================================
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: shakwa-backend
+
+  # ===========================================
+  # Replica Limits
+  # ===========================================
+  minReplicas: 3      # Minimum for high availability
+  maxReplicas: 15     # Maximum based on resource budget
+
+  # ===========================================
+  # Scaling Metrics
+  # ===========================================
+  metrics:
+    # CPU-based scaling (primary metric)
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+    # Memory-based scaling (secondary metric)
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+    # Container-specific CPU metric (more accurate)
+    - type: ContainerResource
+      containerResource:
+        name: cpu
+        container: shakwa-backend
+        target:
+          type: Utilization
+          averageUtilization: 75
+
+  # ===========================================
+  # Scaling Behavior
+  # ===========================================
+  behavior:
+    # Scale Up Configuration
+    scaleUp:
+      # No stabilization - scale up immediately on traffic spikes
+      stabilizationWindowSeconds: 0
+      policies:
+        # Can add up to 4 pods at a time
+        - type: Pods
+          value: 4
+          periodSeconds: 60
+        # Or increase by 100% (double)
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+      # Use the policy that adds more pods
+      selectPolicy: Max
+
+    # Scale Down Configuration
+    scaleDown:
+      # Wait 5 minutes before scaling down (avoid flapping)
+      stabilizationWindowSeconds: 300
+      policies:
+        # Remove at most 2 pods at a time
+        - type: Pods
+          value: 2
+          periodSeconds: 120
+        # Or decrease by 25%
+        - type: Percent
+          value: 25
+          periodSeconds: 120
+      # Use the policy that removes fewer pods (conservative)
+      selectPolicy: Min

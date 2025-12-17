@@ -1,0 +1,56 @@
+# =============================================================================
+# Shakwa Backend - Logging ConfigMap
+# =============================================================================
+# Contains logging and observability configuration
+# Adjust these settings based on your monitoring requirements
+#
+# Tips:
+# - In production: Use LOG_LEVEL: "info" or "warn"
+# - In development: Use LOG_LEVEL: "debug"
+# - LOG_JSON: "true" is required for log aggregation systems (ELK, Loki)
+# - LOG_FILE: "false" in Kubernetes (use stdout instead)
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shakwa-logging-config
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: shakwa-platform
+    config-type: logging
+  annotations:
+    description: "Logging configuration for Shakwa Backend"
+data:
+  # ===========================================
+  # Log Level Configuration
+  # ===========================================
+  # Options: error, warn, info, http, verbose, debug, silly
+  LOG_LEVEL: "info"
+
+  # ===========================================
+  # Log Output Configuration
+  # ===========================================
+  LOG_DIR: "/app/logs"
+  LOG_CONSOLE: "true"
+
+  # ===========================================
+  # Log Rotation (if file logging enabled)
+  # ===========================================
+  LOG_MAX_SIZE: "20m"
+  LOG_MAX_FILES: "7d"
+  LOG_ERROR_MAX_FILES: "14d"
+  LOG_ZIP_ARCHIVE: "true"
+
+  # ===========================================
+  # HTTP Request Logging
+  # ===========================================
+  LOG_HTTP: "true"
+
+  # ===========================================
+  # Performance Logging
+  # ===========================================
+  LOG_SLOW_REQUESTS: "true"
+  LOG_SLOW_REQUEST_THRESHOLD: "1000"

@@ -1,0 +1,34 @@
+# =============================================================================
+# Shakwa Backend - Rate Limiting ConfigMap
+# =============================================================================
+# Contains rate limiting and throttling configuration
+# Adjust these values based on your traffic patterns and security requirements
+#
+# Important notes:
+# - RATE_LIMIT_TTL: Time window in seconds for rate limiting
+# - RATE_LIMIT_MAX: Maximum requests allowed per time window
+# - Adjust values based on your traffic patterns and security requirements
+#
+# Warning: Values that are too low may affect legitimate users
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shakwa-rate-limit-config
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: shakwa-platform
+    config-type: rate-limiting
+  annotations:
+    description: 'Rate limiting configuration for Shakwa Backend'
+data:
+  # ===========================================
+  # Global Rate Limiting
+  # ===========================================
+  RATE_LIMIT_ENABLED: 'true'
+  RATE_LIMIT_TTL: '60' # Time window in seconds
+  RATE_LIMIT_MAX: '20' # Max requests per window (general)
+

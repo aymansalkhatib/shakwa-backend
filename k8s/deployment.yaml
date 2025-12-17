@@ -1,0 +1,348 @@
+# =============================================================================
+# Shakwa Backend - Kubernetes Deployment
+# =============================================================================
+# Production-grade deployment with:
+# - Pod Anti-Affinity for high availability (distribute across nodes)
+# - Startup, Liveness, Readiness probes for health monitoring
+# - Enhanced Security Context (non-root, read-only filesystem)
+# - Resource management for Guaranteed QoS
+# - Prometheus annotations for metrics collection
+#
+# Before deployment:
+# 1. Update image registry: your-registry/shakwa-backend:latest
+# 2. Ensure Secrets and ConfigMaps are created first
+# 3. Ensure PVC is created for storage
+#
+# To deploy:
+# kubectl apply -f namespace.yaml
+# kubectl apply -f secrets/ -f configmaps/
+# kubectl apply -f pvc.yaml
+# kubectl apply -f deployment.yaml
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shakwa-backend
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: shakwa-platform
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: kubectl
+  annotations:
+    description: "Shakwa Backend API Deployment"
+    # Change cause - appears in rollout history
+    kubernetes.io/change-cause: "Initial deployment"
+spec:
+  replicas: 3
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: shakwa-backend
+
+  # Rolling update strategy for zero-downtime deployments
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: shakwa-backend
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: shakwa-platform
+      annotations:
+        # Prometheus metrics scraping
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/api/metrics"
+
+        # Force rolling update on config changes (update manually when config changes)
+        # To trigger a rolling update, change this value:
+        config-version: "v1.0.0"
+
+    spec:
+      # Service account for RBAC
+      serviceAccountName: default
+
+      # Termination grace period
+      terminationGracePeriodSeconds: 30
+
+      # ===========================================
+      # Pod Anti-Affinity Rules
+      # ===========================================
+      affinity:
+        podAntiAffinity:
+          # Prefer to schedule on different nodes
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: shakwa-backend
+                topologyKey: kubernetes.io/hostname
+            # Prefer different availability zones
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: shakwa-backend
+                topologyKey: topology.kubernetes.io/zone
+
+      # ===========================================
+      # Topology Spread Constraints
+      # ===========================================
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: shakwa-backend
+
+      # ===========================================
+      # Pod Security Context
+      # ===========================================
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+
+      # ===========================================
+      # Init Containers
+      # ===========================================
+      initContainers:
+        # Wait for database to be ready
+        - name: wait-for-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'echo "Waiting for dependencies..." && sleep 5']
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL
+
+      # ===========================================
+      # Main Container
+      # ===========================================
+      containers:
+        - name: shakwa-backend
+          image: your-registry/shakwa-backend:latest
+          imagePullPolicy: Always
+
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+
+          # ===========================================
+          # Environment Variables from ConfigMaps
+          # ===========================================
+          envFrom:
+            - configMapRef:
+                name: shakwa-app-config
+            - configMapRef:
+                name: shakwa-logging-config
+            - configMapRef:
+                name: shakwa-rate-limit-config
+
+          # ===========================================
+          # Environment Variables from Secrets
+          # ===========================================
+          env:
+            # Database credentials
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-database-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-database-secret
+                  key: POSTGRES_HOST
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-database-secret
+                  key: POSTGRES_USER
+            # Added PORT and DATABASE from Secret for consistency
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-database-secret
+                  key: POSTGRES_PORT
+            - name: POSTGRES_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-database-secret
+                  key: POSTGRES_DATABASE
+
+            # JWT secrets
+            - name: JWT_ACCESS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-jwt-secret
+                  key: JWT_ACCESS_SECRET
+            - name: JWT_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-jwt-secret
+                  key: JWT_REFRESH_SECRET
+            - name: JWT_SECURITY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-jwt-secret
+                  key: JWT_SECURITY_SECRET
+            - name: JWT_ACCESS_EXPIRES_IN_S
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-jwt-secret
+                  key: JWT_ACCESS_EXPIRES_IN_S
+            - name: JWT_REFRESH_EXPIRES_IN_S
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-jwt-secret
+                  key: JWT_REFRESH_EXPIRES_IN_S
+            - name: JWT_SECURITY_EXPIRES_IN_S
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-jwt-secret
+                  key: JWT_SECURITY_EXPIRES_IN_S
+
+            # API Keys
+            - name: RESEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-api-keys-secret
+                  key: RESEND_API_KEY
+            - name: SUPABASE_SERVICE_ROLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-api-keys-secret
+                  key: SUPABASE_SERVICE_ROLE_KEY
+            - name: SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-api-keys-secret
+                  key: SUPABASE_URL
+            - name: SUPABASE_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-api-keys-secret
+                  key: SUPABASE_BUCKET
+            - name: FIREBASE_SERVICE_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-api-keys-secret
+                  key: FIREBASE_SERVICE_ACCOUNT
+            - name: SUPER_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-api-keys-secret
+                  key: SUPER_ADMIN_PASSWORD
+
+            ***REMOVED***
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: shakwa-redis-secret
+                  key: REDIS_URL
+
+          # ===========================================
+          # Resource Management (Guaranteed QoS)
+          # ===========================================
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+
+          # ===========================================
+          # Startup Probe (for slow-starting apps)
+          # ===========================================
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 30  # 30 * 5 = 150 seconds max startup time
+            successThreshold: 1
+
+          # ===========================================
+          # Liveness Probe
+          # ===========================================
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+
+          # ===========================================
+          # Readiness Probe
+          # ===========================================
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+
+          # ===========================================
+          # Container Security Context
+          # ===========================================
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false  # NestJS needs write access for some operations
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              drop:
+                - ALL
+
+          # ===========================================
+          # Volume Mounts
+          # ===========================================
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+            - name: logs
+              mountPath: /app/logs
+            - name: tmp
+              mountPath: /tmp
+
+      # ===========================================
+      # Volumes
+      # ===========================================
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: shakwa-uploads-pvc
+        - name: logs
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi

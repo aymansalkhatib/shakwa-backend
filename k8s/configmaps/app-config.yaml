@@ -1,0 +1,60 @@
+# =============================================================================
+# Shakwa Backend - Application ConfigMap
+# =============================================================================
+# Contains core application configuration settings
+# These are non-sensitive values that can be safely stored in version control
+#
+# Note: Sensitive values (passwords, API keys) should be in Secrets
+#
+# To apply:
+# kubectl apply -f configmaps/app-config.yaml
+#
+# To verify:
+# kubectl get configmap shakwa-app-config -n shakwa -o yaml
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shakwa-app-config
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: shakwa-platform
+    config-type: application
+  annotations:
+    description: 'Core application configuration for Shakwa Backend'
+# immutable: true  # Uncomment in production to prevent accidental changes
+data:
+  # ===========================================
+  # Application Environment
+  # ===========================================
+  NODE_ENV: 'production'
+  PORT: '3000'
+  APP_NAME: 'Shakwa'
+
+  # ===========================================
+  # Database Configuration (non-sensitive)
+  # ===========================================
+  # Note: Sensitive values (password, host) are in database-secret
+  POSTGRES_PORT: '5432'
+  POSTGRES_DATABASE: 'shakwa'
+
+  # ===========================================
+  # File Storage Configuration
+  # ===========================================
+  BASE_PATH: './uploads'
+  STORAGE_BUCKET: 'your-bucket-name'
+
+  # ===========================================
+  # Email Configuration
+  # ===========================================
+  SMTP_FROM: 'noreply@example.com'
+
+  # ===========================================
+  # Health Check Configuration
+  # ===========================================
+  HEALTH_CHECK_PATH: '/api/health'
+  READINESS_CHECK_PATH: '/api/health/ready'
+  LIVENESS_CHECK_PATH: '/api/health/live'

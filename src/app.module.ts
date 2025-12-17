@@ -37,6 +37,11 @@ import { CamelCaseMiddleware } from './common/middlewares/camel-case.middleware'
 import { ParseQueryMiddleware } from './common/middlewares/parse-query.middleware';
 
 // ========================================
+// Health Check (for Kubernetes probes)
+// ========================================
+import { HealthModule } from './common/health/health.module';
+
+// ========================================
 // Feature Modules
 // ========================================
 import { AuthModule } from './modules/auth/auth.module';
@@ -67,6 +72,9 @@ import { StorageModule } from './shared/services/storage/storage.module';
     AppTypeOrmModule,
     AppThrottlerModule,
     AppJwtModule,
+
+    // Health Check (Kubernetes probes)
+    HealthModule,
 
     // Services
     StorageModule,
@@ -165,6 +173,6 @@ import { StorageModule } from './shared/services/storage/storage.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggingMiddleware, ParseQueryMiddleware, CamelCaseMiddleware).forRoutes('*');
+    consumer.apply(LoggingMiddleware, ParseQueryMiddleware, CamelCaseMiddleware).forRoutes('/');
   }
 }

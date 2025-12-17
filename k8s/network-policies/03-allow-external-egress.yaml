@@ -1,0 +1,82 @@
+# =============================================================================
+# Allow Egress to External Services
+# =============================================================================
+# Allows backend pods to communicate with external services:
+# - DNS resolution (required for all external connections)
+# - PostgreSQL/Supabase (ports 5432, 5432)
+# - Redis (ports 6379, 16064)
+# - HTTPS APIs (ports 80, 443)
+#
+# Excludes private IP ranges for security
+# =============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-egress
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: network-security
+  annotations:
+    description: 'Allow egress to external services (DB, Redis, APIs)'
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: shakwa-backend
+  policyTypes:
+    - Egress
+  egress:
+    # DNS resolution (required for all external connections)
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+    # PostgreSQL (Supabase) - Standard and pooler ports
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8 # Private Class A
+              - 172.16.0.0/12 # Private Class B
+              - 192.168.0.0/16 # Private Class C
+      ports:
+        - protocol: TCP
+          port: 5432 # Standard PostgreSQL port
+        - protocol: TCP
+          port: 5432 ***REMOVED*** pooler port
+
+    ***REMOVED*** - Standard and cloud ports
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 6379 # Standard Redis port
+        - protocol: TCP
+          port: 16064 ***REMOVED*** Cloud port
+
+      # HTTPS/HTTP for external APIs (Supabase, Resend, Firebase, etc.)
+      - to:
+          - ipBlock:
+              cidr: 0.0.0.0/0
+              except:
+                - 10.0.0.0/8
+                - 172.16.0.0/12
+                - 192.168.0.0/16
+        ports:
+          - protocol: TCP
+            port: 443 # HTTPS
+          - protocol: TCP
+            port: 80 # HTTP

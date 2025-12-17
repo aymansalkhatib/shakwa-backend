@@ -1,0 +1,62 @@
+# =============================================================================
+# Shakwa Backend - Kubernetes Service
+# =============================================================================
+# ClusterIP service for internal load balancing
+# External access is handled by Ingress Controller
+#
+# Service types:
+# - ClusterIP (current): Internal access only, ideal with Ingress
+# - NodePort: Opens port on every node
+# - LoadBalancer: Creates external load balancer (additional cost)
+#
+# To verify the service:
+# kubectl get svc -n shakwa
+# kubectl describe svc shakwa-backend-service -n shakwa
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: shakwa-backend-service
+  namespace: shakwa
+  labels:
+    app.kubernetes.io/name: shakwa-backend
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: shakwa-platform
+  annotations:
+    # Service description
+    description: "Shakwa Backend API Service"
+
+    # Prometheus service discovery - for automatic service discovery
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3000"
+    prometheus.io/path: "/api/metrics"
+spec:
+  # ClusterIP for internal access (Ingress handles external)
+  type: ClusterIP
+
+  # Pod selector
+  selector:
+    app.kubernetes.io/name: shakwa-backend
+
+  # Port configuration
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+      protocol: TCP
+
+    # Metrics port (optional, for direct Prometheus scraping)
+    - name: metrics
+      port: 9090
+      targetPort: 3000
+      protocol: TCP
+
+  # Session affinity for stateful connections (optional)
+  # Remove if using JWT-based stateless authentication
+  sessionAffinity: None
+
+  # IP family configuration
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+    - IPv4
