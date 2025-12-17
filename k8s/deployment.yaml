@@ -29,14 +29,14 @@ metadata:
     app.kubernetes.io/name: shakwa-backend
     app.kubernetes.io/component: api
     app.kubernetes.io/part-of: shakwa-platform
-    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/version: '1.0.0'
     app.kubernetes.io/managed-by: kubectl
   annotations:
-    description: "Shakwa Backend API Deployment"
+    description: 'Shakwa Backend API Deployment'
     # Change cause - appears in rollout history
-    kubernetes.io/change-cause: "Initial deployment"
+    kubernetes.io/change-cause: 'Initial deployment'
 spec:
-  replicas: 3
+  replicas: 1
   revisionHistoryLimit: 5
   selector:
     matchLabels:
@@ -57,13 +57,13 @@ spec:
         app.kubernetes.io/part-of: shakwa-platform
       annotations:
         # Prometheus metrics scraping
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "3000"
-        prometheus.io/path: "/api/metrics"
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '3000'
+        prometheus.io/path: '/api/metrics'
 
         # Force rolling update on config changes (update manually when config changes)
         # To trigger a rolling update, change this value:
-        config-version: "v1.0.0"
+        config-version: 'v1.0.0'
 
     spec:
       # Service account for RBAC
@@ -119,10 +119,10 @@ spec:
       # Init Containers
       # ===========================================
       initContainers:
-        # Wait for database to be ready
+        # Quick initialization check
         - name: wait-for-db
           image: busybox:1.36
-          command: ['sh', '-c', 'echo "Waiting for dependencies..." && sleep 5']
+          command: ['sh', '-c', 'echo "Init complete"']
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -137,8 +137,8 @@ spec:
       # ===========================================
       containers:
         - name: shakwa-backend
-          image: your-registry/shakwa-backend:latest
-          imagePullPolicy: Always
+          image: aymanalkhatib/shakwa-api:latest
+          imagePullPolicy: IfNotPresent
 
           ports:
             - name: http
@@ -277,10 +277,10 @@ spec:
             httpGet:
               path: /api/health
               port: 3000
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 5
-            failureThreshold: 30  # 30 * 5 = 150 seconds max startup time
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 15 # 15 * 2 = 30 seconds max startup time
             successThreshold: 1
 
           # ===========================================
@@ -290,8 +290,8 @@ spec:
             httpGet:
               path: /api/health
               port: 3000
-            initialDelaySeconds: 0
-            periodSeconds: 10
+            initialDelaySeconds: 30
+            periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 3
             successThreshold: 1
@@ -303,8 +303,8 @@ spec:
             httpGet:
               path: /api/health
               port: 3000
-            initialDelaySeconds: 0
-            periodSeconds: 5
+            initialDelaySeconds: 10
+            periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
             successThreshold: 1
@@ -314,7 +314,7 @@ spec:
           # ===========================================
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false  # NestJS needs write access for some operations
+            readOnlyRootFilesystem: false # NestJS needs write access for some operations
             runAsNonRoot: true
             runAsUser: 1000
             runAsGroup: 1000

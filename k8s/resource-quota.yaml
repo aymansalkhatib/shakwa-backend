@@ -25,48 +25,48 @@ metadata:
     app.kubernetes.io/component: resource-management
     app.kubernetes.io/part-of: shakwa-platform
   annotations:
-    description: "Resource quota for Shakwa namespace"
+    description: 'Resource quota for Shakwa namespace'
 spec:
   hard:
     # ===========================================
     # Compute Resources
     # ===========================================
     # Total CPU requests across all pods
-    requests.cpu: "8"
+    requests.cpu: '8'
     # Total CPU limits across all pods
-    limits.cpu: "16"
+    limits.cpu: '16'
 
     # Total memory requests across all pods
-    requests.memory: "8Gi"
+    requests.memory: '8Gi'
     # Total memory limits across all pods
-    limits.memory: "16Gi"
+    limits.memory: '16Gi'
 
     # ===========================================
     # Storage Resources
     # ===========================================
     # Total persistent volume claims
-    persistentvolumeclaims: "5"
+    persistentvolumeclaims: '5'
     # Total storage requested
-    requests.storage: "50Gi"
+    requests.storage: '50Gi'
 
     # ===========================================
     # Object Count Limits
     # ===========================================
     # Maximum number of pods
-    pods: "20"
+    pods: '20'
     # Maximum number of services
-    services: "10"
+    services: '10'
     # Maximum number of secrets
-    secrets: "20"
+    secrets: '20'
     # Maximum number of configmaps
-    configmaps: "20"
+    configmaps: '20'
     # Maximum number of replication controllers
-    replicationcontrollers: "5"
+    replicationcontrollers: '5'
 
     # ===========================================
     # Service Type Limits
     # ===========================================
     # Limit LoadBalancer services (cost control)
-    services.loadbalancers: "0"
+    services.loadbalancers: '0'
     # Limit NodePort services
-    services.nodeports: "0"
+    services.nodeports: '2'
