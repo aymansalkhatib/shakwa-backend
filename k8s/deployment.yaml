@@ -137,7 +137,7 @@ spec:
       # ===========================================
       containers:
         - name: shakwa-backend
-          image: aymanalkhatib/shakwa-api:latest
+          image: us-central1-docker.pkg.dev/nestjs-core/shakwa-repo/shakwa-backend:latest
           imagePullPolicy: IfNotPresent
 
           ports:
@@ -338,8 +338,8 @@ spec:
       # ===========================================
       volumes:
         - name: uploads
-          persistentVolumeClaim:
-            claimName: shakwa-uploads-pvc
+          emptyDir:
+            sizeLimit: 5Gi
         - name: logs
           emptyDir:
             sizeLimit: 1Gi

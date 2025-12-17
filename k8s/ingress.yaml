@@ -36,8 +36,8 @@ metadata:
     # ===========================================
     # Automatic redirect from HTTP to HTTPS
     # Disabled for local testing - enable in production
-    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
-    nginx.ingress.kubernetes.io/force-ssl-redirect: 'false'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
     # Use cert-manager for Let's Encrypt certificates
     cert-manager.io/cluster-issuer: 'letsencrypt-prod'
 
@@ -117,17 +117,15 @@ spec:
   # ===========================================
   tls:
     - hosts:
-        - api.shakwa.com
-        - shakwa.yourdomain.com
+        - shakwa.35.224.36.164.nip.io
       secretName: shakwa-tls-secret
 
   # ===========================================
   # Routing Rules
   # ===========================================
   rules:
-    # Primary domain
-    - host: api.shakwa.com
-      http:
+    # Default rule (no host - accepts any domain/IP)
+    - http:
         paths:
           - path: /
             pathType: Prefix
@@ -137,8 +135,8 @@ spec:
                 port:
                   number: 80
 
-    # Secondary/staging domain (update as needed)
-    - host: shakwa.yourdomain.com
+    # Domain with SSL
+    - host: shakwa.35.224.36.164.nip.io
       http:
         paths:
           - path: /
