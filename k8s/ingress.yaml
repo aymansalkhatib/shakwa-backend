@@ -35,8 +35,9 @@ metadata:
     # TLS/SSL Configuration
     # ===========================================
     # Automatic redirect from HTTP to HTTPS
-    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+    # Disabled for local testing - enable in production
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'false'
     # Use cert-manager for Let's Encrypt certificates
     cert-manager.io/cluster-issuer: 'letsencrypt-prod'
 

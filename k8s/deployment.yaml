@@ -36,7 +36,7 @@ metadata:
     # Change cause - appears in rollout history
     kubernetes.io/change-cause: 'Initial deployment'
 spec:
-  replicas: 1
+  replicas: 5
   revisionHistoryLimit: 5
   selector:
     matchLabels:
