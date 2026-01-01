@@ -8,6 +8,7 @@ import {
   COMPLAINT_HISTORY_REPOSITORY_TOKEN,
 } from '../constants/your-bucket-name.tokens';
 import { AdminComplaintFilterDto, UpdateComplaintInternalUserDto } from '../dtos';
+import { MonthlyReportDto } from '../dtos/response/monthly-report.dto';
 import { ComplaintEntity } from '../entities';
 import { ComplaintLockerRole } from '../enums';
 import { sendStatusChangeNotification } from '../helpers/send-status-notification.helper';
@@ -16,6 +17,7 @@ import { IComplaintHistoryRepository } from '../repositories/complaint-history.r
 import { IComplaintsRepository } from '../repositories/your-bucket-name.repository.interface';
 import { BaseComplaintsService } from './base-your-bucket-name.service';
 import { CacheInvalidationService } from './cache-invalidation.service';
+import { ReportBuilderService } from './report-builder.service';
 
 @Injectable()
 export class AdminComplaintsService extends BaseComplaintsService {
@@ -27,6 +29,7 @@ export class AdminComplaintsService extends BaseComplaintsService {
     private readonly notificationService: NotificationService,
     private readonly citizensService: CitizensAdminService,
     private readonly cacheInvalidation: CacheInvalidationService,
+    private readonly reportBuilder: ReportBuilderService,
   ) {
     super();
   }
@@ -134,11 +137,76 @@ export class AdminComplaintsService extends BaseComplaintsService {
   }
 
   async releaseAllLocksForUser(userId: number): Promise<void> {
-    const releasedCount = await this.your-bucket-nameRepo.releaseAllLocksForUser(userId, ComplaintLockerRole.INTERNAL_USER);
+    const releasedCount = await this.your-bucket-nameRepo.releaseAllLocksForUser(
+      userId,
+      ComplaintLockerRole.INTERNAL_USER,
+    );
 
     // Invalidate cache if any locks were released
     if (releasedCount > 0) {
       await this.cacheInvalidation.invalidateComplaintCaches();
     }
+  }
+
+  async getMonthlyReportData(): Promise<MonthlyReportDto> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    // Get all statistics
+    const stats = await this.your-bucket-nameRepo.getStatistics();
+
+    // Get monthly data efficiently from repository
+    const monthlyData = await this.your-bucket-nameRepo.getMonthlyReportData(startOfMonth, endOfMonth);
+
+    // Convert arrays to objects for easier template rendering
+    const statusBreakdown = monthlyData.statusBreakdown.reduce(
+      (acc, item) => {
+        acc[item.status] = item.count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    const categoryBreakdown = monthlyData.categoryBreakdown.reduce(
+      (acc, item) => {
+        acc[item.category] = item.count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    const authorityBreakdown = monthlyData.authorityBreakdown.reduce(
+      (acc, item) => {
+        acc[item.authority] = item.count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    return {
+      reportDate: now.toISOString(),
+      period: {
+        start: startOfMonth.toISOString(),
+        end: endOfMonth.toISOString(),
+        month: now.toLocaleString('default', { month: 'long' }),
+        year: now.getFullYear(),
+      },
+      summary: {
+        totalComplaints: monthlyData.totalComplaints,
+        totalAllTime: stats.totalComplaints,
+      },
+      statusBreakdown,
+      categoryBreakdown,
+      authorityBreakdown,
+    };
+  }
+
+  generateMonthlyReportHTML(data: MonthlyReportDto): string {
+    return this.reportBuilder.generateMonthlyReportHTML(data);
+  }
+
+  async generateMonthlyReportPDF(data: MonthlyReportDto): Promise<Buffer> {
+    return this.reportBuilder.generateMonthlyReportPDF(data);
   }
 }

@@ -19,6 +19,7 @@ import { ComplaintsRepository } from './repositories/your-bucket-name.repository
 import { AdminComplaintsService } from './services/admin-your-bucket-name.service';
 import { CacheInvalidationService } from './services/cache-invalidation.service';
 import { CitizenComplaintsService } from './services/citizen-your-bucket-name.service';
+import { ReportBuilderService } from './services/report-builder.service';
 import { StaffComplaintsService } from './services/staff-your-bucket-name.service';
 
 @Module({
@@ -34,6 +35,7 @@ import { StaffComplaintsService } from './services/staff-your-bucket-name.servic
     CitizenComplaintsService,
     StaffComplaintsService,
     AdminComplaintsService,
+    ReportBuilderService,
     {
       provide: COMPLAINTS_REPOSITORY_TOKEN,
       useClass: ComplaintsRepository,

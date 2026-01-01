@@ -42,6 +42,12 @@ import { ParseQueryMiddleware } from './common/middlewares/parse-query.middlewar
 import { HealthModule } from './common/health/health.module';
 
 // ========================================
+// Audit Logging
+// ========================================
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
+import { AuditModule } from './modules/audit';
+
+// ========================================
 // Feature Modules
 // ========================================
 import { AuthModule } from './modules/auth/auth.module';
@@ -75,6 +81,9 @@ import { StorageModule } from './shared/services/storage/storage.module';
 
     // Health Check (Kubernetes probes)
     HealthModule,
+
+    // Audit Logging
+    AuditModule,
 
     // Services
     StorageModule,
@@ -160,6 +169,10 @@ import { StorageModule } from './shared/services/storage/storage.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
     },
 
     // ========================================

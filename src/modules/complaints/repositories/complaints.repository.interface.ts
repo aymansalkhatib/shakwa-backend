@@ -27,6 +27,8 @@ export interface IComplaintsRepository {
 
   getStatistics(authority?: ComplaintAuthority): Promise<IComplaintStatistics>;
 
+  getMonthlyReportData(startDate: Date, endDate: Date): Promise<IMonthlyReportData>;
+
   lock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<ComplaintEntity>;
 
   releaseLock(id: number, lockerId: number, lockerRole: ComplaintLockerRole): Promise<void>;
@@ -34,4 +36,11 @@ export interface IComplaintsRepository {
   releaseAllLocksForUser(lockerId: number, lockerRole: ComplaintLockerRole): Promise<number>;
 
   withManager(manager: EntityManager): IComplaintsRepository;
+}
+
+export interface IMonthlyReportData {
+  totalComplaints: number;
+  statusBreakdown: Array<{ status: string; count: number }>;
+  categoryBreakdown: Array<{ category: string; count: number }>;
+  authorityBreakdown: Array<{ authority: string; count: number }>;
 }

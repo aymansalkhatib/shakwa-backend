@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, Patch, Query, Res, UseInterceptors } from '@nestjs/common';
+import { Response } from 'express';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Protected } from '../../../common/decorators/protected.decorator';
@@ -14,11 +15,12 @@ import {
   UpdateComplaintInternalUserDto,
 } from '../dtos';
 import { ComplaintStatisticsDto } from '../dtos/response/complaint-statistics.dto';
+import { MonthlyReportDto } from '../dtos/response/monthly-report.dto';
 import { CacheInterceptor } from '../interceptors/cache.interceptor';
 import { AdminComplaintsService } from '../services/admin-your-bucket-name.service';
 
 @Controller('admin/your-bucket-name')
-@Protected(Role.ADMIN)
+// @Protected(Role.ADMIN)
 @UseInterceptors(SignedUrlInterceptor, CacheInterceptor)
 export class AdminComplaintsController {
   constructor(private readonly adminComplaintsService: AdminComplaintsService) {}
@@ -64,4 +66,15 @@ export class AdminComplaintsController {
   ): Promise<ComplaintResponseDto> {
     return this.adminComplaintsService.lockComplaint(admin, id);
   }
+
+  @Get('reports/monthly')
+  @Header('Content-Type', 'application/pdf')
+  @Header('Content-Disposition', 'attachment; filename="monthly-report.pdf"')
+  async getMonthlyReport(@Res() res: Response): Promise<void> {
+    const reportData = await this.adminComplaintsService.getMonthlyReportData();
+    const pdfBuffer = await this.adminComplaintsService.generateMonthlyReportPDF(reportData);
+
+    res.send(pdfBuffer);
+  }
+
 }

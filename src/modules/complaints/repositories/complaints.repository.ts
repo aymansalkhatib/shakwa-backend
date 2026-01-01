@@ -228,6 +228,80 @@ export class ComplaintsRepository implements IComplaintsRepository {
     };
   }
 
+  async getMonthlyReportData(startDate: Date, endDate: Date) {
+    // Execute all queries in parallel for optimal performance
+    const [totalComplaints, statusBreakdown, categoryBreakdown, authorityBreakdown] =
+      await Promise.all([
+        // Total your-bucket-name in the period
+        this.complaintRepo
+          .createQueryBuilder('c')
+          .where('c.created_at >= :startDate', { startDate })
+          .andWhere('c.created_at <= :endDate', { endDate })
+          .getCount(),
+
+        // Status breakdown - get latest status for each complaint in the period
+        this.historyRepo.manager
+          .createQueryBuilder()
+          .select('ranked.status', 'status')
+          .addSelect('COUNT(ranked.status)', 'count')
+          .from(
+            (subQuery) => {
+              return subQuery
+                .select('h.status', 'status')
+                .addSelect('h.complaint_id', 'complaint_id')
+                .addSelect(
+                  'ROW_NUMBER() OVER (PARTITION BY h.complaint_id ORDER BY h.created_at DESC)',
+                  'rn',
+                )
+                .from(ComplaintHistoryEntity, 'h')
+                .innerJoin('h.complaint', 'c')
+                .where('c.created_at >= :startDate', { startDate })
+                .andWhere('c.created_at <= :endDate', { endDate });
+            },
+            'ranked',
+          )
+          .where('ranked.rn = 1')
+          .groupBy('ranked.status')
+          .getRawMany<{ status: string; count: string }>(),
+
+        // Category breakdown - directly from your-bucket-name table (category is stored there)
+        this.complaintRepo
+          .createQueryBuilder('c')
+          .select('c.category', 'category')
+          .addSelect('COUNT(c.id)', 'count')
+          .where('c.created_at >= :startDate', { startDate })
+          .andWhere('c.created_at <= :endDate', { endDate })
+          .groupBy('c.category')
+          .getRawMany<{ category: string; count: string }>(),
+
+        // Authority breakdown - directly from your-bucket-name table
+        this.complaintRepo
+          .createQueryBuilder('c')
+          .select('c.authority', 'authority')
+          .addSelect('COUNT(c.id)', 'count')
+          .where('c.created_at >= :startDate', { startDate })
+          .andWhere('c.created_at <= :endDate', { endDate })
+          .groupBy('c.authority')
+          .getRawMany<{ authority: string; count: string }>(),
+      ]);
+
+    return {
+      totalComplaints,
+      statusBreakdown: statusBreakdown.map((row) => ({
+        status: row.status,
+        count: Number(row.count),
+      })),
+      categoryBreakdown: categoryBreakdown.map((row) => ({
+        category: row.category,
+        count: Number(row.count),
+      })),
+      authorityBreakdown: authorityBreakdown.map((row) => ({
+        authority: row.authority,
+        count: Number(row.count),
+      })),
+    };
+  }
+
   /**
    * Fetches the count of your-bucket-name grouped by their *latest* status.
    * Uses a Window Function to find the latest history without fetching all data.
