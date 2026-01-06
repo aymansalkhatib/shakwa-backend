@@ -30,11 +30,11 @@ import { AppService } from './app.service';
 // ========================================
 // Common (Guards, Interceptors, Middlewares)
 // ========================================
-import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 import { SnakeCaseInterceptor } from './common/interceptors/snake-case.interceptor';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { CamelCaseMiddleware } from './common/middlewares/camel-case.middleware';
 import { ParseQueryMiddleware } from './common/middlewares/parse-query.middleware';
+import { AuditInterceptor } from './modules/audit';
 
 // ========================================
 // Health Check (for Kubernetes probes)
@@ -52,6 +52,8 @@ import { UploadModule } from './modules/uploads/upload.module';
 // ========================================
 // Shared Modules & Services
 // ========================================
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
+import { AuditModule } from './modules/audit';
 import { ErrorHandlerFactory } from './shared/exceptions-filter/error-handler.factory';
 import { GlobalExceptionFilter } from './shared/exceptions-filter/global-exception.filter';
 import { AppConfigModule } from './shared/modules/app-config/app-config.module';
@@ -80,6 +82,12 @@ import { StorageModule } from './shared/services/storage/storage.module';
     StorageModule,
     RedisModule,
 
+    // Audit & Logging
+    AuditModule,
+
+    // Health Check (for Kubernetes probes)
+    HealthModule,
+    
     // Feature Modules
     CitizensModule,
     AuthModule,
@@ -151,6 +159,10 @@ import { StorageModule } from './shared/services/storage/storage.module';
     // ========================================
     {
       provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
     },
     {
@@ -165,10 +177,10 @@ import { StorageModule } from './shared/services/storage/storage.module';
     // ========================================
     // Global Guards
     // ========================================
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: CustomThrottlerGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: CustomThrottlerGuard,
+    },
   ],
 })
 export class AppModule implements NestModule {

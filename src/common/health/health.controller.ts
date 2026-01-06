@@ -13,13 +13,11 @@
  */
 
 import { Controller, Get } from '@nestjs/common';
-import {
-    HealthCheck,
-    HealthCheckService,
-    TypeOrmHealthIndicator,
-} from '@nestjs/terminus';
+import { HealthCheck, HealthCheckService, TypeOrmHealthIndicator } from '@nestjs/terminus';
+import { SkipAudit } from '../../modules/audit';
 
 @Controller('health')
+@SkipAudit()
 export class HealthController {
   constructor(
     private health: HealthCheckService,

@@ -34,7 +34,6 @@ export class TransformInterceptor<T> implements NestInterceptor<T, any> {
             podName,
             nodeName,
             namespace,
-            "Who":"K8S"
           },
         };
       }),

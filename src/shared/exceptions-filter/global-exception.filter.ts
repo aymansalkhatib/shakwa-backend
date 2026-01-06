@@ -102,10 +102,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         logContext,
       );
     } else if (errorResponse.statusCode >= 400) {
-      this.logger.warn(
-        `Request client error: ${request?.method || 'UNKNOWN'} ${request?.originalUrl || request?.url || 'UNKNOWN'}`,
-        logContext,
-      );
+      // this.logger.warn(
+      //   `Request client error: ${request?.method || 'UNKNOWN'} ${request?.originalUrl || request?.url || 'UNKNOWN'}`,
+      //   logContext,
+      // );
     } else {
       this.logger.error(
         `Request error: ${request?.method || 'UNKNOWN'} ${request?.originalUrl || request?.url || 'UNKNOWN'}`,
