@@ -1,3 +1,4 @@
+import { EnvironmentConfig } from '@app/shared/modules/app-config';
 import { StorageFileInfo } from '@app/shared/services/storage/interfaces';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -7,7 +8,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as zlib from 'zlib';
-import { BackupResult, RestoreResult } from '../interfaces';
 import { BackupStorageService } from './backup-storage.service';
 
 const execAsync = promisify(exec);
@@ -19,7 +19,7 @@ export class BackupService {
   private isRestoreRunning = false;
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<EnvironmentConfig>,
     private readonly storageService: BackupStorageService,
   ) {
     this.tempDir = path.join(process.cwd(), 'temp', 'backups');
@@ -34,11 +34,11 @@ export class BackupService {
 
   private getDbConfig() {
     return {
-      host: this.configService.get<string>('DB_HOST', 'localhost'),
-      port: this.configService.get<number>('DB_PORT', 5432),
-      database: this.configService.get<string>('DB_NAME'),
-      username: this.configService.get<string>('DB_USERNAME'),
-      password: this.configService.get<string>('DB_PASSWORD'),
+      host: this.configService.get<string>('POSTGRES_HOST', 'localhost'),
+      port: this.configService.get<number>('POSTGRES_PORT', 5432),
+      database: this.configService.get<string>('POSTGRES_DATABASE'),
+      username: this.configService.get<string>('POSTGRES_USER'),
+      password: this.configService.get<string>('POSTGRES_PASSWORD'),
     };
   }
 
@@ -65,7 +65,7 @@ export class BackupService {
   /**
    * Create a full database backup
    */
-  async createBackup(): Promise<BackupResult> {
+  async createBackup(): Promise<any> {
     if (this.isBackupRunning) {
       throw new BadRequestException('A backup is already in progress');
     }
@@ -118,7 +118,6 @@ export class BackupService {
       const duration = Date.now() - startTime;
 
       return {
-        success: true,
         fileName,
         size: stats.size,
         duration,
@@ -139,7 +138,7 @@ export class BackupService {
   /**
    * Restore database from a backup
    */
-  async restoreBackup(fileName: string): Promise<RestoreResult> {
+  async restoreBackup(fileName: string): Promise<any> {
     if (this.isRestoreRunning) {
       throw new BadRequestException('A restore is already in progress');
     }
@@ -196,7 +195,6 @@ export class BackupService {
       const duration = Date.now() - startTime;
 
       return {
-        success: true,
         fileName,
         duration,
         restoredAt: new Date().toISOString(),
@@ -206,7 +204,12 @@ export class BackupService {
       [gzFilePath, sqlFilePath].forEach((f) => {
         if (fs.existsSync(f)) fs.unlinkSync(f);
       });
-      throw error;
+
+      if (error instanceof Error) {
+        throw new BadRequestException(`Restore failed: ${error.message}`);
+      } else {
+        throw new BadRequestException('Restore failed with unknown error');
+      }
     } finally {
       this.isRestoreRunning = false;
     }
@@ -223,7 +226,11 @@ export class BackupService {
    * Get download URL for a backup
    */
   async getBackupDownloadUrl(fileName: string): Promise<string> {
-    return this.storageService.getDownloadUrl(fileName);
+    try {
+      return await this.storageService.getDownloadUrl(fileName);
+    } catch (error) {
+      throw new BadRequestException('Backup file not found');
+    }
   }
 
   /**
