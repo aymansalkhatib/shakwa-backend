@@ -54,6 +54,7 @@ import { UploadModule } from './modules/uploads/upload.module';
 // ========================================
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 import { AuditModule } from './modules/audit';
+import { BackupModule } from './modules/backup/backup.module';
 import { ErrorHandlerFactory } from './shared/exceptions-filter/error-handler.factory';
 import { GlobalExceptionFilter } from './shared/exceptions-filter/global-exception.filter';
 import { AppConfigModule } from './shared/modules/app-config/app-config.module';
@@ -85,9 +86,12 @@ import { StorageModule } from './shared/services/storage/storage.module';
     // Audit & Logging
     AuditModule,
 
+    // Backup System
+    BackupModule,
+
     // Health Check (for Kubernetes probes)
     HealthModule,
-    
+
     // Feature Modules
     CitizensModule,
     AuthModule,

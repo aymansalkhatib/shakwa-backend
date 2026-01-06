@@ -6,6 +6,7 @@ import { RedisService } from '../../../redis';
 import {
   MultiDeleteOptions,
   MultiUploadOptions,
+  StorageFileInfo,
   StorageOptions,
   UploadResult,
 } from '../../interfaces';
@@ -101,5 +102,34 @@ export class SupabaseStorageProvider extends AbstractStorageProvider {
     const path = this.sanitizePath(filePath);
     const { data } = await this.supabase.storage.from(this.bucket).exists(path);
     return data;
+  }
+
+  async download(filePath: string): Promise<Buffer> {
+    const path = this.sanitizePath(filePath);
+    const { data, error } = await this.supabase.storage.from(this.bucket).download(path);
+
+    if (error) {
+      throw new Error('Failed to download file from storage.');
+    }
+
+    return Buffer.from(await data.arrayBuffer());
+  }
+
+  async list(directory: string): Promise<StorageFileInfo[]> {
+    const path = this.sanitizePath(directory);
+    const { data, error } = await this.supabase.storage.from(this.bucket).list(path, {
+      sortBy: { column: 'created_at', order: 'desc' },
+    });
+
+    if (error) {
+      throw new Error('Failed to list files from storage.');
+    }
+
+    return data.map((file) => ({
+      name: file.name,
+      size: file.metadata?.size || 0,
+      createdAt: file.created_at,
+      path: `${path}/${file.name}`,
+    }));
   }
 }

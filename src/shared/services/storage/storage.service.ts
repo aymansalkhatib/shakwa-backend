@@ -1,8 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { STORAGE_PROVIDER_SERVICE } from './constants/storage.token';
-import { MultiDeleteOptions, MultiUploadOptions, UploadResult } from './interfaces';
-import { StorageOptions } from './interfaces/storage-options.interface';
-import { IStorageProvider } from './interfaces/storage-provider.interface';
+import {
+  IStorageProvider,
+  MultiDeleteOptions,
+  MultiUploadOptions,
+  StorageFileInfo,
+  StorageOptions,
+  UploadResult,
+} from './interfaces';
 
 @Injectable()
 export class StorageService {
@@ -36,5 +41,13 @@ export class StorageService {
 
   async exists(path: string): Promise<boolean> {
     return this.storageProvider.exists(path);
+  }
+
+  async download(path: string): Promise<Buffer> {
+    return this.storageProvider.download(path);
+  }
+
+  async list(directory: string): Promise<StorageFileInfo[]> {
+    return this.storageProvider.list(directory);
   }
 }
