@@ -28,9 +28,15 @@ export class AuditService {
     res: Response,
     responseBody: any,
     durationMs: number,
-    error?: Error,
+    error?: any,
   ): Partial<AuditLogEntity> {
-    const user = (req as any).user;
+    const user = req.user;
+
+    // Determine status code - for errors, extract from error or use 500
+    let statusCode = res.statusCode;
+    if (error) {
+      statusCode = error.status || error.statusCode || error.getStatus?.() || 500;
+    }
 
     return {
       // Request Info
@@ -41,12 +47,12 @@ export class AuditService {
       requestHeaders: this.sanitizeHeaders(req.headers),
 
       // Response Info
-      statusCode: res.statusCode,
+      statusCode,
       responseBody: this.sanitizeResponse(responseBody),
       errorMessage: error?.message || null,
 
       // User & Auth
-      userId: user?.id || user?.sub || null,
+      userId: user?.id || null,
       userType: this.getUserType(user),
       accessToken: this.extractToken(req),
 
