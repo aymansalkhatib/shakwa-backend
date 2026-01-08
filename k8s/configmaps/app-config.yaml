@@ -46,6 +46,7 @@ data:
   # ===========================================
   BASE_PATH: './uploads'
   STORAGE_BUCKET: 'your-bucket-name'
+  BACKUP_STORAGE_FOLDER=backups
 
   # ===========================================
   # Email Configuration

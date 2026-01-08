@@ -2,7 +2,7 @@
 FROM node:22-alpine AS builder
 
 # Install basic system libraries (needed by some native Node modules)
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++
 
 # Development environment for building
 ENV NODE_ENV=development
@@ -30,7 +30,7 @@ FROM node:22-alpine AS runner
 ENV NODE_ENV=production
 
 # Install basic system libraries (same as builder if needed by runtime deps)
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++
 
 # Set working directory
 WORKDIR /usr/src/app
@@ -45,13 +45,13 @@ RUN npm ci --omit=dev
 COPY --from=builder /usr/src/app/dist ./dist
 
 # # Create non-root user for better security
-# RUN addgroup -S app && adduser -S app -G app
+RUN addgroup -S app && adduser -S app -G app
 
 # # Ensure proper ownership of the app directory
-# RUN chown -R app:app /usr/src/app
+RUN chown -R app:app /usr/src/app
 
 # # Switch to non-root user
-# USER app
+USER app
 
 # Default application port (can be overridden by the platform)
 ENV PORT=3000
