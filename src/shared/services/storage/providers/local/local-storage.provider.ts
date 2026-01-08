@@ -6,6 +6,7 @@ import { EnvironmentConfig } from '../../../../modules/app-config';
 import {
   MultiDeleteOptions,
   MultiUploadOptions,
+  StorageFileInfo,
   StorageOptions,
   UploadResult,
 } from '../../interfaces';
@@ -96,6 +97,40 @@ export class LocalStorageProvider extends AbstractStorageProvider {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  async download(filePath: string): Promise<Buffer> {
+    const fullPath = path.join(this.basePath, this.sanitizePath(filePath));
+    return fs.readFile(fullPath);
+  }
+
+  async list(directory: string): Promise<StorageFileInfo[]> {
+    const fullPath = path.join(this.basePath, this.sanitizePath(directory));
+
+    try {
+      const files = await fs.readdir(fullPath);
+      const fileInfos: StorageFileInfo[] = [];
+
+      for (const file of files) {
+        const filePath = path.join(fullPath, file);
+        const stats = await fs.stat(filePath);
+
+        if (stats.isFile()) {
+          fileInfos.push({
+            name: file,
+            size: stats.size,
+            createdAt: stats.birthtime.toISOString(),
+            path: `${directory}/${file}`,
+          });
+        }
+      }
+
+      return fileInfos.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+    } catch {
+      return [];
     }
   }
 }

@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import {
   MultiDeleteOptions,
   MultiUploadOptions,
+  StorageFileInfo,
   StorageOptions,
   UploadResult,
 } from '../interfaces';
@@ -14,6 +15,8 @@ export abstract class AbstractStorageProvider implements IStorageProvider {
   abstract getUrl(path: string): Promise<string>;
   abstract deleteMultiple(options: MultiDeleteOptions): Promise<void>;
   abstract exists(path: string): Promise<boolean>;
+  abstract download(path: string): Promise<Buffer>;
+  abstract list(directory: string): Promise<StorageFileInfo[]>;
 
   protected validateFile(file: Buffer): void {
     if (!file || file.length === 0) {

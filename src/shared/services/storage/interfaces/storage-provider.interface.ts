@@ -1,5 +1,6 @@
 import { MultiDeleteOptions } from './multi-delete-options.interface';
 import { MultiUploadOptions } from './multi-upload-options.interface';
+import { StorageFileInfo } from './storage-file-info.interface';
 import { StorageOptions } from './storage-options.interface';
 import { UploadResult } from './upload-result.interface';
 
@@ -54,4 +55,18 @@ export interface IStorageProvider {
    * @returns True if file exists, false otherwise
    */
   exists(path: string): Promise<boolean>;
+
+  /**
+   * Download a file from storage
+   * @param path - The path of the file to download
+   * @returns File buffer
+   */
+  download(path: string): Promise<Buffer>;
+
+  /**
+   * List files in a directory
+   * @param directory - The directory path to list
+   * @returns Array of file info
+   */
+  list(directory: string): Promise<StorageFileInfo[]>;
 }
