@@ -1,18 +1,18 @@
 #!/bin/sh
 
-URL="http://127.0.0.1:8080/api"
-COUNT=200
+URL="http://127.0.0.1:65523/api"
+COUNT=100
+CONCURRENCY=10
 
-echo "Sending $COUNT requests..."
+echo "Sending $COUNT requests with concurrency=$CONCURRENCY ..."
 
-i=1
-while [ $i -le $COUNT ]; do
-  curl -s "$URL" \
-    | grep -o '"podName"[[:space:]]*:[[:space:]]*"[^"]*"' \
-    | cut -d':' -f2 \
-    | tr -d ' "'
-  i=$((i + 1))
-done \
+seq "$COUNT" \
+| xargs -n1 -P "$CONCURRENCY" sh -c '
+  curl -s "$0" \
+  | grep -o "\"podName\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" \
+  | cut -d":" -f2 \
+  | tr -d " \""
+' "$URL" \
 | sort \
 | uniq -c \
-| awk '{ printf "%s: %s\n", $2, $1 }'
+| awk "{ printf \"%s: %s\n\", \$2, \$1 }"
