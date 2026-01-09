@@ -137,7 +137,7 @@ spec:
       # ===========================================
       containers:
         - name: shakwa-backend
-          image: us-central1-docker.pkg.dev/nestjs-core/shakwa-repo/shakwa-backend:latest
+          image: docker.io/library/shakwa:latest
           imagePullPolicy: IfNotPresent
 
           ports:
@@ -275,7 +275,7 @@ spec:
           # ===========================================
           startupProbe:
             httpGet:
-              path: /api/health
+              path: /api
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 2
@@ -288,7 +288,7 @@ spec:
           # ===========================================
           livenessProbe:
             httpGet:
-              path: /api/health
+              path: /api
               port: 3000
             initialDelaySeconds: 30
             periodSeconds: 15
@@ -301,7 +301,7 @@ spec:
           # ===========================================
           readinessProbe:
             httpGet:
-              path: /api/health
+              path: /api
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 10

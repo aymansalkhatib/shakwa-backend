@@ -1,191 +1,74 @@
 # =============================================================================
 # Shakwa Backend - ServiceMonitor (Prometheus Operator)
 # =============================================================================
-# Enables automatic Prometheus metrics scraping
-# Requirements: Prometheus Operator must be installed in the cluster
+# DISABLED FOR LOCAL DEVELOPMENT
+# Requires Prometheus Operator CRDs to be installed
 #
-# To verify Prometheus Operator is installed:
-# kubectl get crd | grep monitoring.coreos.com
-#
-# To verify ServiceMonitor discovery:
-# kubectl get servicemonitor -n shakwa
+# To enable monitoring, install Prometheus Operator first:
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
 # =============================================================================
 
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: shakwa-backend-monitor
-  namespace: shakwa
-  labels:
-    app.kubernetes.io/name: shakwa-backend
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: shakwa-platform
-    # Label required for Prometheus Operator to discover this ServiceMonitor
-    # Ensure this matches serviceMonitorSelector in Prometheus CR
-    release: prometheus
-  annotations:
-    description: "Prometheus ServiceMonitor for Shakwa Backend"
-spec:
-  # ===========================================
-  # Selector for target Service
-  # ===========================================
-  # Must match labels in the Service
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: shakwa-backend
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: shakwa-backend-monitor
+#   namespace: shakwa
+#   labels:
+#     app.kubernetes.io/name: shakwa-backend
+#     app.kubernetes.io/component: monitoring
+#     app.kubernetes.io/part-of: shakwa-platform
+#     release: prometheus
+#   annotations:
+#     description: "Prometheus ServiceMonitor for Shakwa Backend"
+# spec:
+#   selector:
+#     matchLabels:
+#       app.kubernetes.io/name: shakwa-backend
+#   namespaceSelector:
+#     matchNames:
+#       - shakwa
+#   endpoints:
+#     - port: http
+#       path: /api/metrics
+#       interval: 30s
+#       scrapeTimeout: 10s
+#       scheme: http
+#       honorLabels: true
+#       relabelings:
+#         - sourceLabels: [__meta_kubernetes_pod_name]
+#           targetLabel: pod
+#         - sourceLabels: [__meta_kubernetes_namespace]
+#           targetLabel: namespace
+#         - sourceLabels: [__meta_kubernetes_service_name]
+#           targetLabel: service
 
-  # ===========================================
-  # Namespace selector
-  # ===========================================
-  # Specify the namespace containing the Service
-  namespaceSelector:
-    matchNames:
-      - shakwa
-
-  # ===========================================
-  # Endpoints to scrape
-  # ===========================================
-  endpoints:
-    - port: http
-      # Metrics endpoint path in the application
-      path: /api/metrics
-      # Metrics collection interval (every 30 seconds)
-      interval: 30s
-      # Connection timeout
-      scrapeTimeout: 10s
-      scheme: http
-
-      # Honor labels from the target
-      honorLabels: true
-
-      # Label relabeling - to add useful information
-      relabelings:
-        # Add Pod name
-        - sourceLabels: [__meta_kubernetes_pod_name]
-          targetLabel: pod
-        # Add Namespace name
-        - sourceLabels: [__meta_kubernetes_namespace]
-          targetLabel: namespace
-        # Add Service name
-        - sourceLabels: [__meta_kubernetes_service_name]
-          targetLabel: service
-
-      # Metric relabeling (optional)
-      # Note: Commented out go_* drop since NestJS doesn't use Go metrics
-      # You can add rules to drop unwanted metrics
-      # metricRelabelings:
-      #   - sourceLabels: [__name__]
-      #     regex: 'unwanted_metric_.*'
-      #     action: drop
-
----
-# ===========================================
-# PrometheusRule for Alerting
-# ===========================================
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  name: shakwa-backend-alerts
-  namespace: shakwa
-  labels:
-    app.kubernetes.io/name: shakwa-backend
-    app.kubernetes.io/component: alerting
-    app.kubernetes.io/part-of: shakwa-platform
-    release: prometheus
-  annotations:
-    description: "Prometheus alerting rules for Shakwa Backend"
-spec:
-  groups:
-    - name: shakwa-backend.rules
-      rules:
-        # ===========================================
-        # High Error Rate Alert
-        # ===========================================
-        - alert: ShakwaHighErrorRate
-          expr: |
-            sum(rate(http_requests_total{namespace="shakwa", status=~"5.."}[5m]))
-            /
-            sum(rate(http_requests_total{namespace="shakwa"}[5m])) > 0.05
-          for: 5m
-          labels:
-            severity: critical
-            service: shakwa-backend
-          annotations:
-            summary: "High error rate detected in Shakwa Backend"
-            description: "Error rate is above 5% for the last 5 minutes"
-
-        # ===========================================
-        # High Response Time Alert
-        # ===========================================
-        - alert: ShakwaHighLatency
-          expr: |
-            histogram_quantile(0.95,
-              sum(rate(http_request_duration_seconds_bucket{namespace="shakwa"}[5m])) by (le)
-            ) > 2
-          for: 5m
-          labels:
-            severity: warning
-            service: shakwa-backend
-          annotations:
-            summary: "High latency detected in Shakwa Backend"
-            description: "95th percentile response time is above 2 seconds"
-
-        # ===========================================
-        # Pod Not Ready Alert
-        # ===========================================
-        - alert: ShakwaPodNotReady
-          expr: |
-            kube_pod_status_ready{namespace="shakwa", condition="true"} == 0
-          for: 5m
-          labels:
-            severity: warning
-            service: shakwa-backend
-          annotations:
-            summary: "Shakwa Backend pod not ready"
-            description: "Pod {{ $labels.pod }} has been not ready for 5 minutes"
-
-        # ===========================================
-        # High Memory Usage Alert
-        # ===========================================
-        - alert: ShakwaHighMemoryUsage
-          expr: |
-            container_memory_usage_bytes{namespace="shakwa", container="shakwa-backend"}
-            /
-            container_spec_memory_limit_bytes{namespace="shakwa", container="shakwa-backend"} > 0.9
-          for: 5m
-          labels:
-            severity: warning
-            service: shakwa-backend
-          annotations:
-            summary: "High memory usage in Shakwa Backend"
-            description: "Memory usage is above 90% of limit"
-
-        # ===========================================
-        # High CPU Usage Alert
-        # ===========================================
-        - alert: ShakwaHighCPUUsage
-          expr: |
-            rate(container_cpu_usage_seconds_total{namespace="shakwa", container="shakwa-backend"}[5m])
-            /
-            container_spec_cpu_quota{namespace="shakwa", container="shakwa-backend"} * 100000 > 0.9
-          for: 5m
-          labels:
-            severity: warning
-            service: shakwa-backend
-          annotations:
-            summary: "High CPU usage in Shakwa Backend"
-            description: "CPU usage is above 90% of limit"
-
-        # ===========================================
-        # Pod Restart Alert
-        # ===========================================
-        - alert: ShakwaPodRestarting
-          expr: |
-            increase(kube_pod_container_status_restarts_total{namespace="shakwa"}[1h]) > 3
-          for: 5m
-          labels:
-            severity: warning
-            service: shakwa-backend
-          annotations:
-            summary: "Shakwa Backend pod restarting frequently"
-            description: "Pod {{ $labels.pod }} has restarted more than 3 times in the last hour"
+# ---
+# apiVersion: monitoring.coreos.com/v1
+# kind: PrometheusRule
+# metadata:
+#   name: shakwa-backend-alerts
+#   namespace: shakwa
+#   labels:
+#     app.kubernetes.io/name: shakwa-backend
+#     app.kubernetes.io/component: alerting
+#     app.kubernetes.io/part-of: shakwa-platform
+#     release: prometheus
+#   annotations:
+#     description: "Prometheus alerting rules for Shakwa Backend"
+# spec:
+#   groups:
+#     - name: shakwa-backend.rules
+#       rules:
+#         - alert: ShakwaHighErrorRate
+#           expr: |
+#             sum(rate(http_requests_total{namespace="shakwa", status=~"5.."}[5m]))
+#             /
+#             sum(rate(http_requests_total{namespace="shakwa"}[5m])) > 0.05
+#           for: 5m
+#           labels:
+#             severity: critical
+#             service: shakwa-backend
+#           annotations:
+#             summary: "High error rate detected in Shakwa Backend"
+#             description: "Error rate is above 5% for the last 5 minutes"

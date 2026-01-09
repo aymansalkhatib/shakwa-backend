@@ -34,12 +34,11 @@ metadata:
     # ===========================================
     # TLS/SSL Configuration
     # ===========================================
-    # Automatic redirect from HTTP to HTTPS
-    # Disabled for local testing - enable in production
-    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
-    # Use cert-manager for Let's Encrypt certificates
-    cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+    # Disabled for local development
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'false'
+    # cert-manager disabled for local - enable in production
+    # cert-manager.io/cluster-issuer: 'letsencrypt-prod'
 
     # ===========================================
     # Rate Limiting (DDoS Protection)
@@ -113,31 +112,19 @@ spec:
   ingressClassName: nginx
 
   # ===========================================
-  # TLS Configuration
+  # TLS Configuration (disabled for local)
   # ===========================================
-  tls:
-    - hosts:
-        - shakwa.35.224.36.164.nip.io
-      secretName: shakwa-tls-secret
+  # tls:
+  #   - hosts:
+  #       - shakwa.35.224.36.164.nip.io
+  #     secretName: shakwa-tls-secret
 
   # ===========================================
   # Routing Rules
   # ===========================================
   rules:
-    # Default rule (no host - accepts any domain/IP)
+    # Default rule for local development
     - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: shakwa-backend-service
-                port:
-                  number: 80
-
-    # Domain with SSL
-    - host: shakwa.35.224.36.164.nip.io
-      http:
         paths:
           - path: /
             pathType: Prefix
