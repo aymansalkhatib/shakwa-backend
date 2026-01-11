@@ -1,7 +1,7 @@
 #!/bin/sh
 
-URL="http://127.0.0.1:65523/api"
-COUNT=100
+URL="http://127.0.0.1:61408/api"
+COUNT=50
 CONCURRENCY=10
 
 echo "Sending $COUNT requests with concurrency=$CONCURRENCY ..."

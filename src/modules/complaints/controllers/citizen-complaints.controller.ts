@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseInterceptors, Version } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseInterceptors,
+  Version,
+} from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { Protected } from '../../../common/decorators/protected.decorator';
@@ -43,6 +53,16 @@ export class CitizenComplaintsController {
       data: plainToInstance(ComplaintResponseDto, result.data),
     };
   }
+
+  @Get(':id')
+  @SerializeResponse(ComplaintResponseDto)
+  findOne(
+    @CurrentUser() citizen: CitizenEntity,
+    @Param('id', PositiveIntPipe) id: number,
+  ): Promise<ComplaintResponseDto> {
+    return this.citizenComplaintsService.findByIdWithHistory(citizen, id);
+  }4
+
 
   @Get(':id')
   @Version('1')

@@ -37,12 +37,12 @@ async function bootstrap() {
     }
 
     if (runAdmins || shouldRunAll) {
-      await seedAdmins(queryRunner);
+      await seedAdmins(queryRunner, configService);
       console.log('Admins seeding completed');
     }
 
     if (runStaff || shouldRunAll) {
-      await seedStaff(queryRunner);
+      await seedStaff(queryRunner, configService);
       console.log('Staff seeding completed');
     }
 

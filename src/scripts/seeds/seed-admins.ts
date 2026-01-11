@@ -2,8 +2,13 @@ import { QueryRunner } from 'typeorm';
 import { InternalRole } from '../../common/enums/role.enum';
 import { ComplaintAuthority } from '../../modules/your-bucket-name/enums/complaint-authority.enum';
 import { InternalUserEntity } from '../../modules/internal-users/entities/internal-user.entity';
+import { ConfigService } from '@nestjs/config';
+import { EnvironmentConfig } from '@app/shared/modules/app-config';
 
-export async function seedAdmins(queryRunner: QueryRunner): Promise<void> {
+export async function seedAdmins(
+  queryRunner: QueryRunner,
+  configService: ConfigService<EnvironmentConfig>
+): Promise<void> {
   console.log('Starting admins seeding...');
 
   const internalUserRepo = queryRunner.manager.getRepository(InternalUserEntity);
@@ -20,24 +25,10 @@ export async function seedAdmins(queryRunner: QueryRunner): Promise<void> {
   const adminsData = [
     {
       fullName: 'أحمد محمد',
-      email: 'admin@shakwa.gov.sa',
-      password: 'Admin123!@#',
+      email: 'admin@shakwa.com',
+      password:configService.getOrThrow("SUPER_ADMIN_PASSWORD") ,
       role: InternalRole.ADMIN,
       authority: ComplaintAuthority.MUNICIPALITY,
-    },
-    {
-      fullName: 'فاطمة علي',
-      email: 'fatima.admin@shakwa.gov.sa',
-      password: 'Admin123!@#',
-      role: InternalRole.ADMIN,
-      authority: ComplaintAuthority.ELECTRICITY_COMPANY,
-    },
-    {
-      fullName: 'خالد سعد',
-      email: 'khalid.admin@shakwa.gov.sa',
-      password: 'Admin123!@#',
-      role: InternalRole.ADMIN,
-      authority: ComplaintAuthority.WATER_COMPANY,
     },
   ];
 

@@ -1,9 +1,14 @@
+import { EnvironmentConfig } from '@app/shared/modules/app-config';
+import { ConfigService } from '@nestjs/config';
 import { QueryRunner } from 'typeorm';
 import { InternalRole } from '../../common/enums/role.enum';
 import { ComplaintAuthority } from '../../modules/your-bucket-name/enums/complaint-authority.enum';
 import { InternalUserEntity } from '../../modules/internal-users/entities/internal-user.entity';
 
-export async function seedStaff(queryRunner: QueryRunner): Promise<void> {
+export async function seedStaff(
+  queryRunner: QueryRunner,
+  configService: ConfigService<EnvironmentConfig>,
+): Promise<void> {
   console.log('Starting staff seeding...');
 
   const internalUserRepo = queryRunner.manager.getRepository(InternalUserEntity);
@@ -20,38 +25,10 @@ export async function seedStaff(queryRunner: QueryRunner): Promise<void> {
   const staffData = [
     {
       fullName: 'نورا أحمد',
-      email: 'nora.staff@shakwa.gov.sa',
-      password: 'Staff123!@#',
+      email: 'nora.staff@shakwa.com',
+      password: configService.getOrThrow('SUPER_ADMIN_PASSWORD'),
       role: InternalRole.STAFF,
       authority: ComplaintAuthority.MUNICIPALITY,
-    },
-    {
-      fullName: 'محمد سالم',
-      email: 'mohammed.staff@shakwa.gov.sa',
-      password: 'Staff123!@#',
-      role: InternalRole.STAFF,
-      authority: ComplaintAuthority.ELECTRICITY_COMPANY,
-    },
-    {
-      fullName: 'سارة عبدالله',
-      email: 'sara.staff@shakwa.gov.sa',
-      password: 'Staff123!@#',
-      role: InternalRole.STAFF,
-      authority: ComplaintAuthority.WATER_COMPANY,
-    },
-    {
-      fullName: 'عبدالرحمن علي',
-      email: 'abdulrahman.staff@shakwa.gov.sa',
-      password: 'Staff123!@#',
-      role: InternalRole.STAFF,
-      authority: ComplaintAuthority.MINISTRY_OF_HEALTH,
-    },
-    {
-      fullName: 'هند محمد',
-      email: 'hind.staff@shakwa.gov.sa',
-      password: 'Staff123!@#',
-      role: InternalRole.STAFF,
-      authority: ComplaintAuthority.MINISTRY_OF_EDUCATION,
     },
   ];
 

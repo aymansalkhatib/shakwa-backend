@@ -10,7 +10,7 @@ import {
 } from './constants/storage.token';
 import { ImageProcessingPipe } from './pipes/image-processing.pipe';
 import { CustomFileParsingPipe } from './pipes/parse-file.pipe';
-import { SupabaseStorageProvider } from './providers/supabase/supabase-storage.provider';
+import { LocalStorageProvider } from './providers/local/local-storage.provider';
 import { StorageService } from './storage.service';
 
 @Module({
@@ -25,7 +25,7 @@ import { StorageService } from './storage.service';
     },
     {
       provide: STORAGE_PROVIDER_SERVICE,
-      useClass: SupabaseStorageProvider,
+      useClass: LocalStorageProvider,
     },
 
     ImageProcessingPipe,

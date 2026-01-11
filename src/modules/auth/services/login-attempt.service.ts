@@ -65,7 +65,7 @@ export class LoginAttemptService {
         subject: 'Sign-in Temporarily Locked',
         to: email,
       });
-      throw new UnauthorizedException(`Too many attempts. Try again later.1`);
+      throw new UnauthorizedException(`Too many attempts. Try again later`);
     }
 
     await this.redis.setString(key, JSON.stringify(state), windowSeconds);
