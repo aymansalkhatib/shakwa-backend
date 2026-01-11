@@ -137,9 +137,3 @@ npm run seed:dev       # Database seeding
 ```
 
 ---
-
-<div align="center">
-
-**Built with NestJS**
-
-</div>
