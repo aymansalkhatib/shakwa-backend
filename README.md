@@ -14,6 +14,7 @@ administrators oversee the whole system.
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)
 ![k6](https://img.shields.io/badge/k6-7D64FF?logo=k6&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-F5C518)
 
 [Highlights](#highlights) · [Architecture](#architecture) · [Complaint lifecycle](#complaint-lifecycle) ·
 [API](#api-overview) · [Getting started](#getting-started) · [Deployment](#deployment)
@@ -291,6 +292,10 @@ jmeter -n -t jmeter-load-test/shakwa.jmx -l results.jtl
 **NestJS 11** · TypeScript 5 · Node.js 22 · TypeORM · PostgreSQL 16 · Redis 7 (ioredis) ·
 Passport JWT · class-validator · Zod · Winston · nestjs-i18n · Sharp · Supabase Storage ·
 Firebase Admin · Resend / SendGrid / SMTP · Docker · Kubernetes · GitLab CI · k6 · JMeter
+
+## License
+
+Released under the [MIT License](LICENSE).
 
 ---
 
