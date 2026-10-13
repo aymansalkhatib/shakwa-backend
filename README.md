@@ -1,6 +1,6 @@
 <div align="center">
 
-# Shakwa · شكوى
+# Shakwa
 
 **Backend API for a government complaints platform.**<br/>
 Citizens file complaints about public services, each authority's staff handle them, and
